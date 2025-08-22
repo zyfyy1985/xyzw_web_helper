@@ -466,7 +466,7 @@ git push origin feature/new-feature
 ---
 
 ## 👏 赞赏
-<img src="https://github.com/w1249178256/xyzw_web_helper/blob/main/public/IMG_8007.JPG" width="200" height="200">z
+<img src="https://github.com/w1249178256/xyzw_web_helper/blob/main/public/IMG_8007.JPG" width="200" height="200">
 
 <div align="center">
 
