@@ -2064,77 +2064,48 @@ const applyLineup = async (lineup) => {
       const skillData = await fetchLatestData();
       const latestPearlMap = skillData.pearlMap || {};
 
-      const processedPearlIds = new Set();
       const pearlIdsToHandle = targetHeroes
         .filter((h) => h.pearlId)
         .map((h) => h.pearlId);
 
+      // Step 1: Unload all skills from pearlIdsToHandle
       for (const pearlId of pearlIdsToHandle) {
-        if (processedPearlIds.has(pearlId)) continue;
-
-        const targetHero = targetHeroes.find((h) => h.pearlId === pearlId);
         const currentPearlData = latestPearlMap[pearlId];
         const currentSkillId = currentPearlData?.skillId || null;
-        const targetSkillId = targetHero?.skillId || null;
 
-        if (!targetSkillId) {
-          if (currentSkillId) {
-            try {
-              await tokenStore.sendMessageWithPromise(
-                tokenId,
-                "pearl_unloadskill",
-                {
-                  pearlId: pearlId,
-                },
-              );
-              skillApplied++;
-              processedPearlIds.add(pearlId);
-            } catch (err) {}
-            await delay(COMMAND_DELAY);
-          }
-          continue;
-        }
-
-        if (currentSkillId === targetSkillId) {
-          continue;
-        }
-
-        const holderPearlId = Object.keys(latestPearlMap).find((pid) => {
-          if (Number(pid) === pearlId) return false;
-          const data = latestPearlMap[pid];
-          return data?.skillId === targetSkillId;
-        });
-
-        if (holderPearlId && !processedPearlIds.has(Number(holderPearlId))) {
+        if (currentSkillId) {
           try {
             await tokenStore.sendMessageWithPromise(
               tokenId,
-              "pearl_exchangeskill",
-              {
-                pearlId1: pearlId,
-                pearlId2: Number(holderPearlId),
-              },
-            );
-            skillApplied += 2;
-            processedPearlIds.add(pearlId);
-            processedPearlIds.add(Number(holderPearlId));
-          } catch (err) {}
-          await delay(COMMAND_DELAY);
-        } else {
-          try {
-            await tokenStore.sendMessageWithPromise(
-              tokenId,
-              "pearl_replaceskill",
+              "pearl_unloadskill",
               {
                 pearlId: pearlId,
-                skillId: targetSkillId,
               },
             );
-            skillApplied++;
-            processedPearlIds.add(pearlId);
           } catch (err) {}
           await delay(COMMAND_DELAY);
         }
+      }
+
+      // Step 2: Replace skills for pearlIdsToHandle
+      for (const pearlId of pearlIdsToHandle) {
+        const targetHero = targetHeroes.find((h) => h.pearlId === pearlId);
+        const targetSkillId = targetHero?.skillId || null;
+
+        if (!targetSkillId) continue;
+
+        try {
+          await tokenStore.sendMessageWithPromise(
+            tokenId,
+            "pearl_replaceskill",
+            {
+              pearlId: pearlId,
+              skillId: targetSkillId,
+            },
+          );
+          skillApplied++;
+        } catch (err) {}
+        await delay(COMMAND_DELAY);
       }
 
       if (skillApplied > 0) {
