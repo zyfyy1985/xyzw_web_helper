@@ -1837,9 +1837,10 @@ const applyLineup = async (lineup) => {
         }
 
         try {
-          // Get current attachment of target hero before exchange
-          const targetHeroData = heroes[String(targetHero.heroId)];
-          const targetCurrentAttachment = targetHeroData?.attachmentUid;
+          // Get current attachment of target hero from attachmentToHero mapping
+          const targetCurrentAttachment = Object.entries(attachmentToHero).find(
+            ([attachmentId, heroId]) => heroId === targetHero.heroId,
+          )?.[0];
 
           await tokenStore.sendMessageWithPromise(tokenId, "hero_exchange", {
             heroId: currentHolderId,
