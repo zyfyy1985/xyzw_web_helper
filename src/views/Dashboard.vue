@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
@@ -66,6 +66,7 @@ import {
   TrendingUp,
   Add,
   Cloud,
+  Download,
 } from "@vicons/ionicons5";
 
 const router = useRouter();
@@ -88,34 +89,226 @@ const currentDate = computed(() => {
 const quickActions = ref([
   {
     id: 1,
-    icon: Cube,
+    icon: markRaw(Cube),
     title: "游戏功能",
     description: "访问所有游戏功能模块",
     action: "game-features",
   },
   {
     id: 2,
-    icon: Add,
+    icon: markRaw(Add),
     title: "添加Token",
     description: "快速添加新的游戏Token",
     action: "add-token",
   },
   {
     id: 3,
-    icon: CheckmarkCircle,
+    icon: markRaw(CheckmarkCircle),
     title: "批量任务",
     description: "批量执行任务",
     action: "batch-daily-tasks",
   },
   {
     id: 4,
-    icon: Cloud,
+    icon: markRaw(Cloud),
     title: "WebSocket测试",
     description: "测试WebSocket连接和游戏命令",
     action: "websocket-test",
   },
+  {
+    id: 5,
+    icon: markRaw(Download),
+    title: "导出配置",
+    description: "导出所有配置到JSON文件",
+    action: "export-state",
+  },
 ]);
 
+const handleExportState = async () => {
+  /**
+   * 手动保存localStorage、IndexedDB和cookies数据
+   * 使用浏览器File System Access API让用户选择保存位置
+   */
+  console.info("开始导出状态数据...");
+
+  try {
+    // 获取localStorage数据
+    const localStorageData = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      localStorageData[key] = localStorage.getItem(key);
+    }
+    console.info(
+      `获取到 ${Object.keys(localStorageData).length} 项localStorage数据`,
+    );
+
+    // 获取IndexedDB数据
+    console.info("开始获取IndexedDB数据...");
+    const indexedDBData = await new Promise((resolve) => {
+      const result = { databases: [] };
+
+      const getAllDatabases = indexedDB.databases
+        ? indexedDB.databases()
+        : Promise.resolve([]);
+
+      getAllDatabases
+        .then((dbs) => {
+          const dbPromises = dbs.map((db) => {
+            if (!db.name) return Promise.resolve(null);
+
+            return new Promise((resolveDb) => {
+              const request = indexedDB.open(db.name, db.version);
+
+              request.onsuccess = (event) => {
+                const database = event.target.result;
+                const storeNames = database.objectStoreNames;
+                const stores = [];
+
+                const storePromises = [];
+                for (let i = 0; i < storeNames.length; i++) {
+                  const storeName = storeNames[i];
+                  storePromises.push(
+                    new Promise((storeResolve) => {
+                      const transaction = database.transaction(
+                        [storeName],
+                        "readonly",
+                      );
+                      const store = transaction.objectStore(storeName);
+                      const dataRequest = store.getAll();
+
+                      const storeInfo = {
+                        name: storeName,
+                        keyPath: store.keyPath,
+                        indexes: [],
+                        data: [],
+                      };
+
+                      // 获取所有索引
+                      for (let j = 0; j < store.indexNames.length; j++) {
+                        const indexName = store.indexNames[j];
+                        const index = store.index(indexName);
+                        storeInfo.indexes.push({
+                          name: indexName,
+                          keyPath: index.keyPath,
+                          unique: index.unique,
+                        });
+                      }
+
+                      dataRequest.onsuccess = (dataEvent) => {
+                        const items = dataEvent.target.result;
+                        const processedItems = items.map((item) => {
+                          return JSON.parse(
+                            JSON.stringify(item, (key, value) => {
+                              if (value instanceof ArrayBuffer) {
+                                const uint8Array = new Uint8Array(value);
+                                let binary = "";
+                                for (
+                                  let k = 0;
+                                  k < uint8Array.byteLength;
+                                  k++
+                                ) {
+                                  binary += String.fromCharCode(uint8Array[k]);
+                                }
+                                return {
+                                  __type__: "ArrayBuffer",
+                                  data: btoa(binary),
+                                };
+                              }
+                              return value;
+                            }),
+                          );
+                        });
+                        storeInfo.data = processedItems;
+                        stores.push(storeInfo);
+                        storeResolve();
+                      };
+
+                      dataRequest.onerror = () => {
+                        storeInfo.data = [];
+                        stores.push(storeInfo);
+                        storeResolve();
+                      };
+                    }),
+                  );
+                }
+
+                Promise.all(storePromises).then(() => {
+                  database.close();
+                  resolveDb({ name: db.name, version: db.version, stores });
+                });
+              };
+
+              request.onerror = () => {
+                resolveDb(null);
+              };
+            });
+          });
+
+          Promise.all(dbPromises).then((results) => {
+            result.databases = results.filter(Boolean);
+            resolve(result);
+          });
+        })
+        .catch(() => {
+          resolve({ databases: [] });
+        });
+    });
+
+    const dbCount = indexedDBData.databases.length;
+    console.info(`成功获取 ${dbCount} 个IndexedDB数据库`);
+    for (const db of indexedDBData.databases) {
+      const storeCount = db.stores ? db.stores.length : 0;
+      const totalData = db.stores
+        ? db.stores.reduce(
+            (sum, store) => sum + (store.data ? store.data.length : 0),
+            0,
+          )
+        : 0;
+      console.info(
+        `数据库: ${db.name}, 版本: ${db.version}, 存储对象: ${storeCount}, 数据总量: ${totalData}`,
+      );
+    }
+
+    // 构建完整的状态数据
+    const stateData = {
+      cookies: [],
+      localStorage: localStorageData,
+      indexedDB: indexedDBData,
+      exportedAt: new Date().toISOString(),
+    };
+
+    // 使用File System Access API让用户选择保存位置
+    const options = {
+      suggestedName: `state-${new Date().toISOString().slice(0, 10)}.json`,
+      types: [
+        {
+          description: "JSON Files",
+          accept: { "application/json": [".json"] },
+        },
+      ],
+    };
+
+    try {
+      const handle = await window.showSaveFilePicker(options);
+      const writable = await handle.createWritable();
+      await writable.write(JSON.stringify(stateData, null, 2));
+      await writable.close();
+      console.info(`状态数据已保存至: ${handle.name}`);
+      message.success(`状态数据已成功保存到: ${handle.name}`);
+      return true;
+    } catch (err) {
+      if (err.name === "AbortError") {
+        console.info("用户取消了保存操作");
+        return false;
+      }
+      throw err;
+    }
+  } catch (err) {
+    console.error("保存状态数据时发生异常:", err);
+    message.error("导出状态数据失败: " + err.message);
+    return false;
+  }
+};
 const handleManageTokens = () => {
   // 降噪
   /* 当前Token状态:
@@ -146,6 +339,9 @@ const handleQuickAction = (action) => {
       break;
     case "websocket-test":
       router.push("/websocket-test");
+      break;
+    case "export-state":
+      handleExportState();
       break;
     case "open-settings":
       router.push("/admin/profile");
