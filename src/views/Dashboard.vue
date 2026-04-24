@@ -289,13 +289,32 @@ const handleExportState = async () => {
     };
 
     try {
-      const handle = await window.showSaveFilePicker(options);
-      const writable = await handle.createWritable();
-      await writable.write(JSON.stringify(stateData, null, 2));
-      await writable.close();
-      console.info(`状态数据已保存至: ${handle.name}`);
-      message.success(`状态数据已成功保存到: ${handle.name}`);
-      return true;
+      // 尝试使用File System Access API（现代浏览器支持）
+      if (window.showSaveFilePicker) {
+        const handle = await window.showSaveFilePicker(options);
+        const writable = await handle.createWritable();
+        await writable.write(JSON.stringify(stateData, null, 2));
+        await writable.close();
+        console.info(`状态数据已保存至: ${handle.name}`);
+        message.success(`状态数据已成功保存到: ${handle.name}`);
+        return true;
+      } else {
+        // 回退方案：使用传统下载方式（支持所有浏览器，包括移动设备）
+        const blob = new Blob([JSON.stringify(stateData, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = options.suggestedName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        console.info(`状态数据已下载为: ${options.suggestedName}`);
+        message.success(`状态数据已成功下载为: ${options.suggestedName}`);
+        return true;
+      }
     } catch (err) {
       if (err.name === "AbortError") {
         console.info("用户取消了保存操作");

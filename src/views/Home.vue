@@ -344,22 +344,52 @@ const restoreState = async () => {
    */
   try {
     console.info("开始恢复配置...");
-    // 让用户选择备份文件
-    const [fileHandle] = await window.showOpenFilePicker({
-      types: [
-        {
-          description: "JSON Files",
-          accept: { "application/json": [".json"] },
-        },
-      ],
-      multiple: false,
-      excludeAcceptAllOption: true,
-      suggestedName: "state.json",
-    });
-    console.info(`选择的文件: ${fileHandle.name}`);
+    let file;
+
+    // 尝试使用File System Access API（现代浏览器支持）
+    if (window.showOpenFilePicker) {
+      const [fileHandle] = await window.showOpenFilePicker({
+        types: [
+          {
+            description: "JSON Files",
+            accept: { "application/json": [".json"] },
+          },
+        ],
+        multiple: false,
+        excludeAcceptAllOption: true,
+        suggestedName: "state.json",
+      });
+      console.info(`选择的文件: ${fileHandle.name}`);
+      file = await fileHandle.getFile();
+    } else {
+      // 回退方案：使用传统文件输入（支持所有浏览器，包括移动设备）
+      file = await new Promise((resolve, reject) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json,application/json";
+        input.style.display = "none";
+
+        input.onchange = () => {
+          if (input.files && input.files[0]) {
+            resolve(input.files[0]);
+          } else {
+            reject(new Error("用户取消了文件选择"));
+          }
+          document.body.removeChild(input);
+        };
+
+        input.oncancel = () => {
+          reject(new Error("用户取消了文件选择"));
+          document.body.removeChild(input);
+        };
+
+        document.body.appendChild(input);
+        input.click();
+      });
+      console.info(`选择的文件: ${file.name}`);
+    }
 
     // 读取文件内容
-    const file = await fileHandle.getFile();
     console.info(`文件大小: ${file.size} 字节`);
     const fileContent = await file.text();
     console.info(`文件内容长度: ${fileContent.length} 字符`);
