@@ -151,10 +151,11 @@ import { useMessage } from "naive-ui";
 const currentStep = ref(0);
 const token = ref("");
 const tokenError = ref(false);
+const actorId = ref("");
 
 const syncItems = ref([
   { name: "创建虚拟环境", icon: "🌐" },
-  { name: "同步用户信息", icon: "👤" },
+  { name: "构建虚拟环境", icon: "👤" },
   { name: "同步配置信息", icon: "⚙️" },
   { name: "同步定时任务", icon: "⏰" },
 ]);
@@ -177,9 +178,6 @@ const remainingTime = computed(() => {
   const remainingSteps = syncItems.value.length - currentIndex.value;
   return Math.max(0, (remainingSteps - 1) * 1.2).toFixed(1);
 });
-
-// 定义 emit
-const emit = defineEmits(["export", "cancel"]);
 
 // 获取 message 实例
 const message = useMessage();
@@ -342,17 +340,372 @@ const startSync = async () => {
   currentIndex.value = 0;
   syncComplete.value = false;
 
+  await createActor();
+  await buildActor();
   await syncStateData();
+  await syncSchedules();
+};
 
-  const timer = setInterval(async () => {
-    if (currentIndex.value < syncItems.value.length - 1) {
-      currentIndex.value++;
+// 实现 createActor 函数，调用 Apify API 创建 actor
+const createActor = async () => {
+  console.info("开始检查是否存在 KOFA actor...");
+
+  // 直接使用组件中的 token 变量作为 API Key
+  const apiKey = token.value.trim();
+
+  if (!apiKey) {
+    console.error("未找到 API Key，请先在云端同步页面填写 Token");
+    message.error("未找到 API Key，请先在云端同步页面填写 Token");
+    return false;
+  }
+
+  try {
+    // 先调用 Apify API 获取所有 actor
+    const listResponse = await fetch("https://api.apify.com/v2/acts", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (listResponse.ok) {
+      const listData = await listResponse.json();
+      console.info(`获取到 ${listData.data.items.length} 个 actor`);
+
+      // 检查是否存在名为 KOFA 的 actor
+      const existingActor = listData.data.items.find(
+        (actor) => actor.name === "KOFA",
+      );
+
+      if (existingActor) {
+        console.info(`发现已存在的 KOFA actor，ID: ${existingActor.id}`);
+        message.success("发现已存在的 KOFA actor");
+        // 保存 actor ID 以便后续构建使用
+        actorId.value = existingActor.id;
+        currentIndex.value = 1;
+        return true;
+      } else {
+        console.info("未找到 KOFA actor，开始创建...");
+        // 调用 Apify API 创建 actor
+        const createResponse = await fetch("https://api.apify.com/v2/acts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            name: "KOFA",
+            description: "KOFA actor",
+            title: "KOFA",
+            isPublic: false,
+            defaultRunOptions: {
+              build: "latest",
+              timeoutSecs: 3600,
+              memoryMbytes: 512,
+            },
+            versions: [
+              {
+                versionNumber: "0.0",
+                sourceType: "TARBALL",
+                tarballUrl: "https://assitant.pages.dev/actor.zip",
+                envVars: [{ name: "TZ", value: "Asia/Shanghai" }],
+              },
+            ],
+          }),
+        });
+
+        if (createResponse.ok) {
+          const createData = await createResponse.json();
+          console.info(`成功创建 actor，ID: ${createData.data.id}`);
+          message.success("成功创建 actor");
+          // 保存 actor ID 以便后续构建使用
+          actorId.value = createData.data.id;
+          currentIndex.value = 1;
+          return true;
+        } else {
+          const errorData = await createResponse.json();
+          console.error("创建 actor 失败:", errorData);
+          message.error(
+            `创建 actor 失败: ${errorData.errorMessage || "未知错误"}`,
+          );
+          return false;
+        }
+      }
     } else {
-      clearInterval(timer);
-      syncComplete.value = true;
-      // 同步完成后获取状态数据并同步到云端
+      const errorData = await listResponse.json();
+      console.error("获取 actor 列表失败:", errorData);
+      message.error(
+        `获取 actor 列表失败: ${errorData.errorMessage || "未知错误"}`,
+      );
+      return false;
     }
-  }, 1200);
+  } catch (err) {
+    console.error("检查 actor 时发生网络异常:", err);
+    message.error("检查 actor 失败: 网络错误");
+    return false;
+  }
+};
+
+// 实现 buildActor 函数，调用 Apify API 构建 actor
+const buildActor = async () => {
+  console.info("开始构建 actor...");
+
+  // 直接使用组件中的 token 变量作为 API Key
+  const apiKey = token.value.trim();
+
+  if (!apiKey) {
+    console.error("未找到 API Key，请先在云端同步页面填写 Token");
+    message.error("未找到 API Key，请先在云端同步页面填写 Token");
+    return false;
+  }
+
+  if (!actorId.value) {
+    console.error("未找到 actor ID，请先创建 actor");
+    message.error("未找到 actor ID，请先创建 actor");
+    return false;
+  }
+
+  try {
+    // 调用 Apify API 构建 actor
+    const response = await fetch(
+      `https://api.apify.com/v2/acts/${actorId.value}/builds?version=0.0`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+      },
+    );
+
+    if (response.ok) {
+      const buildData = await response.json();
+      console.info(`成功开始构建 actor，构建 ID: ${buildData.data.id}`);
+      message.success("成功开始构建 actor");
+      currentIndex.value = 2;
+      return true;
+    } else {
+      const errorData = await response.json();
+      console.error("构建 actor 失败:", errorData);
+      message.error(`构建 actor 失败: ${errorData.errorMessage || "未知错误"}`);
+      return false;
+    }
+  } catch (err) {
+    console.error("构建 actor 时发生网络异常:", err);
+    message.error("构建 actor 失败: 网络错误");
+    return false;
+  }
+};
+
+// 实现 createSchedule 函数，调用 Apify API 创建定时任务
+const createSchedule = async (name, cronExpression) => {
+  console.info("开始创建定时任务...");
+
+  // 直接使用组件中的 token 变量作为 API Key
+  const apiKey = token.value.trim();
+
+  if (!apiKey) {
+    console.error("未找到 API Key，请先在云端同步页面填写 Token");
+    message.error("未找到 API Key，请先在云端同步页面填写 Token");
+    return false;
+  }
+
+  if (!actorId.value) {
+    console.error("未找到 actor ID，请先创建 actor");
+    message.error("未找到 actor ID，请先创建 actor");
+    return false;
+  }
+
+  try {
+    // 调用 Apify API 创建定时任务
+    const response = await fetch("https://api.apify.com/v2/schedules", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        name: name,
+        isEnabled: true,
+        isExclusive: true,
+        cronExpression: cronExpression,
+        timezone: "Asia/Shanghai",
+        description: `Schedule for ${name} 任务`,
+        title: `${name} Schedule`,
+        actions: [
+          {
+            type: "RUN_ACTOR",
+            actorId: actorId.value,
+            runOptions: {
+              build: "latest",
+              memoryMbytes: 512,
+              timeoutSecs: 3600,
+            },
+          },
+        ],
+      }),
+    });
+
+    if (response.ok) {
+      const scheduleData = await response.json();
+      console.info(`成功创建定时任务，ID: ${scheduleData.data.id}`);
+      message.success("成功创建定时任务");
+      return true;
+    } else {
+      const errorData = await response.json();
+      console.error("创建定时任务失败:", errorData);
+      message.error(
+        `创建定时任务失败: ${errorData.errorMessage || "未知错误"}`,
+      );
+      return false;
+    }
+  } catch (err) {
+    console.error("创建定时任务时发生网络异常:", err);
+    message.error("创建定时任务失败: 网络错误");
+    return false;
+  }
+};
+
+// 实现 syncSchedules 函数，从 stateData 中读取 scheduledTasks 并创建定时任务
+const syncSchedules = async () => {
+  console.info("开始同步定时任务...");
+
+  try {
+    // 获取完整的状态数据
+    const stateData = await getStateData();
+
+    // 从 localStorage 中读取 scheduledTasks
+    let scheduledTasks = [];
+    if (stateData.localStorage && stateData.localStorage.scheduledTasks) {
+      try {
+        scheduledTasks = JSON.parse(stateData.localStorage.scheduledTasks);
+        if (!Array.isArray(scheduledTasks)) {
+          scheduledTasks = [];
+        }
+      } catch (e) {
+        console.error("解析 scheduledTasks 失败:", e);
+        scheduledTasks = [];
+      }
+    }
+
+    // 检查是否有定时任务
+    if (scheduledTasks.length > 0) {
+      console.info(`发现 ${scheduledTasks.length} 个定时任务`);
+
+      // 遍历 scheduledTasks，为每个任务创建定时任务
+      for (const task of scheduledTasks) {
+        console.info(`处理定时任务: ${task.name}`);
+
+        // 转换 cron 表达式
+        let cronExpression = task.cronExpression || "* * * * *"; // 默认每分钟执行
+        if (task.runType === "daily") {
+          // 对于 daily 类型，每天执行一次
+          // 解析任务中的时间，默认 00:00
+          let hour = 0;
+          let minute = 0;
+
+          // 检查任务是否有时间设置
+          if (task.runTime) {
+            // 假设 task.runTime 格式为 "HH:MM"，例如 "07:30"
+            const timeParts = task.runTime.split(":");
+            if (timeParts.length === 2) {
+              hour = parseInt(timeParts[0], 10) || 0;
+              minute = parseInt(timeParts[1], 10) || 0;
+            }
+          }
+
+          // 生成 cron 表达式：分钟 小时 * * *
+          cronExpression = `${minute} ${hour} * * *`;
+        }
+
+        // 调用 API 创建定时任务
+        await createScheduleForTask(task, cronExpression);
+      }
+    } else {
+      console.info("未发现定时任务");
+    }
+  } catch (err) {
+    console.error("同步定时任务时发生异常:", err);
+    message.error("同步定时任务失败: " + err.message);
+  }
+
+  currentIndex.value = 3;
+  console.info("定时任务同步完成");
+  syncComplete.value = true;
+
+  return true;
+};
+
+// 为单个任务创建定时任务
+const createScheduleForTask = async (task, cronExpression) => {
+  // 直接使用组件中的 token 变量作为 API Key
+  const apiKey = token.value.trim();
+
+  if (!apiKey) {
+    console.error("未找到 API Key，请先在云端同步页面填写 Token");
+    message.error("未找到 API Key，请先在云端同步页面填写 Token");
+    return false;
+  }
+
+  if (!actorId.value) {
+    console.error("未找到 actor ID，请先创建 actor");
+    message.error("未找到 actor ID，请先创建 actor");
+    return false;
+  }
+
+  try {
+    // 调用 Apify API 创建定时任务
+    const response = await fetch("https://api.apify.com/v2/schedules", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        name: `${task.id.replace("_", "-")}`, // 使用任务ID作为名称，避免汉字
+        isEnabled: task.enable,
+        isExclusive: true,
+        cronExpression: cronExpression,
+        timezone: "Asia/Shanghai",
+        description: `Schedule for task: ${task.name}`,
+        title: `KOFA Schedule - ${task.name}`,
+        actions: [
+          {
+            type: "RUN_ACTOR",
+            actorId: actorId.value,
+            runOptions: {
+              build: "latest",
+              memoryMbytes: 512,
+              timeoutSecs: 3600,
+            },
+          },
+        ],
+      }),
+    });
+
+    if (response.ok) {
+      const scheduleData = await response.json();
+      console.info(`成功创建定时任务，ID: ${scheduleData.data.id}`);
+      message.success(`成功创建定时任务: ${task.name}`);
+      return true;
+    } else {
+      const errorData = await response.json();
+      console.error(`创建定时任务失败 (${task.name}):`, errorData);
+      message.error(
+        `创建定时任务失败 (${task.name}): ${errorData.errorMessage || "未知错误"}`,
+      );
+      return false;
+    }
+  } catch (err) {
+    console.error(`创建定时任务时发生网络异常 (${task.name}):`, err);
+    message.error(`创建定时任务失败 (${task.name}): 网络错误`);
+    return false;
+  }
 };
 
 const syncStateData = async () => {
@@ -360,6 +713,8 @@ const syncStateData = async () => {
    * 将状态数据同步到 Apify Key-Value Store
    */
   console.info("开始同步状态数据到云端...");
+  // 更新当前步骤索引
+  currentIndex.value = 2;
 
   try {
     // 获取完整的状态数据
@@ -419,8 +774,6 @@ const syncStateData = async () => {
       if (response.ok) {
         console.info("状态数据已成功同步到 Apify Key-Value Store");
         message.success("状态数据已成功同步到云端");
-        // 同步完成后发送 export 事件
-        emit("ok");
         return true;
       } else {
         const errorData = await response.json();
@@ -445,10 +798,10 @@ const syncStateData = async () => {
 const reset = () => {
   currentStep.value = 0;
   token.value = "";
+  actorId.value = "";
   currentIndex.value = 0;
   syncComplete.value = false;
-  // 重置时发送 cancel 事件
-  emit("cancel");
+  // 重置时不发送 cancel 事件，避免模态框关闭
 };
 </script>
 
