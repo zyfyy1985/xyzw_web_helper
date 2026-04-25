@@ -45,10 +45,21 @@
             class="import-method-tabs"
             size="small"
           >
-            <n-radio-button value="manual"> 手动输入 </n-radio-button>
+            <n-radio-button value="localRestore"> 本地恢复 </n-radio-button>
+            <n-radio-button value="cloudRestore"> 云端恢复 </n-radio-button>
           </n-radio-group>
         </div>
         <div class="card-body">
+          <local-restore-form
+            @cancel="() => (showImportForm = false)"
+            @ok="() => (showImportForm = false)"
+            v-if="importMethod === 'localRestore'"
+          />
+          <cloud-restore-form
+            @cancel="() => (showImportForm = false)"
+            @ok="() => (showImportForm = false)"
+            v-if="importMethod === 'cloudRestore'"
+          />
           <manual-token-form
             @cancel="() => (showImportForm = false)"
             @ok="() => (showImportForm = false)"
@@ -611,6 +622,8 @@ import ManualTokenForm from "./manual.vue";
 import UrlTokenForm from "./url.vue";
 import BinTokenForm from "./bin.vue";
 import singleBinTokenForm from "./singlebin.vue";
+import CloudRestoreForm from "./cloudRestore.vue";
+import LocalRestoreForm from "./localRestore.vue";
 import WxQrcodeForm from "./wxqrcode.vue";
 
 import { useTokenStore, selectedTokenId } from "@/stores/tokenStore";
@@ -664,7 +677,7 @@ const importFormRef = ref(null);
 const urlFormRef = ref(null);
 const editFormRef = ref(null);
 const editingToken = ref(null);
-const importMethod = ref("manual");
+const importMethod = ref("localRestore");
 const refreshingTokens = ref(new Set());
 const connectingTokens = ref(new Set());
 // 从localStorage读取上次的视图模式，默认为列表视图
