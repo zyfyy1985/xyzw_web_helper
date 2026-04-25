@@ -49,6 +49,37 @@
         </section>
       </div>
     </main>
+
+    <!-- 导出配置模态框 -->
+    <n-modal
+      v-model:show="showExportModal"
+      preset="card"
+      title="导出配置"
+      style="width: 40rem"
+    >
+      <div class="card-header">
+        <!-- 导出方式选择 -->
+        <n-radio-group
+          v-model:value="exportMethod"
+          class="export-method-tabs"
+          size="small"
+        >
+          <n-radio-button value="localExport"> 本地导出 </n-radio-button>
+          <n-radio-button value="cloudSync"> 云端同步 </n-radio-button>
+        </n-radio-group>
+      </div>
+      <div class="card-body">
+        <local-export-form
+          @ok="localExport"
+          v-if="exportMethod === 'localExport'"
+        />
+        <cloud-sync-form
+          @cancel="() => (showExportModal = false)"
+          @ok="cloudExport"
+          v-if="exportMethod === 'cloudSync'"
+        />
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -57,6 +88,8 @@ import { ref, computed, onMounted, markRaw } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
+import LocalExportForm from "@/views/ConfigExport/LocalExport.vue";
+import CloudSyncForm from "@/views/ConfigExport/CloudSync.vue";
 import {
   PersonCircle,
   Cube,
@@ -75,6 +108,8 @@ const tokenStore = useTokenStore();
 
 // 响应式数据
 // const recentActivities = ref([]);
+const showExportModal = ref(false);
+const exportMethod = ref("localExport");
 
 // 计算属性
 const currentDate = computed(() => {
@@ -125,221 +160,23 @@ const quickActions = ref([
 ]);
 
 const handleExportState = async () => {
-  /**
-   * 手动保存localStorage、IndexedDB和cookies数据
-   * 使用浏览器File System Access API让用户选择保存位置
-   */
-  console.info("开始导出状态数据...");
-
-  try {
-    // 获取localStorage数据
-    const localStorageData = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      localStorageData[key] = localStorage.getItem(key);
-    }
-    console.info(
-      `获取到 ${Object.keys(localStorageData).length} 项localStorage数据`,
-    );
-
-    // 获取IndexedDB数据
-    console.info("开始获取IndexedDB数据...");
-    const indexedDBData = await new Promise((resolve) => {
-      const result = { databases: [] };
-
-      const getAllDatabases = indexedDB.databases
-        ? indexedDB.databases()
-        : Promise.resolve([]);
-
-      getAllDatabases
-        .then((dbs) => {
-          const dbPromises = dbs.map((db) => {
-            if (!db.name) return Promise.resolve(null);
-
-            return new Promise((resolveDb) => {
-              const request = indexedDB.open(db.name, db.version);
-
-              request.onsuccess = (event) => {
-                const database = event.target.result;
-                const storeNames = database.objectStoreNames;
-                const stores = [];
-
-                const storePromises = [];
-                for (let i = 0; i < storeNames.length; i++) {
-                  const storeName = storeNames[i];
-                  storePromises.push(
-                    new Promise((storeResolve) => {
-                      const transaction = database.transaction(
-                        [storeName],
-                        "readonly",
-                      );
-                      const store = transaction.objectStore(storeName);
-                      const dataRequest = store.getAll();
-
-                      const storeInfo = {
-                        name: storeName,
-                        keyPath: store.keyPath,
-                        indexes: [],
-                        data: [],
-                      };
-
-                      // 获取所有索引
-                      for (let j = 0; j < store.indexNames.length; j++) {
-                        const indexName = store.indexNames[j];
-                        const index = store.index(indexName);
-                        storeInfo.indexes.push({
-                          name: indexName,
-                          keyPath: index.keyPath,
-                          unique: index.unique,
-                        });
-                      }
-
-                      dataRequest.onsuccess = (dataEvent) => {
-                        const items = dataEvent.target.result;
-                        const processedItems = items.map((item) => {
-                          return JSON.parse(
-                            JSON.stringify(item, (key, value) => {
-                              if (value instanceof ArrayBuffer) {
-                                const uint8Array = new Uint8Array(value);
-                                let binary = "";
-                                for (
-                                  let k = 0;
-                                  k < uint8Array.byteLength;
-                                  k++
-                                ) {
-                                  binary += String.fromCharCode(uint8Array[k]);
-                                }
-                                return {
-                                  __type__: "ArrayBuffer",
-                                  data: btoa(binary),
-                                };
-                              }
-                              return value;
-                            }),
-                          );
-                        });
-                        storeInfo.data = processedItems;
-                        stores.push(storeInfo);
-                        storeResolve();
-                      };
-
-                      dataRequest.onerror = () => {
-                        storeInfo.data = [];
-                        stores.push(storeInfo);
-                        storeResolve();
-                      };
-                    }),
-                  );
-                }
-
-                Promise.all(storePromises).then(() => {
-                  database.close();
-                  resolveDb({ name: db.name, version: db.version, stores });
-                });
-              };
-
-              request.onerror = () => {
-                resolveDb(null);
-              };
-            });
-          });
-
-          Promise.all(dbPromises).then((results) => {
-            result.databases = results.filter(Boolean);
-            resolve(result);
-          });
-        })
-        .catch(() => {
-          resolve({ databases: [] });
-        });
-    });
-
-    const dbCount = indexedDBData.databases.length;
-    console.info(`成功获取 ${dbCount} 个IndexedDB数据库`);
-    for (const db of indexedDBData.databases) {
-      const storeCount = db.stores ? db.stores.length : 0;
-      const totalData = db.stores
-        ? db.stores.reduce(
-            (sum, store) => sum + (store.data ? store.data.length : 0),
-            0,
-          )
-        : 0;
-      console.info(
-        `数据库: ${db.name}, 版本: ${db.version}, 存储对象: ${storeCount}, 数据总量: ${totalData}`,
-      );
-    }
-
-    // 构建完整的状态数据
-    const stateData = {
-      cookies: [],
-      localStorage: localStorageData,
-      indexedDB: indexedDBData,
-      exportedAt: new Date().toISOString(),
-    };
-
-    // 使用File System Access API让用户选择保存位置
-    const options = {
-      suggestedName: `state-${new Date().toISOString().slice(0, 10)}.json`,
-      types: [
-        {
-          description: "JSON Files",
-          accept: { "application/json": [".json"] },
-        },
-      ],
-    };
-
-    try {
-      // 检测是否是 Android WebView
-      if (window.AndroidDownload) {
-        // Android WebView 的保存方式
-        const jsonContent = JSON.stringify(stateData, null, 2);
-        const base64Content = btoa(unescape(encodeURIComponent(jsonContent)));
-        window.AndroidDownload.downloadFile(
-          options.suggestedName,
-          base64Content,
-          "application/json",
-        );
-        console.info(`状态数据已下载为: ${options.suggestedName}`);
-        message.success(`状态数据已成功下载为: ${options.suggestedName}`);
-        return true;
-      } else if (window.showSaveFilePicker) {
-        const handle = await window.showSaveFilePicker(options);
-        const writable = await handle.createWritable();
-        await writable.write(JSON.stringify(stateData, null, 2));
-        await writable.close();
-        console.info(`状态数据已保存至: ${handle.name}`);
-        message.success(`状态数据已成功保存到: ${handle.name}`);
-        return true;
-      } else {
-        // 回退方案：使用传统下载方式（支持所有浏览器，包括移动设备）
-        const blob = new Blob([JSON.stringify(stateData, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = options.suggestedName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        console.info(`状态数据已下载为: ${options.suggestedName}`);
-        message.success(`状态数据已成功下载为: ${options.suggestedName}`);
-        return true;
-      }
-    } catch (err) {
-      if (err.name === "AbortError") {
-        console.info("用户取消了保存操作");
-        return false;
-      }
-      throw err;
-    }
-  } catch (err) {
-    console.error("保存状态数据时发生异常:", err);
-    message.error("导出状态数据失败: " + err.message);
-    return false;
-  }
+  // 重置导出方式为本地导出
+  exportMethod.value = "localExport";
+  showExportModal.value = true;
 };
+
+const localExport = async () => {
+  // 本地导出逻辑已移至 LocalExport 组件中执行
+  // 这里只需要关闭模态框
+  showExportModal.value = false;
+};
+
+const cloudExport = async () => {
+  // 云同步逻辑已移至 CloudSync 组件中执行
+  // 这里只需要关闭模态框
+  showExportModal.value = false;
+};
+
 const handleManageTokens = () => {
   // 降噪
   /* 当前Token状态:
@@ -683,6 +520,19 @@ onMounted(async () => {
 .empty-activity {
   text-align: center;
   padding: var(--spacing-xl) 0;
+}
+
+// 导出配置模态框样式
+.card-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.export-method-tabs {
+  margin-bottom: var(--spacing-md);
+}
+
+.card-body {
+  padding: var(--spacing-md);
 }
 
 // 响应式设计

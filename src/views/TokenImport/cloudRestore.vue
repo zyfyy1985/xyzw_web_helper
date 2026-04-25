@@ -296,10 +296,10 @@ const handleFetchInfo = async () => {
     }
 
     // 2. 根据name字段查找Store，精确匹配state-json
-    const targetStore = stores.find((store) => store.name === "state-json");
+    const targetStore = stores.find((store) => store.name === "KOFS");
 
     if (!targetStore) {
-      throw new Error("未找到名称为state-json的Key-Value Store");
+      throw new Error("未找到名称为KOFS的Key-Value Store");
     }
 
     // 3. 直接从找到的Store获取state.json
