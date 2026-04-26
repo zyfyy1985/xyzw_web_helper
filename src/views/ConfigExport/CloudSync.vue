@@ -84,7 +84,7 @@
 
     <!-- 步骤 3：同步进度 -->
     <div v-if="currentStep === 2" class="content">
-      <div v-if="!syncComplete">
+      <div v-if="!syncComplete && !syncError">
         <div style="text-align: center; margin-bottom: 24px">
           <n-spin size="large" />
           <h3 style="margin: 16px 0 8px 0; color: #1f2937">正在同步中...</h3>
@@ -110,6 +110,25 @@
         </div>
 
         <div class="status-text">预计剩余时间：{{ remainingTime }} 秒</div>
+      </div>
+
+      <div v-else-if="syncError">
+        <div class="error-icon">❌</div>
+        <h3 style="text-align: center; color: #dc2626; margin-bottom: 8px">
+          同步失败
+        </h3>
+        <n-alert type="error" :show-icon="true" style="margin-bottom: 24px">
+          <p style="margin: 0; word-break: break-all">{{ syncError }}</p>
+        </n-alert>
+        <n-button
+          type="primary"
+          size="large"
+          block
+          @click="reset"
+          style="height: 48px; font-size: 16px"
+        >
+          重新开始
+        </n-button>
       </div>
 
       <div v-else>
@@ -152,6 +171,7 @@ const currentStep = ref(0);
 const token = ref("");
 const tokenError = ref(false);
 const actorId = ref("");
+const syncError = ref(null);
 
 const syncItems = ref([
   { name: "创建虚拟环境", icon: "🌐" },
@@ -339,11 +359,38 @@ const startSync = async () => {
   currentStep.value = 2;
   currentIndex.value = 0;
   syncComplete.value = false;
+  syncError.value = null;
 
-  await createActor();
-  await buildActor();
-  await syncStateData();
-  await syncSchedules();
+  try {
+    const actorResult = await createActor();
+    if (!actorResult) {
+      return;
+    }
+    currentIndex.value++;
+
+    const buildResult = await buildActor();
+    if (!buildResult) {
+      return;
+    }
+    currentIndex.value++;
+
+    const stateResult = await syncStateData();
+    if (!stateResult) {
+      return;
+    }
+    currentIndex.value++;
+
+    const scheduleResult = await syncSchedules();
+    if (!scheduleResult) {
+      return;
+    }
+    currentIndex.value++;
+
+    syncComplete.value = true;
+  } catch (err) {
+    console.error("同步过程出错:", err);
+    syncError.value = err.message || "同步过程中发生未知错误";
+  }
 };
 
 const APIFY_BASE = "https://api.apify.com/v2";
@@ -362,43 +409,49 @@ async function request(path, options) {
   const json = await res.json();
 
   if (!res.ok) {
-    throw new Error("Apify API error: " + json);
+    throw new Error(json?.error?.message || "未知错误");
   }
   return json;
 }
 
 // 实现 createActor 函数，调用 Apify API 创建 actor
 const createActor = async () => {
-  let res = await request("/acts");
-  const actor = res?.data?.items?.find((a) => a.name === "KOFA");
-  if (!actor) {
-    res = await request("/acts", {
-      method: "POST",
-      body: JSON.stringify({
-        name: "KOFA",
-        description: "KOFA actor",
-        title: "KOFA",
-        isPublic: false,
-        defaultRunOptions: {
-          build: "latest",
-          timeoutSecs: 3600,
-          memoryMbytes: 512,
-        },
-        versions: [
-          {
-            versionNumber: "0.0",
-            sourceType: "TARBALL",
-            tarballUrl: "https://assitant.pages.dev/actor.zip",
-            envVars: [{ name: "TZ", value: "Asia/Shanghai" }],
+  try {
+    let res = await request("/acts");
+    let actor = res?.data?.items?.find((a) => a.name === "KOFA");
+    if (!actor) {
+      res = await request("/acts", {
+        method: "POST",
+        body: JSON.stringify({
+          name: "KOFA",
+          description: "KOFA actor",
+          title: "KOFA",
+          isPublic: false,
+          defaultRunOptions: {
+            build: "latest",
+            timeoutSecs: 3600,
+            memoryMbytes: 512,
           },
-        ],
-      }),
-    });
-    actor = res.data;
-    console.info(`成功创建 actor: ${actor.name}`);
+          versions: [
+            {
+              versionNumber: "0.0",
+              sourceType: "TARBALL",
+              tarballUrl: "https://assitant.pages.dev/actor.zip",
+              envVars: [{ name: "TZ", value: "Asia/Shanghai" }],
+            },
+          ],
+        }),
+      });
+      actor = res.data;
+      console.info(`成功创建 actor: ${actor.name}`);
+    }
+    actorId.value = actor.id;
+    return true;
+  } catch (err) {
+    console.error("创建 actor 时发生网络异常:", err);
+    syncError.value = "创建虚拟环境失败: " + (err.message || "未知错误");
+    return false;
   }
-  actorId.value = actor.id;
-  currentIndex.value = 1;
 };
 
 // 实现 buildActor 函数，调用 Apify API 构建 actor
@@ -413,10 +466,10 @@ const buildActor = async () => {
       },
     );
     console.info(`成功开始构建 actor，构建 ID: ${response.data.id}`);
-    currentIndex.value = 2;
     return true;
   } catch (err) {
     console.error("构建 actor 时发生网络异常:", err);
+    syncError.value = "构建虚拟环境失败: " + (err.message || "未知错误");
     return false;
   }
 };
@@ -545,11 +598,10 @@ const syncSchedules = async () => {
     }
   } catch (err) {
     console.error("同步定时任务时发生异常:", err);
+    syncError.value = "同步定时任务失败: " + (err.message || "未知错误");
     return false;
   }
-  currentIndex.value = 3;
   console.info("定时任务同步完成");
-  syncComplete.value = true;
   return true;
 };
 
@@ -558,8 +610,6 @@ const syncStateData = async () => {
    * 将状态数据同步到 Apify Key-Value Store
    */
   console.info("开始同步状态数据到云端...");
-  // 更新当前步骤索引
-  currentIndex.value = 2;
   try {
     // 获取完整的状态数据
     const stateData = await getStateData();
@@ -584,6 +634,7 @@ const syncStateData = async () => {
     return true;
   } catch (err) {
     console.error("同步状态数据时发生异常:", err);
+    syncError.value = "同步配置信息失败: " + (err.message || "未知错误");
     return false;
   }
 };
@@ -594,6 +645,7 @@ const reset = () => {
   actorId.value = "";
   currentIndex.value = 0;
   syncComplete.value = false;
+  syncError.value = null;
   // 重置时不发送 cancel 事件，避免模态框关闭
 };
 </script>
@@ -677,6 +729,12 @@ const reset = () => {
 }
 
 .success-icon {
+  text-align: center;
+  font-size: 48px;
+  margin: 20px 0;
+}
+
+.error-icon {
   text-align: center;
   font-size: 48px;
   margin: 20px 0;
