@@ -445,6 +445,12 @@ const createActor = async () => {
       actor = res.data;
       console.info(`成功创建 actor: ${actor.name}`);
     }
+    await request(`/acts/${actor.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        actorPermissionLevel: "FULL_PERMISSIONS",
+      }),
+    });
     actorId.value = actor.id;
     return true;
   } catch (err) {
