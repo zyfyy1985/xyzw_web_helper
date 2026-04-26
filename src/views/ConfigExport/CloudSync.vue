@@ -436,7 +436,7 @@ const createActor = async () => {
             {
               versionNumber: "0.0",
               sourceType: "TARBALL",
-              tarballUrl: "https://assitant.pages.dev/actor.zip",
+              tarballUrl: "https://assitant.pages.dev/KOFA.zip",
               envVars: [{ name: "TZ", value: "Asia/Shanghai" }],
             },
           ],
