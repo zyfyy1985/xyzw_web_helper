@@ -1501,7 +1501,7 @@ const saveCurrentLineup = async () => {
         position: hero.position,
         heroId: hero.heroId,
         level: teamHeroInfo?.level || null,
-        attachmentUid: heroData?.attachmentUid || null,
+        equipment: heroData?.equipment || null,
         fishId: fishId || null,
         pearlId: pearlId,
         skillId: pearlData?.skillId || null,
@@ -1746,6 +1746,51 @@ const applyLineup = async (lineup) => {
       .sort((a, b) => a.position - b.position);
   };
 
+  const compareEquipment = (targetEquip, currentEquip) => {
+    if (!targetEquip || !currentEquip) return false;
+
+    const targetQuenches = targetEquip.quenches || {};
+    const currentQuenches = currentEquip.quenches || {};
+
+    for (const [key, targetQ] of Object.entries(targetQuenches)) {
+      if (!targetQ.isLocked) continue;
+
+      const currentQ = currentQuenches[key];
+      if (!currentQ) return false;
+
+      if (
+        currentQ.colorId !== targetQ.colorId ||
+        currentQ.attrId !== targetQ.attrId ||
+        currentQ.attrNum !== targetQ.attrNum ||
+        !currentQ.isLocked
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const buildHeroToEquipmentMap = (heroes) => {
+    const map = {};
+    for (const [id, hero] of Object.entries(heroes)) {
+      const equip1 = hero.equipment?.[1];
+      if (equip1) {
+        map[Number(id)] = equip1;
+      }
+    }
+    return map;
+  };
+
+  const findCurrentHeroByEquipment = (targetEquip, heroToEquipment) => {
+    for (const [heroId, heroEquip] of Object.entries(heroToEquipment)) {
+      if (compareEquipment(targetEquip, heroEquip)) {
+        return Number(heroId);
+      }
+    }
+    return null;
+  };
+
   const fetchLatestData = async (teamId = null) => {
     const roleInfo = await tokenStore.sendMessageWithPromise(
       tokenId,
@@ -1787,21 +1832,19 @@ const applyLineup = async (lineup) => {
     let { heroes, teamInfo } = await fetchLatestData();
     let currentHeroes = getTeamHeroes(teamInfo);
 
-    const attachmentToHero = {};
-    for (const [id, hero] of Object.entries(heroes)) {
-      if (hero.attachmentUid && hero.attachmentUid !== -1) {
-        attachmentToHero[hero.attachmentUid] = Number(id);
-      }
-    }
+    let heroToEquipment = buildHeroToEquipmentMap(heroes);
 
     const currentHeroIds = new Set(currentHeroes.map((h) => h.heroId));
     const targetHeroIds = new Set(targetHeroes.map((h) => h.heroId));
 
     for (const targetHero of targetHeroes) {
-      if (!targetHero.attachmentUid || targetHero.attachmentUid === -1)
-        continue;
+      const targetEquip = targetHero.equipment?.[1];
+      if (!targetEquip) continue;
 
-      const currentHolderId = attachmentToHero[targetHero.attachmentUid];
+      const currentHolderId = findCurrentHeroByEquipment(
+        targetEquip,
+        heroToEquipment,
+      );
 
       if (currentHolderId && currentHolderId !== targetHero.heroId) {
         const holderInTeam = currentHeroIds.has(currentHolderId);
@@ -1837,29 +1880,25 @@ const applyLineup = async (lineup) => {
         }
 
         try {
-          // Get current attachment of target hero from attachmentToHero mapping
-          const targetCurrentAttachment = Object.entries(attachmentToHero).find(
-            ([attachmentId, heroId]) => heroId === targetHero.heroId,
-          )?.[0];
+          const targetHeroCurrentEquip = heroToEquipment[targetHero.heroId];
+          const currentHolderCurrentEquip = heroToEquipment[currentHolderId];
 
           await tokenStore.sendMessageWithPromise(tokenId, "hero_exchange", {
             heroId: currentHolderId,
             targetHeroId: targetHero.heroId,
           });
 
-          // Update attachment mappings after exchange
-          const targetAttachment = targetHero.attachmentUid;
-
-          // Update mapping for the attachment target hero should receive
-          if (targetAttachment && targetAttachment !== -1) {
-            delete attachmentToHero[targetAttachment];
-            attachmentToHero[targetAttachment] = targetHero.heroId;
+          // 交换后更新映射
+          if (currentHolderCurrentEquip) {
+            heroToEquipment[targetHero.heroId] = currentHolderCurrentEquip;
+          } else {
+            delete heroToEquipment[targetHero.heroId];
           }
 
-          // Update mapping for the attachment current holder should receive
-          if (targetCurrentAttachment && targetCurrentAttachment !== -1) {
-            delete attachmentToHero[targetCurrentAttachment];
-            attachmentToHero[targetCurrentAttachment] = currentHolderId;
+          if (targetHeroCurrentEquip) {
+            heroToEquipment[currentHolderId] = targetHeroCurrentEquip;
+          } else {
+            delete heroToEquipment[currentHolderId];
           }
         } catch (err) {}
         await delay(COMMAND_DELAY);
@@ -1870,11 +1909,7 @@ const applyLineup = async (lineup) => {
     const data1 = await fetchLatestData();
     await delay(COMMAND_DELAY);
     heroes = data1.heroes;
-    for (const [id, hero] of Object.entries(heroes)) {
-      if (hero.attachmentUid && hero.attachmentUid !== -1) {
-        attachmentToHero[hero.attachmentUid] = Number(id);
-      }
-    }
+    heroToEquipment = buildHeroToEquipmentMap(heroes);
     currentHeroes = getTeamHeroes(data1.teamInfo);
     currentHeroIds.clear();
     currentHeroes.forEach((h) => currentHeroIds.add(h.heroId));
