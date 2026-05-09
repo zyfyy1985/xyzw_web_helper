@@ -503,6 +503,7 @@ const createSchedule = async (task, cronExpression) => {
               build: "latest",
               memoryMbytes: 512,
               timeoutSecs: 3600,
+              maxTotalChargeUsd: 0.005,
             },
             runInput: {
               body: JSON.stringify({
@@ -548,6 +549,7 @@ const updateSchedule = async (scheduleId, task, cronExpression) => {
               build: "latest",
               memoryMbytes: 512,
               timeoutSecs: 3600,
+              maxTotalChargeUsd: 0.005,
             },
             runInput: {
               body: JSON.stringify({
