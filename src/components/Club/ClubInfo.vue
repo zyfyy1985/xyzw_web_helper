@@ -754,6 +754,19 @@ const topMembers = computed(() => {
       });
     });
   }
+  if (filterRedQuenchDropped.value) {
+    list = list.filter((m) => {
+      const currentRed = Number(m.custom?.red_quench_cnt || 0);
+      let storedMap = {};
+      try {
+        storedMap = JSON.parse(localStorage.getItem("maxRedQuench") || "{}");
+      } catch (e) {
+        storedMap = {};
+      }
+      const maxRed = Number(m.maxRedQuench ?? storedMap[m.roleId] ?? 0);
+      return maxRed > 0 && currentRed < maxRed;
+    });
+  }
   return list.sort((a, b) => {
     // 1. 职位排序：会长(1) > 副会长(2) > 成员(0)
     const jobA = a.job === 0 ? 99 : a.job;
@@ -781,6 +794,7 @@ const batchLoading = ref(false);
 const isExporting = ref(false);
 const exportDom = ref(null);
 const filterNoRedQuench = ref(false);
+const filterRedQuenchDropped = ref(false);
 
 // 提取英雄信息
 const getHeroInfo = (heroObj) => {
@@ -923,9 +937,11 @@ const fetchAllMembersLineup = async () => {
 
           if (roleRes && roleRes.roleInfo) {
             let heroList = [];
+            let currentRed = 0;
             if (roleRes.roleInfo.heroes) {
               const res = getHeroInfo(roleRes.roleInfo.heroes);
               heroList = res.heroList;
+              currentRed = res.redCount || 0;
             }
 
             const lineupType = getLineupType(heroList);
@@ -939,6 +955,9 @@ const fetchAllMembersLineup = async () => {
               tokenStore.gameData.legionInfo.info.members[
                 roleId
               ].currentHeroList = heroList;
+              const _maxRed = getAndUpdateMaxRedQuench(roleId, currentRed);
+              tokenStore.gameData.legionInfo.info.members[roleId].maxRedQuench =
+                _maxRed;
             }
           }
         } catch (e) {
@@ -1286,6 +1305,22 @@ const memberColumns = computed(() => {
         ),
     },
     {
+      title: "最高红淬",
+      key: "maxRedQuench",
+      width: 80,
+      align: "center",
+      render: (row) => {
+        let storedMap = {};
+        try {
+          storedMap = JSON.parse(localStorage.getItem("maxRedQuench") || "{}");
+        } catch (e) {
+          storedMap = {};
+        }
+        const max = row.maxRedQuench ?? Number(storedMap[row.roleId] || 0);
+        return h("span", { style: { color: "#fa8c16" } }, redQuenchlabel(max));
+      },
+    },
+    {
       title: "阵容",
       key: "lineupType",
       width: 80,
@@ -1393,6 +1428,17 @@ const memberColumns = computed(() => {
                       onClick: (e) => e.stopPropagation(),
                     },
                     { default: () => "0红玩家" },
+                  ),
+                  h(
+                    NCheckbox,
+                    {
+                      checked: filterRedQuenchDropped.value,
+                      "onUpdate:checked": (val) => {
+                        filterRedQuenchDropped.value = val;
+                      },
+                      onClick: (e) => e.stopPropagation(),
+                    },
+                    { default: () => "红淬降低玩家" },
                   ),
                   h(
                     NButton,
@@ -1786,6 +1832,23 @@ const jobLabel = (job) => {
   if (job === 1) return "会长";
   if (job === 2) return "副会长";
   return "成员";
+};
+
+const getAndUpdateMaxRedQuench = (roleId, currentRed) => {
+  const key = "maxRedQuench";
+  let storedMap = {};
+  try {
+    storedMap = JSON.parse(localStorage.getItem(key) || "{}");
+  } catch (e) {
+    storedMap = {};
+  }
+  const stored = Number(storedMap[roleId] || 0);
+  if (currentRed > stored) {
+    storedMap[roleId] = currentRed;
+    localStorage.setItem(key, JSON.stringify(storedMap));
+    return currentRed;
+  }
+  return stored;
 };
 
 const redQuenchlabel = (redQuenchl) => {
