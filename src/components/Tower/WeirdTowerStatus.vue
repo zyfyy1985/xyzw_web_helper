@@ -24,19 +24,31 @@
     </div>
 
     <div class="card-actions">
-      <button
-        :class="[
-          'climb-button',
-          {
-            active: canClimb,
-            disabled: !canClimb,
-          },
-        ]"
-        :disabled="!canClimb"
-        @click="startTowerClimb"
-      >
-        {{ isClimbing.value ? "爬塔中..." : "开始爬塔" }}
-      </button>
+      <div class="climb-action-row">
+        <input
+          v-model.number="maxClimbInput"
+          class="climb-limit-input"
+          type="number"
+          min="1"
+          step="1"
+          aria-label="怪异塔爬塔次数"
+          :disabled="isClimbing || isUsingItems || isMerging"
+        />
+        <span class="climb-limit-unit">次</span>
+        <button
+          :class="[
+            'climb-button',
+            {
+              active: canClimb,
+              disabled: !canClimb,
+            },
+          ]"
+          :disabled="!canClimb"
+          @click="startTowerClimb"
+        >
+          {{ isClimbing ? "爬塔中..." : "开始爬塔" }}
+        </button>
+      </div>
 
       <!-- 停止批量爬塔按钮，仅批量时显示 -->
       <button v-if="isClimbing" class="stop-button" @click="stopClimbing">停止爬塔</button>
@@ -90,6 +102,10 @@ const stopUsingItems = () => {
 import { computed, onMounted, ref, watch } from "vue";
 import { useTokenStore } from "@/stores/tokenStore";
 import { useMessage } from "naive-ui";
+import {
+  DEFAULT_WEIRD_TOWER_MAX_CLIMB,
+  normalizeWeirdTowerMaxClimb,
+} from "@/utils/towerClimbLimit.js";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
@@ -98,6 +114,7 @@ const message = useMessage();
 const isClimbing = ref(false);
 const isUsingItems = ref(false);
 const isMerging = ref(false);
+const maxClimbInput = ref(DEFAULT_WEIRD_TOWER_MAX_CLIMB);
 const climbTimeout = ref(null); // 用于超时重置状态
 const itemTimeout = ref(null); // 用于道具使用超时
 const mergeTimeout = ref(null); // 用于合成超时
@@ -115,6 +132,20 @@ const weirdTowerData = computed(() => {
 
 const currentTowerId = computed(() => {
   return weirdTowerData.value?.towerId || 0
+})
+
+// 已领取到的章号，与已通关章数不一致时游戏服会拒绝开战
+const rewardTowerId = computed(() => {
+  return weirdTowerData.value?.rewardTowerId || 0
+})
+
+// 未领取的章节通关奖励数量：已通关章数(towerId / 10) - 已领章号
+const pendingChapterRewards = computed(() => {
+  const towerId = currentTowerId.value;
+  if (!towerId) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(towerId / 10) - rewardTowerId.value);
 })
 
 const lotteryLeftCnt = computed(() => {
@@ -473,7 +504,8 @@ const startTowerClimb = async () => {
   isClimbing.value = true;
   stopFlag = false;
   let climbCount = 0;
-  let maxClimb = 100; // 最多批量次数，防止死循环
+  const maxClimb = normalizeWeirdTowerMaxClimb(maxClimbInput.value);
+  maxClimbInput.value = maxClimb;
   // 设置超时保护，60秒后自动重置状态
   climbTimeout.value = setTimeout(() => {
     isClimbing.value = false;
@@ -484,6 +516,9 @@ const startTowerClimb = async () => {
 
   try {
     const tokenId = tokenStore.selectedToken.id;
+    // 爬塔前先补领未领取的章节奖励，否则 evotower_readyfight 会被拒绝（12200020）
+    await claimPendingChapterRewards(tokenId);
+
     for (let i = 0; i < maxClimb; i++) {
       if (stopFlag) break;
 
@@ -501,7 +536,7 @@ const startTowerClimb = async () => {
       );
 
       // 执行战斗
-      const fightResult = await tokenStore.sendMessageWithPromise(
+      await tokenStore.sendMessageWithPromise(
         tokenId,
         "evotower_fight",
         {
@@ -547,24 +582,10 @@ const startTowerClimb = async () => {
         }
       }
 
-      // 检查是否刚通关10层（即当前层是1-1, 2-1, 3-1等）
-      const towerId = currentTowerId.value;
-      const floor = (towerId % 10) + 1;
-      if (
-        fightResult &&
-        fightResult.winList &&
-        fightResult.winList[0] === true &&
-        floor === 1
-      ) {
-        // 领取通关奖励
-        await tokenStore.sendMessageWithPromise(
-          tokenId,
-          "evotower_claimreward",
-          {},
-          5000,
-        );
-        message.success(`成功领取第${Math.floor(towerId / 10)}章通关奖励！`);
-      }
+      // 通关章节奖励：以 rewardTowerId 为准判断是否有未领取的章节
+      // （原按 (towerId % 10) + 1 === 1 判断，towerId 为 10 的整数倍时恒成立，
+      //   会重复发送领奖命令，且无法感知历史未领取的章节）
+      await claimPendingChapterRewards(tokenId);
 
       await new Promise((res) => setTimeout(res, 400)); // 每次间隔400毫秒
     }
@@ -628,6 +649,48 @@ const getTowerInfo = async () => {
   } catch (error) {
     // 获取塔信息失败：静默，避免噪声
   }
+};
+
+/**
+ * 补领未领取的章节通关奖励
+ *
+ * towerId 是层号（如 240 表示已通关第 24 章），rewardTowerId 是已领取到的章号。
+ * 两者不一致时 evotower_readyfight 会被游戏服拒绝并返回 12200020，导致爬塔无法开始，
+ * 因此需在爬塔前先补齐。
+ *
+ * @param {string} tokenId - token id
+ * @returns {Promise<number>} 实际补领的章节数
+ */
+const claimPendingChapterRewards = async (tokenId) => {
+  let pending = pendingChapterRewards.value;
+  if (pending <= 0) {
+    return 0;
+  }
+
+  message.info(`检测到 ${pending} 个未领取的章节奖励，先行补领`);
+  let claimed = 0;
+  while (pending > 0) {
+    try {
+      await tokenStore.sendMessageWithPromise(
+        tokenId,
+        "evotower_claimreward",
+        {},
+        5000,
+      );
+      claimed++;
+      pending--;
+      await new Promise((r) => setTimeout(r, 300));
+    } catch (error) {
+      message.error(`领取章节奖励失败：${error?.message || error}`);
+      break;
+    }
+  }
+
+  if (claimed > 0) {
+    message.success(`已补领 ${claimed} 个章节通关奖励`);
+    await getTowerInfo();
+  }
+  return claimed;
 };
 
 // 监听WebSocket连接状态变化
@@ -773,6 +836,52 @@ onMounted(() => {
   gap: var(--spacing-sm);
   margin-top: auto;
   padding-top: var(--spacing-sm);
+}
+
+.climb-action-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+  width: 100%;
+
+  .climb-button {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.climb-limit-input {
+  flex: 0 0 86px;
+  width: 86px;
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  text-align: center;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: var(--border-radius-medium);
+  outline: none;
+  transition: border-color var(--transition-fast);
+
+  &:focus {
+    border-color: #8b5cf6;
+  }
+
+  &:disabled {
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+    background: var(--bg-secondary);
+  }
+}
+
+.climb-limit-unit {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
 }
 
 .climb-button {
