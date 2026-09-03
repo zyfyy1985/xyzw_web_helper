@@ -14,9 +14,10 @@
             gap: 12px;
           "
         >
-          <div style="display: flex; align-items: center; gap: 16px">
+          <div class="page-header-title-row" style="display: flex; align-items: center; gap: 16px">
             <h2>批量日常任务</h2>
             <div
+              class="page-header-info"
               style="
                 display: flex;
                 align-items: center;
@@ -41,7 +42,7 @@
               <div v-else style="font-size: 14px; color: #6c757d">
                 暂无定时任务
               </div>
-              <div style="display: flex; gap: 8px">
+              <div class="page-header-info-buttons" style="display: flex; gap: 8px">
                 <n-button type="primary" size="small" @click="openTaskModal">
                   新增定时任务
                 </n-button>
@@ -62,6 +63,7 @@
             </div>
           </div>
           <div
+            class="page-header-actions"
             style="
               display: flex;
               align-items: center;
@@ -234,7 +236,8 @@
               <n-grid
                 :x-gap="12"
                 :y-gap="8"
-                :cols="batchSettings.tokenListColumns"
+                responsive="screen"
+                :cols="[1, 2, 3, batchSettings.tokenListColumns]"
               >
                 <n-grid-item v-for="token in sortedTokens" :key="token.id">
                   <div class="token-row">
@@ -6354,6 +6357,98 @@ const stopBatch = () => {
     .avatar-container {
       margin-bottom: 12px;
     }
+  }
+}
+
+/* ==================== Mobile 响应式增强 ==================== */
+/* 让 page-header 内的两个子块在窄屏下逐行堆叠，
+   内部状态/按钮组自然换行，标题不再被挤成竖排。 */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  /* 标题 + 状态条 一组：内部允许换行 */
+  .page-header-title-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .page-header-title-row h2 {
+    flex-shrink: 0;
+    margin: 0;
+  }
+
+  /* 状态面板允许换行、长文本可断行 */
+  .page-header-info {
+    flex-wrap: wrap;
+    flex: 1 1 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .page-header-info > div {
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* 状态面板里的按钮组允许换行 */
+  .page-header-info-buttons {
+    flex-wrap: wrap;
+  }
+
+  /* 右侧动作按钮区（开始/停止/模板/设置）也允许换行 */
+  .page-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+}
+
+/* 更窄屏（手机竖屏）进一步压缩间距 */
+@media (max-width: 480px) {
+  .batch-daily-tasks {
+    padding: 8px !important;
+  }
+
+  .page-header-title-row h2 {
+    font-size: 18px;
+  }
+
+  .page-header-info,
+  .page-header-actions {
+    padding: 6px 8px !important;
+    gap: 8px !important;
+  }
+
+  /* token 长名称允许在任意位置断行，避免单字竖排 */
+  .token-item {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .token-item span,
+  .token-item .n-tag {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  /* 排序按钮组允许换行 */
+  .sort-buttons {
+    overflow-x: auto;
+  }
+
+  /* 日志头部控件在窄屏下换行 */
+  .custom-card-header {
+    gap: 6px;
+  }
+
+  .log-header-controls {
+    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 </style>
