@@ -724,6 +724,10 @@ const handleExport = async () => {
   }
 }
 
+// 导出图片的固定渲染宽度：保证按桌面布局渲染，
+// 避免手机上白色背景/标题/统计卡被压缩，溢出部分露出灰色底色
+const EXPORT_WIDTH = 1280;
+
 const exportToImage = async () => {
   // 校验：确保DOM已正确绑定
   if (!exportDom.value) {
@@ -731,11 +735,49 @@ const exportToImage = async () => {
     return;
   }
 
+  // 与"盐场匹配信息详情"(ClubWarrank) 一致的处理：
+  // 临时解除容器裁剪/滚动限制，并按内容完整宽高渲染，确保导出图片完整
+  const containers = [exportDom.value];
+  const recordsContainer = exportDom.value.closest('.records-container');
+  if (recordsContainer) containers.push(recordsContainer);
+  const warrankContainer = exportDom.value.closest('.warrank-full-container');
+  if (warrankContainer) containers.push(warrankContainer);
+  containers.push(
+    ...exportDom.value.querySelectorAll(
+      '.style1-table-container, .style2-table-wrapper'
+    )
+  );
+
+  const originalStyles = containers.map((el) => ({
+    element: el,
+    overflow: el.style.getPropertyValue('overflow'),
+    height: el.style.getPropertyValue('height'),
+    maxHeight: el.style.getPropertyValue('max-height'),
+    width: el.style.getPropertyValue('width'),
+    maxWidth: el.style.getPropertyValue('max-width'),
+  }));
+
+  // 顶层三个容器需要额外固定渲染宽度：手机上容器只有屏宽，
+  // 白色背景/居中标题/统计卡都会被压缩，溢出部分露出灰色底。
+  const topContainers = new Set(
+    [exportDom.value, recordsContainer, warrankContainer].filter(Boolean)
+  );
+
   try {
+    containers.forEach((el) => {
+      // 用 !important 覆盖样式表中的 overflow/height/max-height 限制
+      el.style.setProperty('overflow', 'visible', 'important');
+      el.style.setProperty('height', 'auto', 'important');
+      el.style.setProperty('max-height', 'none', 'important');
+      if (topContainers.has(el)) {
+        el.style.setProperty('width', EXPORT_WIDTH + 'px', 'important');
+        el.style.setProperty('max-width', 'none', 'important');
+      }
+    });
+
     // 临时移除战神榜内容区域的最大高度限制，确保所有内容都可见
     const godRankingContents = exportDom.value.querySelectorAll('.god-ranking-content');
-    const originalStyles = [];
-    
+
     godRankingContents.forEach(content => {
       originalStyles.push({
         element: content,
@@ -746,18 +788,37 @@ const exportToImage = async () => {
       content.style.overflow = 'visible';
     });
 
-    // 5. 用html2canvas渲染DOM为Canvas
+    // 等待 DOM 更新后再渲染
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 渲染宽度：固定桌面宽度与内容实际宽度取较大值
+    const renderWidth = Math.max(EXPORT_WIDTH, exportDom.value.scrollWidth);
+    const renderHeight = exportDom.value.scrollHeight;
+
+    // 5. 用html2canvas渲染DOM为Canvas（按内容完整宽高渲染，确保导出完整）
     const canvas = await html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: '#ffffff', // 避免透明背景（默认透明）
-      logging: false // 关闭控制台日志
+      logging: false, // 关闭控制台日志
+      height: renderHeight, // 确保捕获完整高度
+      width: renderWidth, // 确保捕获完整宽度
+      windowWidth: renderWidth, // 以桌面宽度作为渲染窗口（媒体按桌面布局解析）
+      windowHeight: renderHeight // 以内容完整高度作为渲染窗口
     });
 
-    // 恢复战神榜内容区域的原始样式
-    originalStyles.forEach(({ element, maxHeight, overflow }) => {
-      element.style.maxHeight = maxHeight;
-      element.style.overflow = overflow;
+    // 恢复所有容器的原始样式
+    originalStyles.forEach(({ element, maxHeight, overflow, height, width, maxWidth }) => {
+      if (overflow) element.style.setProperty('overflow', overflow, 'important');
+      else element.style.removeProperty('overflow');
+      if (height) element.style.setProperty('height', height, 'important');
+      else element.style.removeProperty('height');
+      if (maxHeight) element.style.setProperty('max-height', maxHeight, 'important');
+      else element.style.removeProperty('max-height');
+      if (width) element.style.setProperty('width', width, 'important');
+      else element.style.removeProperty('width');
+      if (maxWidth) element.style.setProperty('max-width', maxWidth, 'important');
+      else element.style.removeProperty('max-width');
     });
 
     // 6. Canvas转图片链接并下载
@@ -1490,15 +1551,7 @@ onMounted(() => {
   color: #4caf50;
 }
 
-@media (max-width: 768px) {
-  .style1-content { flex-direction: column; }
-  .style1-table-container, .style1-summary { width: 100%; }
-  
-  .style2-dashboard { flex-direction: column; }
-  .stat-card-row { flex-wrap: wrap; }
-  .dashboard-mvp { width: 100%; flex-direction: row; justify-content: flex-start; gap: 15px; }
-  .mvp-crown { right: auto; left: 50px; }
-  
-  .style2-rankings-grid { grid-template-columns: 1fr; }
-}
+/* 手机端不再改变布局：保持与桌面一致的结构，
+   超出部分由外层容器（GameStatus 的 .warrank-full-container /
+   .records-container 覆盖规则）横向滚动查看。 */
 </style>

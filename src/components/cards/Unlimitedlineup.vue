@@ -32,6 +32,7 @@
             保存阵容
           </n-button>
           <n-button
+            class="add-hero-btn"
             type="success"
             size="small"
             @click="openAddHeroModal"
@@ -3556,5 +3557,25 @@ onMounted(() => {
   font-size: var(--font-size-sm);
   text-align: center;
   padding: var(--spacing-lg);
+}
+
+/* ==================== 手机端精简 UI ====================
+   武将行内"更换/下阵"按钮区占 60px，加上 4 个属性 chip 会超出手机屏宽，
+   故在 <768px 隐藏这些操作入口；桌面端不受影响，功能完整保留。 */
+@media (max-width: 768px) {
+  /* 武将行的操作区（更换 / 下阵） */
+  .hero-actions {
+    display: none !important;
+  }
+
+  /* 工具栏的"上阵英雄"按钮 */
+  .add-hero-btn {
+    display: none !important;
+  }
+
+  /* 顶部工具栏允许换行，避免剩余按钮挤在一起 */
+  .toolbar {
+    flex-wrap: wrap;
+  }
 }
 </style>

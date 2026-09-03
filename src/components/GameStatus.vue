@@ -157,7 +157,8 @@
 
     <!-- 俱乐部信息与疯狂赛车（同级卡片，仅俱乐部分区） -->
     <ClubInfo v-if="activeSection === 'club'" />
-    <ClubCarKing v-if="activeSection === 'club'" />
+    <!-- 临时关闭赛车 -->
+    <ClubCarKing v-if="activeSection === 'club' && false" />
 
     <!-- 月度任务进度（提取组件） -->
     <MonthlyTasksCard v-show="activeSection === 'activity'" />
@@ -406,7 +407,7 @@ const rankSubTab = ref("serverrank");
 
 // 盐场匹配信息详情 / 蟠桃园信息 界面样式选择（style1=原有样式，style2=移植样式）
 const warrankStyle = ref(
-  localStorage.getItem("club_warrank_style") || "style1"
+  localStorage.getItem("club_warrank_style") || "style1",
 );
 const peachStyle = ref(localStorage.getItem("peach_info_style") || "style1");
 
@@ -851,10 +852,11 @@ onUnmounted(() => {
   width: 100%;
   height: calc(100vh - 200px);
   min-height: 600px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 
   @media (max-width: 768px) {
-    height: calc(100vh - 180px);
+    height: auto;
     min-height: 500px;
   }
 }
@@ -1028,6 +1030,156 @@ onUnmounted(() => {
     .status-badge {
       margin-left: auto;
     }
+  }
+}
+
+/* ==================== 盐场 / 蟠桃园 / 排行榜 手机端防溢出 ====================
+   原设计为桌面 dashboard：固定高度 + overflow:hidden 的容器。
+   在手机端 grid 项默认 min-width:auto 会被内容撑开，导致整页横向滚动。
+   改为：分组容器允许收缩，子导航/内容容器内允许横向滚动。 */
+@media (max-width: 768px) {
+  /* 三组分组容器允许收缩，避免被 grid 撑出视口 */
+  .salt-field-group,
+  .peach-group,
+  .rank-group {
+    min-width: 0;
+  }
+
+  /* 子导航（segment tabs）允许横向滚动。
+     注意：内联 style 已设置 display:flex justify-content:center，
+     手机端改为 flex-start 让标签从左开始排，方便横向看。 */
+  .salt-field-group .sub-nav,
+  .peach-group .sub-nav,
+  .rank-group .sub-nav {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .salt-field-group .sub-nav::-webkit-scrollbar,
+  .peach-group .sub-nav::-webkit-scrollbar,
+  .rank-group .sub-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* n-tabs 内部保证不换行，tab 缩字号（naive-ui 的 tab 元素类名是 .n-tabs-tab） */
+  .salt-field-group :deep(.n-tabs),
+  .peach-group :deep(.n-tabs),
+  .rank-group :deep(.n-tabs) {
+    white-space: nowrap;
+    min-width: max-content;
+  }
+
+  .salt-field-group :deep(.n-tabs-tab),
+  .peach-group :deep(.n-tabs-tab),
+  .rank-group :deep(.n-tabs-tab) {
+    font-size: 13px;
+    padding: 6px 12px;
+    flex-shrink: 0;
+  }
+
+  /* 样式切换栏（样式一/样式二）也允许横向滚动 */
+  .style-switch-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start !important;
+  }
+
+  /* 内容容器：去掉固定高度 + overflow:hidden，
+     改为容器内可横向滚动 + 自适应高度，避免整页溢出 */
+  .warrank-full-container {
+    height: auto !important;
+    min-height: 400px !important;
+    max-height: calc(100vh - 120px);
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+
+  /* 样式二容器去掉更高的最小高度限制 */
+  .warrank-full-container.style2-container {
+    min-height: 400px !important;
+    height: auto !important;
+  }
+
+  /* ---- 操作区 / 结果区分离 ----
+     有独立结果容器的组件（盐场匹配详情、三个战绩组件）：
+     根容器保持手机宽度，操作按钮区（导出/样式/刷新/日期等）按手机布局显示；
+     仅"结果展示区"按桌面 1280px 宽度渲染，在结果区内部横向滚动查看。
+     其余无独立结果容器的组件整体按桌面宽度渲染（外层容器横滑）。 */
+  .warrank-full-container > * {
+    width: 1280px !important;
+    min-width: 1280px !important;
+    max-width: none !important;
+    box-sizing: border-box;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* 有独立结果容器的组件：根恢复手机宽度 */
+  .warrank-full-container :deep(.club-warrank-container),
+  .warrank-full-container :deep(.records-container),
+  .warrank-full-container :deep(.club-month-battle-records-container) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* 结果区 = 横向滚动容器（操作区在结果区外，保持手机宽度可见） */
+  .warrank-full-container :deep(.table-content),
+  .warrank-full-container :deep(.records-list),
+  .warrank-full-container :deep(.records-wrapper) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 结果区内容按桌面 1280px 宽度渲染（与导出图片一致） */
+  .warrank-full-container :deep(.table-content > *),
+  .warrank-full-container :deep(.records-list > *),
+  .warrank-full-container :deep(.records-wrapper > *) {
+    width: 1280px !important;
+    min-width: 1280px !important;
+    max-width: none !important;
+    box-sizing: border-box;
+  }
+
+  /* 操作区（在结果区外）允许换行，适配手机宽度 */
+  .warrank-full-container :deep(.function-section),
+  .warrank-full-container :deep(.stats-section),
+  .warrank-full-container :deep(.header-actions),
+  .warrank-full-container :deep(.toolbar),
+  .warrank-full-container :deep(.filter-section) {
+    flex-wrap: wrap;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* ---- 本周盐场战绩 / 本月盐场战绩 / 蟠桃园战绩：原生 <table> 桌面宽度 ---- */
+  /* style2 包裹层：hidden → auto，解除表格被裁剪 */
+  .warrank-full-container :deep(.style2-table-wrapper) {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 原生表格：宽度跟随内容（单元格不换行时自然撑开），超出交给结果区横滑 */
+  .warrank-full-container :deep(table.style1-table),
+  .warrank-full-container :deep(table.style2-table),
+  .warrank-full-container :deep(table.members-table) {
+    width: max-content;
+    min-width: 100%;
   }
 }
 </style>

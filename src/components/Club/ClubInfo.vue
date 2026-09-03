@@ -31,6 +31,7 @@
         <!-- 申请列表悬浮界面 -->
         <n-modal
           v-model:show="showApplyList"
+          class="club-apply-modal"
           title="俱乐部申请列表"
           :mask-closable="true"
           :show-close-button="true"
@@ -129,7 +130,13 @@
         <n-tabs v-model:value="activeTab" type="line" animated>
           <n-tab-pane name="overview" tab="概览" display-directive="show:lazy">
             <div class="overview">
-              <n-grid x-gap="12" y-gap="12" cols="2" item-responsive>
+              <n-grid
+                x-gap="12"
+                y-gap="12"
+                responsive="screen"
+                :cols="[1, 2]"
+                item-responsive
+              >
                 <!-- 头部信息 -->
                 <n-gi span="2">
                   <n-card
@@ -390,6 +397,7 @@
   <!-- 玩家信息模态框 -->
   <n-modal
     v-model:show="showPlayerInfoModal"
+    class="club-player-modal"
     preset="card"
     title="成员信息"
     :style="{ width: '800px' }"
@@ -2398,6 +2406,116 @@ const formatNumber = (num) => {
     .equipment-grid {
       grid-template-columns: 1fr;
     }
+  }
+}
+
+/* ==================== 手机端防横向溢出 ==================== */
+/* ClubInfo 本身的宽度由父级 .game-status-container 控制（<=768px 已为 minmax(0,1fr)），
+   溢出全部来自组件内部：2 列固定栅格、固定 px 宽的弹窗、成员表格。 */
+@media (max-width: 768px) {
+  /* 1) 卡片本体：禁止横向滚动，任何子元素超宽一律裁剪 */
+  .club-info {
+    overflow-x: hidden;
+    min-width: 0;
+  }
+
+  /* 2) 概览栅格：允许收缩，避免被卡片内容（长数值/标签）撑开 */
+  .overview {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .overview :deep(.n-grid),
+  .overview :deep(.n-grid-item) {
+    min-width: 0;
+  }
+
+  /* 3) 头部 n-thing（头像 + 名称/ID/服务器/成员数 + 签到按钮）改为可换行 */
+  .overview :deep(.n-thing-avatar) {
+    margin-right: 8px;
+  }
+
+  .overview :deep(.n-thing-header-wrapper),
+  .overview :deep(.n-thing-main) {
+    min-width: 0;
+  }
+
+  .overview :deep(.n-thing-header) {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+  }
+
+  /* 签到按钮在手机上整行显示，避免挤压标题区 */
+  .overview :deep(.n-thing-header-extra) {
+    width: 100%;
+    margin: 6px 0 0;
+  }
+
+  /* 4) 概览内的长文本（公告、会长、Boss 提示等）强制换行 */
+  .overview :deep(.n-card__content),
+  .overview :deep(.n-alert),
+  .overview :deep(.n-thing-main__description) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* 5) 标签栏：5 个 tab 在手机上可横向滑动，但不撑开外层 */
+  .club-info :deep(.n-tabs-rail) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+
+  .club-info :deep(.n-tabs-rail::-webkit-scrollbar) {
+    display: none;
+  }
+
+  .club-info :deep(.n-tabs-tab) {
+    font-size: 13px;
+    padding: 8px 10px;
+    flex-shrink: 0;
+  }
+
+  /* 6) 成员表格：限制在卡片内横向滚动，不把整页撑宽 */
+  .members {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 7) 三个固定 px 宽的弹窗改为视口百分比（内联 style 需用 !important 覆盖） */
+  :global(.club-apply-modal),
+  :global(.club-apply-modal .n-modal),
+  :global(.club-player-modal),
+  :global(.club-player-modal .n-modal),
+  :global(.hero-detail-modal),
+  :global(.hero-detail-modal .n-modal) {
+    width: 92vw !important;
+    max-width: 92vw !important;
+    box-sizing: border-box;
+  }
+
+  /* 弹窗内容区同步限制宽度，防止内部表格/栅格再次撑宽 */
+  :global(.club-apply-modal .n-modal-content),
+  :global(.club-player-modal .n-modal-content),
+  :global(.hero-detail-modal .n-modal-content) {
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+}
+
+/* 极窄屏（<400px）进一步压缩间距 */
+@media (max-width: 400px) {
+  .club-info {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .club-info :deep(.n-tabs-tab) {
+    font-size: 12px;
+    padding: 7px 8px;
   }
 }
 </style>
