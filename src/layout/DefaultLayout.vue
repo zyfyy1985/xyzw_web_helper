@@ -9,7 +9,7 @@
             <n-icon>
               <Menu />
             </n-icon>
-            <span class="brand-text">XYZW 控制台</span>
+            <span class="brand-text">控制台</span>
           </div>
         </div>
 
@@ -177,11 +177,11 @@
           <span>消息测试</span>
         </router-link>
           <router-link to="/admin/legion-war" class="nav-item" active-class="active"  v-if="isNowInLegionWarTime()" >
-            <n-icon>
-              <LockOpen />
-            </n-icon>
-            <span>实时盐场</span>
-          </router-link>
+          <n-icon>
+            <LockOpen />
+          </n-icon>
+          <span>实时盐场</span>
+        </router-link>
         <router-link
           to="/admin/profile"
           class="drawer-item"
