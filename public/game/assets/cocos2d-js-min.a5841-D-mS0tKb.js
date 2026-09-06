@@ -4618,7 +4618,7 @@
                     return cc.error("Wrong type of AudioClip.");
                 var r = t.nativeUrl
                   , s = h(r);
-                return s.src = t,
+                return s.src = convertAssets(t),
                 t._ensureLoaded(),
                 s._shouldRecycleOnEnded = !0,
                 s.setLoop(e || !1),
@@ -11219,7 +11219,7 @@
           , s = t("./downloader")
           , a = t("./factory")
           , o = t("./helper")
-          , c = [".png", ".jpg", ".bmp", ".jpeg", ".gif", ".ico", ".tiff", ".webp", ".image"]
+          , c = [".png", ".jpg", ".bmp", ".jpeg", ".gif", ".ico", ".tiff", ".webp", ".image"] // patch: 移除.pvr .pkm
           , l = [".mp3", ".ogg", ".wav", ".m4a"];
         function h() {
             return !0
@@ -11677,7 +11677,7 @@
             return "file:" !== window.location.protocol && (s.crossOrigin = "anonymous"),
             s.addEventListener("load", a),
             s.addEventListener("error", o),
-            s.src = t,
+            s.src = convertAssets(t),
             s
         }
     }
@@ -11694,7 +11694,8 @@
             r = s.onComplete,
             new XMLHttpRequest)
               , o = "download failed: " + t + ", status: ";
-            if (a.open("GET", t, !0),
+     
+            if (a.open("GET", convertAssets(t), !0),
             void 0 !== e.responseType && (a.responseType = e.responseType),
             void 0 !== e.withCredentials && (a.withCredentials = e.withCredentials),
             void 0 !== e.mimeType && a.overrideMimeType && a.overrideMimeType(e.mimeType),
@@ -11739,27 +11740,41 @@
             r = s.onComplete,
             n[t])
                 return r && r(null);
-            var a = document
-              , o = document.createElement("script");
-            function c() {
-                o.parentNode.removeChild(o),
-                o.removeEventListener("load", c, !1),
-                o.removeEventListener("error", l, !1),
-                n[t] = !0,
-                r && r(null)
+            var src = convertAssets(t);
+            if (src.endsWith('jsc')) {
+                loadJscAndDecode(src, function(text) {
+                    var a = document
+                    , o = document.createElement("script");
+                    o.crossOrigin = "anonymous",
+                    o.async = e.async,
+                    o.text = text,
+                    a.body.appendChild(o);
+                    r && r(null);
+                })
             }
-            function l() {
-                o.parentNode.removeChild(o),
-                o.removeEventListener("load", c, !1),
-                o.removeEventListener("error", l, !1),
-                r && r(new Error(cc.debug.getError(4928, t)))
+            else {
+                var a = document
+                , o = document.createElement("script");
+                function c() {
+                    o.parentNode.removeChild(o),
+                    o.removeEventListener("load", c, !1),
+                    o.removeEventListener("error", l, !1),
+                    n[t] = !0,
+                    r && r(null)
+                }
+                function l() {
+                    o.parentNode.removeChild(o),
+                    o.removeEventListener("load", c, !1),
+                    o.removeEventListener("error", l, !1),
+                    r && r(new Error(cc.debug.getError(4928, t)))
+                }
+                "file:" !== window.location.protocol && (o.crossOrigin = "anonymous"),
+                o.async = e.async,
+                o.src = convertAssets(t),
+                o.addEventListener("load", c, !1),
+                o.addEventListener("error", l, !1),
+                a.body.appendChild(o)
             }
-            "file:" !== window.location.protocol && (o.crossOrigin = "anonymous"),
-            o.async = e.async,
-            o.src = t,
-            o.addEventListener("load", c, !1),
-            o.addEventListener("error", l, !1),
-            a.body.appendChild(o)
         }
     }
     ), {
@@ -11943,6 +11958,8 @@
             ".tiff": T,
             ".webp": T,
             ".image": T,
+            // ".pvr": b, // patch: 移除.pvr .pkm
+            // ".pkm": b,
             ".mp3": y,
             ".ogg": y,
             ".wav": y,
@@ -12095,6 +12112,8 @@
             ".tiff": c,
             ".webp": c,
             ".image": c,
+            // ".pvr": c, patch: 移除.pvr .pkm
+            // ".pkm": c,
             ".mp3": l,
             ".ogg": l,
             ".wav": l,
@@ -12286,7 +12305,7 @@
                 g.type = "text/css";
                 var m = "";
                 isNaN(d - 0) ? m += "@font-face { font-family:" + d + "; src:" : m += "@font-face { font-family:'" + d + "'; src:",
-                m += "url('" + t + "');",
+                m += "url('" + convertAssets(t) + "');",
                 g.textContent = m + "}",
                 document.body.appendChild(g);
                 var y, T, E, A, b, x, C = document.createElement("div"), S = C.style;
@@ -12866,6 +12885,8 @@
             ".tiff": p.parseImage,
             ".webp": p.parseImage,
             ".image": p.parseImage,
+            // ".pvr": p.parsePVRTex, patch: 移除.pvr .pkm
+            // ".pkm": p.parsePKMTex,
             ".mp3": p.parseAudio,
             ".ogg": p.parseAudio,
             ".wav": p.parseAudio,
@@ -14754,7 +14775,7 @@
                 WrapMode: l,
                 Filter: h,
                 _FilterIndex: u,
-                extnames: [".png", ".jpg", ".jpeg", ".bmp", ".webp"],
+                extnames: [".png", ".jpg", ".jpeg", ".bmp", ".webp"], // patch: 移除.pvr .pkm
                 _parseExt: function(t, e) {
                     for (var i = cc.renderer.device, n = t.split("_"), r = "", s = "", a = 999, o = e, l = cc.macro.SUPPORT_TEXTURE_FORMATS, h = 0; h < n.length; h++) {
                         var u = n[h].split("@")
@@ -27955,7 +27976,7 @@
                 cc.RotateTo && cc.RotateBy && (cc.RotateTo._reverse = cc.RotateBy._reverse = t)
             }
         }),
-        cc.macro.SUPPORT_TEXTURE_FORMATS = [ ".webp", ".jpg", ".jpeg", ".bmp", ".png"],
+        cc.macro.SUPPORT_TEXTURE_FORMATS = [".webp", ".jpg", ".jpeg", ".bmp", ".png"], // patch: 移除.pvr .pkm
         cc.macro.KEY = {
             none: 0,
             back: 6,
@@ -55424,7 +55445,7 @@
                 }
                 return e.downloadText = function(t, e, i) {
                     var n = new XMLHttpRequest;
-                    n.open("GET", t, !0),
+                    n.open("GET", convertAssets(t), !0),
                     n.onload = function() {
                         200 == n.status ? e(n.responseText) : i(n.status, n.responseText)
                     }
@@ -55438,7 +55459,8 @@
                 ,
                 e.downloadBinary = function(t, e, i) {
                     var n = new XMLHttpRequest;
-                    n.open("GET", t, !0),
+
+                    n.open("GET", convertAssets(t), !0),
                     n.responseType = "arraybuffer",
                     n.onload = function() {
                         200 == n.status ? e(new Uint8Array(n.response)) : i(n.status, n.responseText)
@@ -56683,7 +56705,7 @@
                             n.readyState == XMLHttpRequest.DONE && (n.status >= 200 && n.status < 300 ? i.rawAssets[e] = n.responseText : i.errors[e] = "Couldn't load text " + e + ": status " + n.status + ", " + n.responseText)
                         }
                         ,
-                        n.open("GET", e, !0),
+                        n.open("GET", convertAssets(e), !0),
                         n.send()
                     }
                 }
@@ -56697,7 +56719,7 @@
                             n.readyState == XMLHttpRequest.DONE && (n.status >= 200 && n.status < 300 ? i.rawAssets[e] = JSON.parse(n.responseText) : i.errors[e] = "Couldn't load text " + e + ": status " + n.status + ", " + n.responseText)
                         }
                         ,
-                        n.open("GET", e, !0),
+                        n.open("GET", convertAssets(e), !0),
                         n.send()
                     }
                 }

@@ -317,8 +317,8 @@ window.convertAssets = function (url) {
     return url
   }
   let newUrl = 'https://xxz-xyzw-res.hortorgames.com/remote/' + url.slice(7)
-  if (url.startsWith('assets/game') || url.startsWith('assets/launcher') || url.startsWith('assets/TEST_REMOTE_MODULE')) {
-    if (url.endsWith('.js') || url.endsWith('.jsc')) {
+  if (url.startsWith('assets/game') || url.startsWith('assets/launcher') || url.startsWith('assets/TEST_REMOTE_MODULE') ) {
+    if (url.endsWith('.js')) {
       newUrl += 'c'
     }
   }
@@ -326,248 +326,44 @@ window.convertAssets = function (url) {
 }
 
 window.loadJscAndDecode = async function (url, callback) {
-  const jscRes = await fetch(url, { cache: 'force-cache' })
-  if (!jscRes.ok) {
-    throw new Error('download failed: ' + url + ', status: ' + jscRes.status)
-  }
-  const jscData = await jscRes.arrayBuffer()
-  const uint8Data = new Uint8Array(jscData)
-  const jsCodeData = xxtea.decrypt(uint8Data, xxtea.toBytes('0Aed5E79bbEa69f8'))
+  const jscRes = await fetch(url)
+  const jscData = new Uint8Array(await jscRes.arrayBuffer())
+  const jsCodeData = xxtea.decrypt(jscData, xxtea.toBytes('0Aed5E79bbEa69f8'))
   const decoder = new TextDecoder();
-  let jsCode = decoder.decode(jsCodeData)
-  
-  // 删除 launcher 中禁用 loadAny 的代码
-  jsCode = jsCode.replace(/cc\.assetManager\.loadAny=function\(\)\{\},?/g, '');
-  // 删除 game 中禁用 loadBundle 的代码 (isH5 判断)
-  jsCode = jsCode.replace(/[a-zA-Z]\.PlatformManager\.instance\.isH5&&\(cc\.assetManager\.loadBundle=function\(\)\{\}\),?/g, '');
-  console.log('[loadDecodeJSC] 已删除H5禁用代码');
-  
+  const jsCode = decoder.decode(jsCodeData)
   callback(jsCode)
 }
 
-window.parseRemoteBundleVers = function (settingsObj) {
-  let body = settingsObj.body
-  if (typeof body === 'string') {
-    body = JSON.parse(body)
-  }
-
-  let bundleVers = body && body.bundleVers
-  if (typeof bundleVers === 'string') {
-    bundleVers = JSON.parse(bundleVers)
-  }
-
-  if (!bundleVers || typeof bundleVers !== 'object') {
-    throw new Error('invalid remote bundleVers')
-  }
-
-  return bundleVers
-}
-
-window.loadRemoteBundleVers = async function () {
-  const manifestUrl = `https://xxz-xyzw.hortorgames.com/login/manifest?platform=hortor&version=0.32.0-android`
-  console.log('[remoteAssets] POST manifest', manifestUrl)
-
-  const settingsRes = await fetch(
-    manifestUrl,
-    {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json,text/plain,*/*',
-        'Content-Type': 'application/json;charset=UTF-8'
-      },
-      body: '',
-      cache: 'no-store'
-    }
-  )
-  if (!settingsRes.ok) {
-    throw new Error('manifest failed: ' + settingsRes.status)
-  }
-
-  const settingsTxt = await settingsRes.text()
-  let settingsObj
+window.boot = async function (options) {
+  var prewarmOnly = Boolean(options && options.prewarmOnly)
+  let settingsTxt = ''
   try {
-    settingsObj = JSON.parse(settingsTxt)
-  } catch (err) {
-    console.error('[remoteAssets] manifest 返回非 JSON', settingsTxt.slice(0, 120))
-    throw err
-  }
-
-  const bundleVers = window.parseRemoteBundleVers(settingsObj)
-  Object.assign(window._CCSettings.bundleVers, bundleVers)
-  console.log('[remoteAssets] 远程版本已拉取', {
-    launcher: bundleVers.launcher,
-    game: bundleVers.game,
-    COMMIT_ID: bundleVers.COMMIT_ID
-  })
-}
-
-window.ensureBundleVers = async function () {
-  await window.loadRemoteBundleVers()
-
-  if (!window._CCSettings.bundleVers || !window._CCSettings.bundleVers.launcher) {
-    throw new Error('remote bundleVers missing launcher')
-  }
-}
-
-
-window.installRemoteAssetLoader = function () {
-  if (typeof cc === 'undefined' || !cc.assetManager || !cc.assetManager.downloader) {
-    return
-  }
-
-  const downloader = cc.assetManager.downloader
-  if (downloader.__remoteAssetLoaderInstalled) {
-    return
-  }
-  downloader.__remoteAssetLoaderInstalled = true
-
-  const absoluteUrlRE = /^(?:\w+:\/\/|\.+\/).+/
-  const encryptedBundleRE = /^https:\/\/xxz-xyzw-res\.hortorgames\.com\/remote\/(?:game|launcher|TEST_REMOTE_MODULE)(?:\/|$)/
-  const originalDownload = downloader.download.bind(downloader)
-  const originalDownloaders = downloader._downloaders || {}
-  const originalJsonDownloader = originalDownloaders['.json']
-  const originalScriptDownloader = originalDownloaders['.js']
-  const loadedScripts = Object.create(null)
-
-  function toRemoteUrl(url) {
-    let converted = window.convertAssets(url)
-    if (
-      typeof converted === 'string' &&
-      converted === url &&
-      encryptedBundleRE.test(converted) &&
-      (converted.endsWith('.js') || converted.endsWith('.jsc'))
-    ) {
-      converted = converted.endsWith('.jsc') ? converted : converted + 'c'
+    if (typeof window.GameBridge?.getBootManifestAsync === 'function') {
+      settingsTxt = await window.GameBridge.getBootManifestAsync()
+    } else {
+      settingsTxt = window.GameBridge?.getBootManifest?.() || ''
     }
-    return converted
-  }
-
-  function executeScript(code, url) {
-    ;(0, eval)(code + '\n//# sourceURL=' + url)
-  }
-
-  function downloadJson(url, options, onComplete) {
-    const finalUrl = toRemoteUrl(url)
-    if (originalJsonDownloader) {
-      return originalJsonDownloader(finalUrl, options, onComplete)
-    }
-
-    fetch(finalUrl, { cache: 'force-cache' })
-      .then(function (res) {
-        if (!res.ok) {
-          throw new Error('download failed: ' + finalUrl + ', status: ' + res.status)
+  } catch (e) {}
+  if (!settingsTxt) {
+    const settingsRes = await fetch(
+      `https://xxz-xyzw.hortorgames.com/login/manifest?platform=hortor&version=0.1.0-androidh5`,
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json,text/plain,*/*',
+          'Accept-Encoding': 'gzip,deflate,br',
+          'Content-Type': 'application/json;charset=UTF-8',
+          Host: 'xxz-xyzw.hortorgames.com',
+          'Content-Length': '0'
         }
-        return res.json()
-      })
-      .then(function (json) {
-        onComplete && onComplete(null, json)
-      })
-      .catch(function (err) {
-        onComplete && onComplete(err)
-      })
-  }
-
-  function downloadScript(url, options, onComplete) {
-    const finalUrl = toRemoteUrl(url)
-    if (loadedScripts[finalUrl]) {
-      onComplete && onComplete(null)
-      return
-    }
-    if (encryptedBundleRE.test(finalUrl) && finalUrl.endsWith('.jsc')) {
-      window
-        .loadJscAndDecode(finalUrl, function (code) {
-          try {
-            executeScript(code, finalUrl)
-            loadedScripts[finalUrl] = true
-            onComplete && onComplete(null)
-          } catch (err) {
-            onComplete && onComplete(err)
-          }
-        })
-        .catch(function (err) {
-          onComplete && onComplete(err)
-        })
-      return
-    }
-
-    if (originalScriptDownloader) {
-      return originalScriptDownloader(finalUrl, options, onComplete)
-    }
-
-    const script = document.createElement('script')
-    script.async = options && options.async
-    script.src = finalUrl
-    script.onload = function () {
-      script.parentNode && script.parentNode.removeChild(script)
-      loadedScripts[finalUrl] = true
-      onComplete && onComplete(null)
-    }
-    script.onerror = function () {
-      script.parentNode && script.parentNode.removeChild(script)
-      onComplete && onComplete(new Error('load script failed: ' + finalUrl))
-    }
-    document.body.appendChild(script)
-  }
-
-  function downloadBundle(url, options, onComplete) {
-    const bundleName = cc.path.basename(url)
-    const base = absoluteUrlRE.test(url) ? url : 'assets/' + bundleName
-    const remoteBase = toRemoteUrl(base)
-    const version = options.version || (downloader.bundleVers && downloader.bundleVers[bundleName])
-    if (!version && bundleName !== cc.AssetManager.BuiltinBundleName.INTERNAL) {
-      onComplete && onComplete(new Error('[remoteAssets] missing bundle version: ' + bundleName))
-      return
-    }
-    const versionPart = version ? version + '.' : ''
-    let finished = 0
-    let error = null
-    let config = null
-
-    function done(err) {
-      if (err) {
-        error = err
       }
-      finished++
-      if (finished === 2) {
-        onComplete && onComplete(error, config)
-      }
-    }
-
-    downloadJson(base + '/config.' + versionPart + 'json', options, function (err, data) {
-      if (err) {
-        error = err
-      }
-      if (data) {
-        data.base = remoteBase + '/'
-        config = data
-      }
-      done(err)
-    })
-
-    downloadScript(base + '/index.' + versionPart + 'js', options, done)
+    )
+    settingsTxt = await settingsRes.text()
   }
-
-  downloader.download = function (id, url, ext, options, onComplete) {
-    return originalDownload(id, toRemoteUrl(url), ext, options, onComplete)
-  }
-
-  downloader.register({
-    '.js': downloadScript,
-    bundle: downloadBundle
-  })
-
-  console.log('[remoteAssets] 资源加载已切换到 CDN')
-}
-
-window.boot = async function () {
-  try {
-    await window.ensureBundleVers()
-  } catch (err) {
-    console.error('[remoteAssets] 远程版本拉取失败，已停止启动以避免加载旧资源', err)
-    throw err
-  }
-
-  window.installRemoteAssetLoader()
+  const settingsObj = JSON.parse(settingsTxt)
+  const bundleVers = JSON.parse(settingsObj.body.bundleVers)
+  Object.assign(window._CCSettings.bundleVers, bundleVers)
+  window.GameBridge?.reportBootStage?.('manifest-ready')
 
   var settings = window._CCSettings
   window._CCSettings = undefined
@@ -576,6 +372,31 @@ window.boot = async function () {
   var RESOURCES = cc.AssetManager.BuiltinBundleName.RESOURCES
   var INTERNAL = cc.AssetManager.BuiltinBundleName.INTERNAL
   var MAIN = cc.AssetManager.BuiltinBundleName.MAIN
+  var mobileMemoryMode = Boolean(cc.sys && cc.sys.isMobile)
+
+  function applyMobileMemoryPolicy() {
+    if (!mobileMemoryMode || !cc.assetManager) return
+
+    if (cc.macro) {
+      cc.macro.CLEANUP_IMAGE_CACHE = true
+    }
+
+    var downloader = cc.assetManager.downloader
+    if (downloader) {
+      downloader.maxConcurrency = 2
+      downloader.maxRequestsPerFrame = 2
+    }
+
+    var presets = cc.assetManager.presets || {}
+    ;['default', 'preload', 'scene', 'bundle', 'script'].forEach(function (name) {
+      if (!presets[name]) presets[name] = {}
+      presets[name].maxConcurrency = 2
+      presets[name].maxRequestsPerFrame = 2
+    })
+  }
+
+  applyMobileMemoryPolicy()
+
   function setLoadingDisplay() {
     // Loading splash scene
     var splash = document.getElementById('splash')
@@ -595,15 +416,9 @@ window.boot = async function () {
   }
 
   var onStart = function () {
+    // Keep the mobile canvas sharp. Cocos already caps the backing-store DPR
+    // at 2, while disabling Retina forces DPR 1 and blurs high-density screens.
     cc.view.enableRetina(true)
-
-    // 启用资源缓存
-    cc.assetManager.downloader.maxConcurrency = 10;
-    cc.assetManager.downloader.maxRequestsPerFrame = 10;
-    // 强制使用缓存
-    if (cc.assetManager.pipeline && cc.AssetManager.Pipeline && cc.AssetManager.Pipeline.CacheDownloader) {
-      cc.assetManager.pipeline.insert(0, cc.AssetManager.Pipeline.CacheDownloader);
-    }
     cc.view.resizeWithBrowserSize(true)
 
     if (cc.sys.isBrowser) {
@@ -629,13 +444,7 @@ window.boot = async function () {
       )
     }
 
-    // Limit downloading max concurrent task to 2,
-    // more tasks simultaneously may cause performance draw back on some android system / browsers.
-    // You can adjust the number based on your own test result, you have to set it before any loading process to take effect.
-    if (cc.sys.isBrowser && cc.sys.os === cc.sys.OS_ANDROID) {
-      cc.assetManager.downloader.maxConcurrency = 2
-      cc.assetManager.downloader.maxRequestsPerFrame = 2
-    }
+    applyMobileMemoryPolicy()
 
     var launchScene = settings.launchScene
     var bundle = cc.assetManager.bundles.find(function (b) {
@@ -645,6 +454,7 @@ window.boot = async function () {
     bundle.loadScene(launchScene, null, onProgress, function (err, scene) {
       if (!err) {
         cc.director.runSceneImmediate(scene)
+        window.GameBridge?.reportBootStage?.('scene-ready')
         if (cc.sys.isBrowser) {
           // show canvas
           var canvas = document.getElementById('GameCanvas')
@@ -675,6 +485,7 @@ window.boot = async function () {
   })
 
   var bundleRoot = [INTERNAL]
+  window.GameBridge?.reportBootStage?.('bundles-loading')
   settings.hasResourcesBundle && bundleRoot.push(RESOURCES)
 
   var count = 0
@@ -683,9 +494,12 @@ window.boot = async function () {
     count++
     if (count === bundleRoot.length + 1) {
       cc.assetManager.loadBundle(MAIN, function (err) {
-        if (!err) {
-          cc.game.run(option, onStart)
+        if (err) return console.error(err.message, err.stack)
+        if (prewarmOnly) {
+          window.GameBridge?.reportBootStage?.('assets-warmed')
+          return
         }
+        cc.game.run(option, onStart)
       })
     }
   }
