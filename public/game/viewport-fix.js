@@ -6,6 +6,8 @@
   var lastViewport = null;
   var cocosSyncTimer = null;
   var cocosStableChecks = 0;
+  var forceCocosLayout = true;
+  var settleTimers = [];
 
   function positiveNumber(value) {
     var number = Number(value);
@@ -28,22 +30,61 @@
     };
   }
 
+  function viewportSizeMatches(size, viewport) {
+    return Boolean(
+      size
+      && Math.abs(Number(size.width) - viewport.width) <= 1
+      && Math.abs(Number(size.height) - viewport.height) <= 1
+    );
+  }
+
+  function applyDocumentViewport(viewport) {
+    var body = document.body;
+    if (!body) return;
+
+    body.style.top = viewport.top + 'px';
+    body.style.left = viewport.left + 'px';
+    body.style.width = viewport.width + 'px';
+    body.style.height = viewport.height + 'px';
+  }
+
   function syncCocosViewport(viewport) {
     var cocos = window.cc;
     if (!cocos || !cocos.view || !cocos.game || !cocos.game.frame) return false;
     if (typeof cocos.view.setFrameSize !== 'function') return false;
 
+    var body = document.body;
+    var frameChanged = false;
+
+    // Cocos normally uses documentElement as the frame when the canvas lives
+    // directly under body. Its browser adapter then reads window.innerHeight,
+    // which can lag behind visualViewport while the mobile address bar moves.
+    // A sized body gives the engine one stable, measurable viewport source.
+    if (
+      body
+      && cocos.game.container
+      && cocos.game.container.parentNode === body
+      && cocos.game.frame !== body
+    ) {
+      cocos.game.frame = body;
+      frameChanged = true;
+    }
+
     var currentSize = typeof cocos.view.getFrameSize === 'function'
       ? cocos.view.getFrameSize()
       : null;
-    var widthMatches = currentSize && Math.abs(Number(currentSize.width) - viewport.width) <= 1;
-    var heightMatches = currentSize && Math.abs(Number(currentSize.height) - viewport.height) <= 1;
 
-    if (!widthMatches || !heightMatches) {
+    if (forceCocosLayout || frameChanged || !viewportSizeMatches(currentSize, viewport)) {
       cocos.view.setFrameSize(viewport.width, viewport.height);
     }
 
-    return true;
+    currentSize = typeof cocos.view.getFrameSize === 'function'
+      ? cocos.view.getFrameSize()
+      : null;
+
+    var synced = viewportSizeMatches(currentSize, viewport);
+    if (synced) forceCocosLayout = false;
+    return synced;
   }
 
   function dispatchViewportChange(viewport) {
@@ -92,6 +133,11 @@
     var roundedLeft = Math.round(offsetLeft);
     var roundedTop = Math.round(offsetTop);
     var safeAreaInsets = readSafeAreaInsets();
+    var sizeChanged = !lastViewport
+      || lastViewport.width !== roundedWidth
+      || lastViewport.height !== roundedHeight;
+
+    if (sizeChanged) forceCocosLayout = true;
 
     root.style.setProperty('--h5-visible-viewport-width', roundedWidth + 'px');
     root.style.setProperty('--h5-visible-viewport-height', roundedHeight + 'px');
@@ -116,13 +162,15 @@
     };
 
     window.__MONSTER_H5_VIEWPORT__ = lastViewport;
+    applyDocumentViewport(lastViewport);
     cocosStableChecks = 0;
     syncCocosViewport(lastViewport);
     startCocosSync();
     dispatchViewportChange(lastViewport);
   }
 
-  function scheduleUpdate() {
+  function scheduleUpdate(forceLayout) {
+    if (forceLayout === true) forceCocosLayout = true;
     if (updatePending) return;
     updatePending = true;
     if (typeof window.requestAnimationFrame === 'function') {
@@ -132,22 +180,43 @@
     }
   }
 
+  function clearSettleTimers() {
+    settleTimers.forEach(function (timer) {
+      window.clearTimeout(timer);
+    });
+    settleTimers = [];
+  }
+
+  function scheduleSettledUpdates() {
+    clearSettleTimers();
+    [120, 360, 900].forEach(function (delay) {
+      settleTimers.push(window.setTimeout(function () {
+        scheduleUpdate(true);
+      }, delay));
+    });
+  }
+
+  function handleViewportLayoutChange() {
+    scheduleUpdate(true);
+    scheduleSettledUpdates();
+  }
+
   updateVisibleViewport();
-  window.addEventListener('resize', scheduleUpdate, false);
-  window.addEventListener('load', scheduleUpdate, false);
-  window.addEventListener('focus', scheduleUpdate, false);
-  window.addEventListener('pageshow', scheduleUpdate, false);
-  window.addEventListener('orientationchange', function () {
-    scheduleUpdate();
-    window.setTimeout(scheduleUpdate, 80);
-    window.setTimeout(scheduleUpdate, 250);
-    window.setTimeout(scheduleUpdate, 600);
+  window.addEventListener('resize', handleViewportLayoutChange, false);
+  window.addEventListener('load', handleViewportLayoutChange, false);
+  window.addEventListener('focus', handleViewportLayoutChange, false);
+  window.addEventListener('pageshow', handleViewportLayoutChange, false);
+  window.addEventListener('orientationchange', handleViewportLayoutChange, false);
+
+  document.addEventListener('DOMContentLoaded', handleViewportLayoutChange, false);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') handleViewportLayoutChange();
   }, false);
 
-  document.addEventListener('DOMContentLoaded', scheduleUpdate, false);
-
   if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
-    window.visualViewport.addEventListener('resize', scheduleUpdate, false);
-    window.visualViewport.addEventListener('scroll', scheduleUpdate, false);
+    window.visualViewport.addEventListener('resize', handleViewportLayoutChange, false);
+    window.visualViewport.addEventListener('scroll', function () {
+      scheduleUpdate(false);
+    }, false);
   }
 })();
