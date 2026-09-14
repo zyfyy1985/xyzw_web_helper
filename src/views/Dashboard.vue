@@ -80,6 +80,9 @@
         />
       </div>
     </n-modal>
+
+    <!-- 内置脚本选择（打开游戏前勾选） -->
+    <builtin-script-dialog v-model:show="showScriptDialog" @start="openGame" />
   </div>
 </template>
 
@@ -90,6 +93,7 @@ import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import LocalExportForm from "@/views/ConfigExport/LocalExport.vue";
 import CloudSyncForm from "@/views/ConfigExport/CloudSync.vue";
+import BuiltinScriptDialog from "@/components/BuiltinScriptDialog.vue";
 import {
   PersonCircle,
   Cube,
@@ -208,6 +212,7 @@ const openGame = async () => {
 // const recentActivities = ref([]);
 const showExportModal = ref(false);
 const exportMethod = ref("localExport");
+const showScriptDialog = ref(false);
 
 // 计算属性
 const currentDate = computed(() => {
@@ -303,7 +308,7 @@ const handleManageTokens = () => {
 const handleQuickAction = (action) => {
   switch (action.action) {
     case "open-game":
-      openGame();
+      showScriptDialog.value = true;
       break;
     case "game-features":
       router.push("/admin/game-features");

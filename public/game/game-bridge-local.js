@@ -70,6 +70,110 @@
     return params.get('server_id') || null;
   }
 
+  // ============ 内置功能脚本 ============
+  // 勾选记录由前端「打开游戏」对话框写入（key: h5_enabled_features，值为 id 数组）
+  // BUILTIN_FEATURES 需与 src/utils/featureScripts.js 的 FEATURE_SCRIPTS 保持一致
+  var BUILTIN_FEATURES = [
+    'Monster.js',
+    '咸鱼简报迁移.js',
+    '宠物-自动合成.js',
+    '模拟战斗.js',
+    '盐场视距.js',
+    '自动星级挑战.js',
+    '自动蟠桃.js',
+    '装备洗练消耗显示.js',
+    '长按连点.js',
+    '阵容显示.js'
+  ];
+  var FEATURE_STORAGE_KEY = 'h5_enabled_features';
+  var featurePromises = {};
+
+  /** 读取勾选记录；无记录 / 记录损坏时默认全选（与前端对话框的默认状态一致） */
+  function getEnabledFeatures() {
+    try {
+      var raw = localStorage.getItem(FEATURE_STORAGE_KEY);
+      if (raw === null || raw === '') return BUILTIN_FEATURES.slice();
+      var list = JSON.parse(raw);
+      if (!Array.isArray(list)) return BUILTIN_FEATURES.slice();
+      var known = {};
+      BUILTIN_FEATURES.forEach(function (id) {
+        known[id] = true;
+      });
+      var valid = list.filter(function (id) {
+        return typeof id === 'string' && known[id];
+      });
+      return valid.filter(function (id, i) {
+        return valid.indexOf(id) === i; // 去重
+      });
+    } catch (e) {
+      console.warn('[GameBridge] 内置脚本记录无效，按全选处理:', e);
+      return BUILTIN_FEATURES.slice();
+    }
+  }
+
+  function normalizeFeatureId(name) {
+    var id = String(name == null ? '' : name).trim();
+    if (!/^[^/\\]+\.js$/i.test(id) || id.length > 256) {
+      throw new Error('H5 功能 ID 无效: ' + id);
+    }
+    return id;
+  }
+
+  /** 加载单个内置脚本：features/<name>，与官方 web-bridge 行为一致 */
+  function loadFeature(name) {
+    var id;
+    try {
+      id = normalizeFeatureId(name);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+    if (featurePromises[id]) return featurePromises[id];
+
+    var p = new Promise(function (resolve, reject) {
+      var el = document.createElement('script');
+      var url = new URL('features/' + encodeURIComponent(id), window.location.href);
+      if (window.__H5_BUILD_VERSION__) {
+        url.searchParams.set('v', String(window.__H5_BUILD_VERSION__));
+      }
+      el.async = true;
+      el.src = url.href;
+      el.onload = function () {
+        el.remove();
+        console.log('[GameBridge] 内置脚本已加载:', id);
+        resolve(id);
+      };
+      el.onerror = function () {
+        el.remove();
+        reject(new Error('加载 H5 功能失败: ' + id));
+      };
+      (document.head || document.documentElement).appendChild(el);
+    })['catch'](function (err) {
+      // 单个脚本失败不阻断后续脚本
+      console.warn('[GameBridge] ' + err.message);
+      return null;
+    });
+
+    featurePromises[id] = p;
+    return p;
+  }
+
+  /** 按用户在对话框里的勾选，依次加载内置脚本 */
+  function loadSelectedFeatures() {
+    var list = getEnabledFeatures();
+    if (!list.length) {
+      console.log('[GameBridge] 未勾选任何内置脚本，跳过加载');
+      return Promise.resolve();
+    }
+    console.log(
+      '[GameBridge] 加载内置脚本 (' + list.length + '): ' + list.join(', ')
+    );
+    return list.reduce(function (chain, name) {
+      return chain.then(function () {
+        return loadFeature(name);
+      });
+    }, Promise.resolve());
+  }
+
   window.GameBridge = {
     // h5-bootstrap 等待的就绪态：本地无授权，直接就绪
     ready: Promise.resolve(),
@@ -96,9 +200,8 @@
     reportBootStage: function (stage) {
       console.log('[GameBridge] boot stage:', stage);
     },
-    loadSelectedFeatures: function () {
-      return Promise.resolve();
-    },
+    loadFeature: loadFeature,
+    loadSelectedFeatures: loadSelectedFeatures,
     shouldDeferBoot: function () {
       return false;
     },
