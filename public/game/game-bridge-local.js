@@ -86,15 +86,17 @@
     '阵容显示.js'
   ];
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
+  // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）
+  var DEFAULT_FEATURES = ['长按连点.js'];
   var featurePromises = {};
 
-  /** 读取勾选记录；无记录 / 记录损坏时默认全选（与前端对话框的默认状态一致） */
+  /** 读取勾选记录；无记录 / 记录损坏时返回默认项（仅「长按连点」） */
   function getEnabledFeatures() {
     try {
       var raw = localStorage.getItem(FEATURE_STORAGE_KEY);
-      if (raw === null || raw === '') return BUILTIN_FEATURES.slice();
+      if (raw === null || raw === '') return DEFAULT_FEATURES.slice();
       var list = JSON.parse(raw);
-      if (!Array.isArray(list)) return BUILTIN_FEATURES.slice();
+      if (!Array.isArray(list)) return DEFAULT_FEATURES.slice();
       var known = {};
       BUILTIN_FEATURES.forEach(function (id) {
         known[id] = true;
@@ -106,8 +108,8 @@
         return valid.indexOf(id) === i; // 去重
       });
     } catch (e) {
-      console.warn('[GameBridge] 内置脚本记录无效，按全选处理:', e);
-      return BUILTIN_FEATURES.slice();
+      console.warn('[GameBridge] 内置脚本记录无效，按默认项处理:', e);
+      return DEFAULT_FEATURES.slice();
     }
   }
 

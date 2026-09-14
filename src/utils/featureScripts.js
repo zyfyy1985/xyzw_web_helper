@@ -1,5 +1,6 @@
 // 内置 H5 功能脚本清单 + 勾选记录（localStorage）
-// 记录 key: h5_enabled_features，值为 id（文件名）数组；首次使用默认全选
+// 记录 key: h5_enabled_features，值为 id（文件名）数组
+// 用户从未选择过时，只默认开启「长按连点」，其余全部关闭
 
 export const FEATURE_SCRIPTS = [
   {
@@ -66,7 +67,10 @@ export const FEATURE_SCRIPTS = [
 
 const STORAGE_KEY = "h5_enabled_features";
 
-/** 读取勾选记录；无记录 / 记录损坏时默认全选 */
+// 用户未做过选择时的默认开启项
+const DEFAULT_FEATURES = ["长按连点.js"];
+
+/** 读取勾选记录；无记录 / 记录损坏时返回默认项（仅「长按连点」） */
 export function getEnabledFeatures() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
@@ -76,7 +80,7 @@ export function getEnabledFeatures() {
   } catch (e) {
     /* 记录损坏，按首次使用处理 */
   }
-  return FEATURE_SCRIPTS.map((f) => f.id);
+  return DEFAULT_FEATURES.slice();
 }
 
 /** 写入勾选记录 */
