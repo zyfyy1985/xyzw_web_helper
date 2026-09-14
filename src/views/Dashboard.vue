@@ -37,6 +37,19 @@
               class="action-card"
               @click="handleQuickAction(action)"
             >
+              <!-- 卡片右上角：仅「打开游戏」带内置脚本设置入口（点卡片本体直接进游戏） -->
+              <button
+                v-if="action.settings"
+                type="button"
+                class="action-settings"
+                title="内置脚本设置"
+                aria-label="内置脚本设置"
+                @click.stop="showScriptDialog = true"
+              >
+                <n-icon :size="18">
+                  <Settings />
+                </n-icon>
+              </button>
               <div class="action-icon">
                 <component :is="action.icon" />
               </div>
@@ -231,6 +244,8 @@ const quickActions = ref([
     title: "打开游戏",
     description: "使用当前Token直接进入游戏",
     action: "open-game",
+    // 右上角额外提供一个「内置脚本设置」齿轮
+    settings: true,
   },
   
   {
@@ -308,7 +323,8 @@ const handleManageTokens = () => {
 const handleQuickAction = (action) => {
   switch (action.action) {
     case "open-game":
-      showScriptDialog.value = true;
+      // 直接进游戏，不再弹内置脚本对话框（脚本改由卡片右上角齿轮进入）
+      openGame();
       break;
     case "game-features":
       router.push("/admin/game-features");
@@ -513,6 +529,7 @@ onMounted(async () => {
 }
 
 .action-card {
+  position: relative;
   background: var(--bg-primary);
   border-radius: var(--border-radius-large);
   padding: var(--spacing-lg);
@@ -523,6 +540,41 @@ onMounted(async () => {
   &:hover {
     box-shadow: var(--shadow-medium);
     transform: translateY(-2px);
+  }
+}
+
+// 卡片右上角的设置齿轮（与「批量日常任务」的 设置 按钮同款 Settings 图标）
+// 圆形 ghost 按钮：默认无边框无底色，hover 才浮出一圈浅底，避免在卡片上显得笨重
+.action-settings {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: var(--primary-color);
+    background: var(--bg-tertiary);
+  }
+
+  &:active {
+    background: var(--bg-secondary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
   }
 }
 
