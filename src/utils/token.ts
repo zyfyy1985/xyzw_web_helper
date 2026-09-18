@@ -115,6 +115,17 @@ export const transformToken = async (arrayBuffer: ArrayBuffer) => {
     );
     const msg = g_utils.parse(res.data);
     const data = msg.getData();
+
+    // 服务器维护/凭证失效时可能返回 200 但无数据体（getData() 为 undefined），
+    // 此时 roleToken 拿不到。直接抛错，避免把残缺 token 写回 localStorage。
+    const roleToken = data?.roleToken;
+    if (typeof roleToken !== "string" || roleToken.trim().length === 0) {
+      const got = data
+        ? Object.keys(data).join(",") || "(空对象)"
+        : "(无数据体)";
+      throw new Error(`authuser 未返回 roleToken，已跳过保存 [got: ${got}]`);
+    }
+
     const currentTime = Date.now();
     const sessId = currentTime * 100 + Math.floor(Math.random() * 100);
     const connId = currentTime + Math.floor(Math.random() * 10);
