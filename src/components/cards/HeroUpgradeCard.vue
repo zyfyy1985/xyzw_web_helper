@@ -76,7 +76,11 @@ const message = useMessage();
 const HeroOptions = computed(() => [
   ...Object.values(tokenStore.gameData.roleInfo.role.heroes).map((item) => {
     return {
-      label: HERO_DICT[item.heroId].name + "(" + item.level + "/6000)",
+      label:
+        (HERO_DICT[item.heroId]?.name ?? `未知武将(${item.heroId})`) +
+        "(" +
+        item.level +
+        "/6000)",
       value: item.heroId,
       disabled: item.level == 6000,
     };
