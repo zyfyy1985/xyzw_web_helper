@@ -1478,7 +1478,7 @@
  * 通过 role_gettargetteam 获取成员在营地挑战中真实生效的 1~5 号站位布阵阵容。
  */
 
-import { computed, h, onMounted, ref, watch } from "vue";
+import { computed, h, nextTick, onMounted, ref, watch } from "vue";
 import {
   useMessage,
   NTag,
@@ -1498,6 +1498,7 @@ import {
   StatsChartOutline,
 } from "@vicons/ionicons5";
 import html2canvas from "html2canvas";
+import { downloadCanvasAsImage } from "@/utils/imageExport";
 import { useTokenStore } from "@/stores/tokenStore";
 import {
   HERO_DICT,
@@ -3520,32 +3521,142 @@ const openDuelModal = async (player: any) => {
 };
 
 /**
+ * 导出图片的固定渲染宽度：与盐场战绩（ClubBattleRecords / ClubMonthBattleRecords）
+ * 保持一致，保证按桌面布局渲染
+ */
+const EXPORT_WIDTH = 1280;
+
+/**
  * 导出全景长图
+ *
+ * 与「盐场」系列的图片导出同一套做法：
+ * 1. html2canvas 的 windowWidth/windowHeight 决定克隆文档的视口宽度，
+ *    因此即便在手机上点导出，媒体查询也按桌面解析 —— 导出的是桌面版式
+ *    （三张宽表完整展开），而不是窄屏的卡片版式，方便在电脑/相册里查看；
+ * 2. 临时解除高度与溢出裁剪（含 n-data-table 的横向滚动容器），
+ *    否则表格与催刀列表会被裁剪，长图内容不全；
+ * 3. 内容比桌面宽度更宽时（如成员布阵大表列宽合计约 1504px）自动加宽画布。
  */
 const handleExportImage = async () => {
-  if (!exportDom.value) return;
+  const root = exportDom.value;
+  if (!root) return;
   exporting.value = true;
   message.loading("正在渲染长图，请稍候...");
 
+  // 记录被临时改写的行内样式，导出结束后逐条还原
+  const patched: {
+    el: HTMLElement;
+    prop: string;
+    value: string;
+    priority: string;
+  }[] = [];
+  const force = (el: HTMLElement, prop: string, value: string) => {
+    patched.push({
+      el,
+      prop,
+      value: el.style.getPropertyValue(prop),
+      priority: el.style.getPropertyPriority(prop),
+    });
+    el.style.setProperty(prop, value, "important");
+  };
+
   try {
-    const canvas = await html2canvas(exportDom.value, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#f5f7fa",
-      logging: false,
+    // 等 exporting 触发的那次重渲染落地后再改样式，避免被 Vue 覆盖
+    await nextTick();
+
+    // [本地扩展 · 导出桌面版式] 先打标记类：<=768px 三张宽表被 display:none
+    // 换成卡片，直接量宽高会量到手机版式的尺寸（详见 GameStatus 里的说明）。
+    root.classList.add("export-desktop-layout");
+
+    // 1. 收集需要解除裁剪的容器
+    //    n-data-table 的横向滚动、催刀列表的纵向滚动都是靠内部 overflow 实现的，
+    //    不解开的话宽表会被裁剪，长图内容不全。滚动容器自身与其所有祖先
+    //    （祖先带 overflow:hidden 会再次裁剪）都要一并放开。
+    const targets = new Set<HTMLElement>();
+    const addWithAncestors = (el: HTMLElement) => {
+      let node: HTMLElement | null = el;
+      while (node) {
+        targets.add(node);
+        if (node === root) break;
+        node = node.parentElement;
+      }
+    };
+    targets.add(root);
+    const viewWrapper = root.querySelector(".views-content-wrapper");
+    if (viewWrapper instanceof HTMLElement) addWithAncestors(viewWrapper);
+
+    root.querySelectorAll<HTMLElement>("*").forEach((node) => {
+      if (
+        node.scrollWidth <= node.clientWidth + 1 &&
+        node.scrollHeight <= node.clientHeight + 1
+      ) {
+        return;
+      }
+      const cs = getComputedStyle(node);
+      const scrollable =
+        cs.overflowX === "auto" ||
+        cs.overflowX === "scroll" ||
+        cs.overflowY === "auto" ||
+        cs.overflowY === "scroll";
+      if (scrollable) addWithAncestors(node);
     });
 
-    const url = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `营地挑战阵容_${
-      selectedSide.value === "opponent" ? "敌方" : "我方"
-    }.png`;
-    link.click();
+    // 2. 解除裁剪 + 固定桌面渲染宽度
+    targets.forEach((el) => {
+      force(el, "overflow", "visible");
+      force(el, "max-height", "none");
+      force(el, "height", "auto");
+    });
+    force(root, "width", `${EXPORT_WIDTH}px`);
+    force(root, "max-width", "none");
+
+    // 导出按钮本身在根容器内，导出期间是 loading 态；
+    // 与盐场一致，长图只保留数据区，不含操作工具栏
+    const toolbar = root.querySelector(".toolbar");
+    if (toolbar instanceof HTMLElement) force(toolbar, "display", "none");
+
+    // 3. 等待一次完整重排，确保上面的宽度/溢出改写已经生效
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 渲染尺寸：固定桌面宽度与内容实际宽度取较大值（宽表可能超出桌面宽度）
+    const renderWidth = Math.max(EXPORT_WIDTH, root.scrollWidth);
+    const renderHeight = root.scrollHeight;
+
+    // 4. 渲染：windowWidth/windowHeight 以桌面宽度作为渲染窗口，媒体查询按桌面解析
+    const canvas = await html2canvas(root, {
+      scale: 2, // 放大 2 倍，解决图片模糊问题
+      useCORS: true, // 允许跨域图片
+      allowTaint: true, // 允许跨域图片污染画布
+      backgroundColor: "#f5f7fa",
+      logging: false,
+      width: renderWidth, // 确保捕获完整宽度
+      height: renderHeight, // 确保捕获完整高度
+      windowWidth: renderWidth,
+      windowHeight: renderHeight,
+    });
+
+    downloadCanvasAsImage(
+      canvas,
+      `营地挑战阵容_${
+        selectedSide.value === "opponent" ? "敌方" : "我方"
+      }.png`,
+    );
     message.success("长图导出成功！");
   } catch (err: any) {
     message.error("导出长图失败: " + err.message);
   } finally {
+    // [本地扩展] 摘掉导出标记类，界面回到手机端卡片视图
+    root.classList.remove("export-desktop-layout");
+
+    // 倒序还原，保证同一属性被多次改写时回到最初值
+    for (let i = patched.length - 1; i >= 0; i--) {
+      const { el, prop, value, priority } = patched[i];
+      if (value) el.style.setProperty(prop, value, priority);
+      else el.style.removeProperty(prop);
+    }
     exporting.value = false;
   }
 };

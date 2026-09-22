@@ -138,7 +138,7 @@
           class="alliance-tabs-section"
         >
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-dalianmeng"
             :class="{ active: activeAlliance === '大联盟' }"
             @click="setActiveAlliance('大联盟')"
           >
@@ -148,7 +148,7 @@
             }}</span>
           </div>
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-mengmeng"
             :class="{ active: activeAlliance === '梦盟' }"
             @click="setActiveAlliance('梦盟')"
           >
@@ -156,7 +156,7 @@
             <span class="tab-count">{{ getActiveAllianceCount("梦盟") }}</span>
           </div>
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-zhengyi"
             :class="{ active: activeAlliance === '正义联盟' }"
             @click="setActiveAlliance('正义联盟')"
           >
@@ -166,7 +166,7 @@
             }}</span>
           </div>
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-longmeng"
             :class="{ active: activeAlliance === '龙盟' }"
             @click="setActiveAlliance('龙盟')"
           >
@@ -174,7 +174,7 @@
             <span class="tab-count">{{ getActiveAllianceCount("龙盟") }}</span>
           </div>
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-ximeng"
             :class="{ active: activeAlliance === '曦盟' }"
             @click="setActiveAlliance('曦盟')"
           >
@@ -182,7 +182,7 @@
             <span class="tab-count">{{ getActiveAllianceCount("曦盟") }}</span>
           </div>
           <div
-            class="alliance-tab"
+            class="alliance-tab alliance-unknown"
             :class="{ active: activeAlliance === '未知联盟' }"
             @click="setActiveAlliance('未知联盟')"
           >
@@ -192,7 +192,7 @@
             }}</span>
           </div>
           <div
-            class="alliance-tab all"
+            class="alliance-tab all alliance-all"
             :class="{ active: activeAlliance === 'all' }"
             @click="setActiveAlliance('all')"
           >
@@ -361,6 +361,139 @@
               </n-icon>
             </template>
           </n-empty>
+        </div>
+
+        <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表。
+             11 列 div 伪表格（列宽合计约 1305px）在手机上只能横滑看，
+             这里改成卡片列表，积分列沿用它原来的显示条件；
+             编辑模式（手改排名 / 联盟）在卡片里同样可用。
+             默认 display:none + 只在 ≤768px 显示 → 导出长图（按 ≥1280px 桌面宽度
+             渲染）里不会出现卡片。 -->
+        <div
+          v-if="!loading1 && battleRecords1 && battleRecords1.legionRankList"
+          class="salt-cards"
+        >
+          <div
+            v-for="member in filteredLegionList"
+            :key="'wr1-' + member.id"
+            class="salt-card"
+            :class="getAllianceClass(getMemberAlliance(member))"
+          >
+            <div class="salt-card__head salt-card__head--inline">
+              <n-input-number
+                v-if="isEditMode"
+                v-model:value="manualRankings[member.id]"
+                size="small"
+                :min="1"
+                :max="20"
+                :show-button="false"
+                class="salt-card__rank-input"
+                @focus="handleRankFocus(member)"
+                @blur="handleRankBlur(member)"
+                @keydown.enter="$event.target.blur()"
+              />
+              <span v-else class="salt-card__rank"
+                >#{{ getMemberRank(member) }}</span
+              >
+              <img
+                v-if="member.logo"
+                :src="member.logo"
+                :alt="member.name"
+                class="salt-card__avatar"
+                @error="handleImageError"
+              />
+              <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+                member.name?.charAt(0) || "?"
+              }}</span>
+              <span class="salt-card__name">{{ member.name }}</span>
+              <span class="salt-card__server">{{ member.serverId || 0 }}</span>
+              <n-select
+                v-if="isEditMode"
+                v-model:value="manualAlliances[member.id]"
+                :options="allianceOptions"
+                size="small"
+                class="salt-card__alliance-select"
+              />
+              <span
+                v-else
+                class="salt-card__alliance-chip"
+                :class="getAllianceClass(getMemberAlliance(member))"
+                >{{ getMemberAlliance(member) }}</span
+              >
+            </div>
+
+            <!-- 公告：紧跟名字行单独一行 -->
+            <div class="salt-card__line salt-card__line--announce">
+              <span class="salt-card__label">公告</span>
+              <span class="salt-card__value is-muted">{{
+                member.announcement || "—"
+              }}</span>
+            </div>
+
+            <div class="salt-card__grid salt-card__grid--1row">
+              <div class="salt-card__cell">
+                <span class="salt-card__label">红淬</span>
+                <span class="salt-card__value is-red">{{
+                  member.redQuench || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">战力</span>
+                <span class="salt-card__value is-power">{{
+                  formatPower(member.power) || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">等级</span>
+                <span class="salt-card__value">{{ member.level || 30 }}</span>
+              </div>
+              <div
+                v-if="ScoreShow === 1 && member.sRScore !== -1"
+                class="salt-card__cell"
+              >
+                <span class="salt-card__label">积分</span>
+                <span class="salt-card__value is-score">{{
+                  formatScore(member.sRScore) || 0
+                }}</span>
+              </div>
+            </div>
+
+            <div
+              v-if="member.topHeroes && member.topHeroes.length"
+              class="salt-card__heros"
+            >
+              <span class="salt-card__label">前三车头</span>
+              <div
+                v-for="(hero, index) in member.topHeroes"
+                :key="'wr1-h-' + index"
+                class="salt-card__hero"
+                @click="handleHeroClick(hero)"
+              >
+                <img
+                  v-if="hero.headImg"
+                  :src="hero.headImg"
+                  :alt="hero.name"
+                  class="salt-card__hero-avatar"
+                />
+                <span
+                  v-else
+                  class="salt-card__hero-avatar salt-card__hero-avatar--ph"
+                  >{{ hero.name?.charAt(0) || "?" }}</span
+                >
+                <span class="salt-card__hero-name">{{ hero.name || "未知" }}</span>
+                <span class="salt-card__hero-beast">🐉{{ hero.holyBeast }}</span>
+                <span class="salt-card__hero-meta">
+                  {{ formatPower(hero.power) }}
+                  <b
+                    class="salt-card__hero-red"
+                    :class="getRedQuenchClass(hero.redQuench)"
+                    >{{ hero.redQuench }}红</b
+                  >
+                </span>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -2196,6 +2329,12 @@ const handleExport1 = async () => {
   }
 };
 
+// [本地扩展 · 手机端导出修正] 桌面渲染宽度下限：
+// 手机上（<=768px）宽表被换成卡片、结果区宽度回到屏宽，若仍用 scrollWidth
+// 当 windowWidth，媒体查询会按手机解析、导出成卡片版式。
+// 与 ClubBattleRecords / ClubMonthBattleRecords 保持一致。
+const EXPORT_WIDTH = 1280;
+
 const exportToImage = async () => {
   // 校验：确保DOM已正确绑定
   if (!exportDom.value) {
@@ -2209,6 +2348,10 @@ const exportToImage = async () => {
   const scrollTop = tableContainer ? tableContainer.scrollTop : 0;
 
   try {
+    // [本地扩展 · 导出桌面版式] 先打标记类：手机上宽表被隐藏、卡片在显示，
+    // 直接量宽高会量到手机版式的尺寸（详见 GameStatus 里的说明）。
+    exportDom.value.classList.add("export-desktop-layout");
+
     // 临时调整表格容器高度，确保所有内容可见
     exportDom.value.style.height = "auto";
     exportDom.value.style.overflow = "visible";
@@ -2225,16 +2368,20 @@ const exportToImage = async () => {
     // 等待DOM更新
     await new Promise((resolve) => setTimeout(resolve, 100));
 
+    // 渲染宽度：桌面宽度下限与内容实际宽度取较大值
+    const renderWidth = Math.max(EXPORT_WIDTH, exportDom.value.scrollWidth);
+    const renderHeight = exportDom.value.scrollHeight;
+
     // 5. 用html2canvas渲染DOM为Canvas
     const canvas = await html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
       useCORS: true, // 允许跨域图片（若DOM内有远程图片，需开启）
       backgroundColor: "#ffffff", // 避免透明背景（默认透明）
       logging: false, // 关闭控制台日志
-      height: exportDom.value.scrollHeight, // 确保捕获完整高度
-      width: exportDom.value.scrollWidth, // 确保捕获完整宽度
-      windowWidth: exportDom.value.scrollWidth, // 设置窗口宽度
-      windowHeight: exportDom.value.scrollHeight, // 设置窗口高度
+      height: renderHeight, // 确保捕获完整高度
+      width: renderWidth, // 确保捕获完整宽度
+      windowWidth: renderWidth, // 以桌面宽度作为渲染窗口（媒体按桌面布局解析）
+      windowHeight: renderHeight, // 以完整高度作为渲染窗口
       allowTaint: true, // 允许跨域图片污染画布
     });
 
@@ -2247,6 +2394,9 @@ const exportToImage = async () => {
     console.error("DOM转图片失败：", err);
     alert("导出图片失败，请重试");
   } finally {
+    // [本地扩展] 摘掉导出标记类，界面回到手机卡片视图
+    exportDom.value.classList.remove("export-desktop-layout");
+
     // 恢复原始样式
     exportDom.value.style.removeProperty("height");
     exportDom.value.style.removeProperty("overflow");

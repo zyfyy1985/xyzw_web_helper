@@ -260,6 +260,157 @@
             </template>
           </n-empty>
         </div>
+
+        <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表。
+             scroll-x=1380 的 9 列宽表在手机上只能横滑看，这里改成卡片列表，
+             联盟分组标题行与取数时间页脚行一并还原；
+             编辑模式（手改排名 / 联盟）在卡片里同样可用。
+             默认 display:none + 只在 ≤768px 显示 → 导出长图（按 ≥1280px 桌面宽度
+             渲染）里不会出现卡片。 -->
+        <div
+          v-if="!loading1 && battleRecords1 && battleRecords1.legionRankList"
+          class="salt-cards"
+        >
+          <template
+            v-for="row in groupedSaltTableData"
+            :key="
+              'wr2-' +
+              (row.__isGroupHeader
+                ? 'g-' + row.alliance
+                : row.__isFetchTimeFooter
+                  ? 'f'
+                  : row.id)
+            "
+          >
+            <!-- 联盟分组标题行（对应宽表里的合并行） -->
+            <div v-if="row.__isGroupHeader" class="salt-cards__group">
+              {{ row.alliance }}（{{ row.count }}家）{{
+                row.count > 1 ? "平均红淬" : "红淬"
+              }}
+              {{ row.avgRedQuench }}红
+            </div>
+
+            <!-- 取数时间页脚行 -->
+            <div v-else-if="row.__isFetchTimeFooter" class="salt-cards__footer">
+              {{ row.fetchTimeText }}
+            </div>
+
+            <!-- 成员卡片 -->
+            <div
+              v-else
+              class="salt-card"
+              :class="getAllianceClass(getMemberAlliance(row))"
+            >
+              <div class="salt-card__head salt-card__head--inline">
+                <NInputNumber
+                  v-if="isEditMode"
+                  v-model:value="manualRankings[row.id]"
+                  size="small"
+                  :min="1"
+                  :max="20"
+                  :show-button="false"
+                  class="salt-card__rank-input"
+                  @focus="handleRankFocus(row)"
+                  @blur="handleRankBlur(row)"
+                  @keydown.enter="(e) => e.target.blur()"
+                />
+                <span v-else class="salt-card__rank"
+                  >#{{ getMemberRank(row) }}</span
+                >
+                <img
+                  v-if="row.logo"
+                  :src="row.logo"
+                  class="salt-card__avatar"
+                  :alt="row.name"
+                />
+                <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+                  row.name?.charAt(0) || "?"
+                }}</span>
+                <span class="salt-card__name">{{ row.name }}</span>
+                <span class="salt-card__server">{{ row.serverId }}</span>
+                <span v-if="isCurrentAccountClub(row)" class="salt-card__badge"
+                  >本俱乐部</span
+                >
+                <NSelect
+                  v-if="isEditMode"
+                  v-model:value="manualAlliances[row.id]"
+                  :options="allianceOptions"
+                  size="small"
+                  class="salt-card__alliance-select"
+                />
+                <span
+                  v-else
+                  class="salt-card__alliance-chip"
+                  :class="getAllianceTagClass(getMemberAlliance(row))"
+                  >{{ getMemberAlliance(row) }}</span
+                >
+              </div>
+
+              <!-- 公告：紧跟名字行单独一行 -->
+              <div class="salt-card__line salt-card__line--announce">
+                <span class="salt-card__label">公告</span>
+                <span class="salt-card__value is-muted">{{
+                  row.announcement || "—"
+                }}</span>
+              </div>
+
+              <div class="salt-card__grid salt-card__grid--1row">
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">红淬</span>
+                  <span class="salt-card__value is-red">{{
+                    row.redQuench
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">战力</span>
+                  <span class="salt-card__value is-power">{{
+                    formatPower(row.power) || 0
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">等级</span>
+                  <span class="salt-card__value">{{ row.level }}</span>
+                </div>
+              </div>
+
+              <div v-if="row.topHeroes && row.topHeroes.length" class="salt-card__heros">
+                <span class="salt-card__label">前三车头</span>
+                <div
+                  v-for="(hero, hi) in row.topHeroes"
+                  :key="'wr2-h-' + hi + '-' + (hero.id || hero.name)"
+                  class="salt-card__hero"
+                  @click="handleHeroClick(hero)"
+                >
+                  <img
+                    v-if="hero.headImg"
+                    :src="hero.headImg"
+                    class="salt-card__hero-avatar"
+                    :alt="hero.name"
+                  />
+                  <span
+                    v-else
+                    class="salt-card__hero-avatar salt-card__hero-avatar--ph"
+                    >{{ hero.name?.charAt(0) || "?" }}</span
+                  >
+                  <span class="salt-card__hero-name">{{
+                    hero.name || "未知"
+                  }}</span>
+                  <span class="salt-card__hero-beast">圣{{ hero.holyBeast }}</span>
+                  <span class="salt-card__hero-meta">
+                    {{ formatPower(hero.power) }}
+                    <i
+                      class="salt-card__hero-lineup"
+                      :style="getLineupTagStyle(hero.lineupType)"
+                      >{{ hero.lineupType || "其他" }}</i
+                    >
+                    <b class="salt-card__hero-red">{{ hero.redQuench }}红</b>
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </template>
+        </div>
       </div>
     </div>
 

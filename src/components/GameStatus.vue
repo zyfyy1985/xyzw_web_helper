@@ -219,6 +219,8 @@
           <n-radio-button value="style1">样式一</n-radio-button>
           <n-radio-button value="style2">样式二</n-radio-button>
         </n-radio-group>
+        <!-- [本地扩展] 说明：样式一/样式二 只切换导出图片的版式 -->
+        <span class="style-switch-hint">仅影响导出图片版式</span>
       </div>
 
       <div
@@ -1137,7 +1139,12 @@ onUnmounted(() => {
   /* 有独立结果容器的组件：根恢复手机宽度 */
   .warrank-full-container :deep(.club-warrank-container),
   .warrank-full-container :deep(.records-container),
-  .warrank-full-container :deep(.club-month-battle-records-container) {
+  .warrank-full-container :deep(.club-month-battle-records-container),
+  /* 盐场地图 / 盐场战况 也是 `.warrank-full-container` 的直接子元素，但根类名
+     原先不在列表里 → 被上面 `> *` 的 1280px 顶宽，连「暂未开放」占位都 1280px 宽、
+     手机上得横向拖动。它们的内部内容本来就走 100% / 百分比，放回手机宽度即可。 */
+  .warrank-full-container :deep(.legion-war-statistics-container),
+  .warrank-full-container :deep(.legion-war-map-container) {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -1196,5 +1203,629 @@ onUnmounted(() => {
     width: max-content;
     min-width: 100%;
   }
+}
+
+/* ============================================================================
+ * [本地扩展 · 盐场大表移动端卡片视图]
+ * ----------------------------------------------------------------------------
+ * 手机上（<=768px）把盐场各组件的宽表换成卡片列表：
+ *   · ClubWarrank            盐场匹配·样式一（11 列 div 伪表格，约 1305px）
+ *   · ClubWarrankV2          盐场匹配·样式二（9 列 n-data-table，scroll-x 1380）
+ *   · ClubBattleRecords      本周盐场战绩（原生 table ×2 个样式分支，各 7 列）
+ *   · ClubMonthBattleRecords 本月盐场战绩（原生 table ×3 个样式分支）
+ *   · LegionWarStatistics    盐场战况（3 张 n-data-table，10/9/10 列）
+ * 各组件模板里并列插入 .salt-cards 卡片块（纯插入、0 行删除），本段只负责
+ * 「窄屏显示卡片 + 隐藏宽表 + 卡片外观」。所有选择器都带 .salt-field-group
+ * 前缀，不会波及其他分组（蟠桃园 / 排行榜 / 营地挑战等）。
+ *
+ * 与导出图片的关系：.salt-cards 默认 display:none，只在 <=768px 显示；而导出
+ * 长图按 >=1280px 桌面宽度渲染（html2canvas 的 windowWidth），媒体查询不命中，
+ * 所以导出图里不会出现卡片，仍是原来的表格版式。
+ *
+ * 样式一/样式二 那个开关只切换导出图片的版式（ClubWarrank ↔ ClubWarrankV2），
+ * 卡片块放在样式分支之外共用一套，窄屏下不受它影响。
+ * ========================================================================== */
+
+/* 桌面隐藏（同时保证导出长图里不出现卡片） */
+.salt-field-group :deep(.salt-cards) {
+  display: none;
+}
+
+/* 「样式一/样式二」旁边的说明文字 */
+.style-switch-hint {
+  margin-left: 8px;
+  align-self: center;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  /* ① 窄屏隐藏各张宽表（连外层容器一起藏，免得留下空白或横向滚动条） */
+  .salt-field-group :deep(.warrank-full-container .table-container),
+  .salt-field-group :deep(.warrank-full-container .members-table-wrapper),
+  .salt-field-group :deep(.warrank-full-container .style1-table-container),
+  .salt-field-group :deep(.warrank-full-container .style2-table-wrapper),
+  .salt-field-group :deep(.warrank-full-container .n-data-table) {
+    display: none !important;
+  }
+
+  /* ② 结果区整体改回手机宽度。
+        原来是「结果区强制 1280px + 外层横滑」，宽表已换成卡片，再留着
+        1280px 会把卡片也撑成 1280px 宽、手机上又得横滑。 */
+  .salt-field-group :deep(.warrank-full-container .table-content > *),
+  .salt-field-group :deep(.warrank-full-container .records-list > *),
+  .salt-field-group :deep(.warrank-full-container .records-wrapper > *) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  /* ③ 卡片列表容器 */
+  .salt-field-group :deep(.salt-cards) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* 联盟分组标题行 / 取数时间页脚行（对应宽表里的合并行） */
+  .salt-field-group :deep(.salt-cards__group) {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #eef2f7;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .salt-field-group :deep(.salt-cards__footer) {
+    padding: 4px 2px;
+    color: #94a3b8;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* ④ 卡片本体 */
+  .salt-field-group :deep(.salt-card) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--n-border-color, #e2e8f0);
+    border-radius: 10px;
+    background: var(--n-card-color, #ffffff);
+    box-sizing: border-box;
+  }
+  .salt-field-group :deep(.salt-card__head) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+  .salt-field-group :deep(.salt-card__rank) {
+    flex: 0 0 auto;
+    min-width: 26px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 6px;
+    background: #eef2f7;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .salt-field-group :deep(.salt-card__avatar) {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+  }
+  .salt-field-group :deep(.salt-card__avatar--ph) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  }
+  .salt-field-group :deep(.salt-card__name) {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--n-text-color, #1f2937);
+    overflow-wrap: anywhere;
+  }
+  .salt-field-group :deep(.salt-card__badge) {
+    margin-left: auto;
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1677ff;
+    background: #e6f0ff;
+    white-space: nowrap;
+  }
+
+  /* ⑤ 字段网格：两列 */
+  .salt-field-group :deep(.salt-card__grid) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+  .salt-field-group :deep(.salt-card__cell) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+  .salt-field-group :deep(.salt-card__label) {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #94a3b8;
+  }
+  .salt-field-group :deep(.salt-card__value) {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    overflow-wrap: anywhere;
+  }
+
+  /* ⑥ 整行字段（联盟 / 公告 / 俱乐部） */
+  .salt-field-group :deep(.salt-card__line) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+  .salt-field-group :deep(.salt-card__line .salt-card__label) {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .salt-field-group :deep(.salt-card__line .salt-card__value) {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    text-align: right;
+  }
+
+  /* ⑦ 数值配色，对齐宽表里的行内色值 */
+  .salt-field-group :deep(.salt-card__value.is-kill) { color: #ff4d4f; font-weight: 700; }
+  .salt-field-group :deep(.salt-card__value.is-death) { color: #94a3b8; }
+  .salt-field-group :deep(.salt-card__value.is-occupy) { color: #f59e0b; }
+  .salt-field-group :deep(.salt-card__value.is-revive) { color: #10b981; }
+  .salt-field-group :deep(.salt-card__value.is-power) { color: #fa8c16; }
+  .salt-field-group :deep(.salt-card__value.is-red) { color: #ff4d4f; font-weight: 700; }
+  .salt-field-group :deep(.salt-card__value.is-score) { color: #6366f1; font-weight: 700; }
+  .salt-field-group :deep(.salt-card__value.is-muted) { color: #94a3b8; }
+
+  /* ⑧ 前三车头 */
+  .salt-field-group :deep(.salt-card__heros) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .salt-field-group :deep(.salt-card__hero) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 5px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+  }
+  .salt-field-group :deep(.salt-card__hero-avatar) {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+  }
+  .salt-field-group :deep(.salt-card__hero-avatar--ph) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  }
+  .salt-field-group :deep(.salt-card__hero-name) {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .salt-field-group :deep(.salt-card__hero-beast) {
+    flex: 0 0 auto;
+    padding: 1px 4px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    white-space: nowrap;
+  }
+  .salt-field-group :deep(.salt-card__hero-meta) {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+  .salt-field-group :deep(.salt-card__hero-lineup) {
+    padding: 0 4px;
+    border-radius: 6px;
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 600;
+  }
+  .salt-field-group :deep(.salt-card__hero-red) {
+    color: #ef4444;
+    font-weight: 700;
+  }
+
+  /* ⑨ 编辑模式（手改排名 / 联盟）的控件宽度 */
+  .salt-field-group :deep(.salt-card__rank-input) {
+    flex: 0 0 auto;
+    width: 72px;
+  }
+  .salt-field-group :deep(.salt-card__alliance-select) {
+    flex: 0 0 auto;
+    width: 110px;
+  }
+
+  /* ⑩ 本月战绩：默认样式是「日期为列」，卡片里改成逐日展开 */
+  .salt-field-group :deep(.salt-card__dates) {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding-top: 6px;
+    border-top: 1px dashed var(--n-border-color, #e2e8f0);
+  }
+  .salt-field-group :deep(.salt-card__date-row) {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+  }
+  .salt-field-group :deep(.salt-card__date-label) {
+    flex: 0 0 auto;
+    min-width: 44px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+  }
+  .salt-field-group :deep(.salt-card__date-value) {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 11px;
+    color: #475569;
+    overflow-wrap: anywhere;
+  }
+
+  /* ⑫ 手机端「阵营分类」= 顶部提示条 + 联盟标签栏（样式一 / 样式二 统一）
+        只覆盖 <=768px：桌面各自保持原样；导出长图按 >=1280px 渲染，媒体查询
+        不命中，所以导出图里仍是各样式原来的桌面版式，不受本段影响。
+        配色 = 每个联盟一个辨识色，与样式二的表格行底色同一套；
+        改色只需改最下面那 7 行，四个变量的含义：
+          --tab-solid 选中态实心色（底色 + 描边）
+          --tab-dark  未选中态文字色（也是计数徽标文字色）
+          --tab-tint  未选中态底色（也是计数徽标底色）
+          --tab-line  未选中态描边色 */
+  .salt-field-group :deep(.announcement-section) {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 3px solid #1677ff !important;
+    border-radius: 8px !important;
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .salt-field-group :deep(.announcement-section .announcement-content) {
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .salt-field-group
+    :deep(.announcement-section .announcement-content .announcement-text) {
+    color: #334155 !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+    max-width: none !important;
+  }
+
+  .salt-field-group
+    :deep(.announcement-section .announcement-content .announcement-fetch-time) {
+    color: #94a3b8 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+  }
+
+  /* 联盟标签栏：网格自动换行（每行 3~4 个、全部可见），不再横向滚动 */
+  .salt-field-group :deep(.alliance-tabs-section) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)) !important;
+    gap: 6px !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin-bottom: 10px !important;
+    overflow: visible !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .salt-field-group :deep(.alliance-tab) {
+    flex: none !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 7px 6px !important;
+    border-radius: 8px !important;
+    gap: 4px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
+    transform: none !important;
+    background: var(--tab-tint, #f8fafc) !important;
+    border: 1px solid var(--tab-line, #e2e8f0) !important;
+    color: var(--tab-dark, #475569) !important;
+
+    .tab-text {
+      font-size: 12px !important;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab-count {
+      flex: 0 0 auto;
+      font-size: 10px !important;
+      line-height: 1 !important;
+      padding: 2px 5px !important;
+      border-radius: 9px !important;
+      font-weight: 700 !important;
+      background: var(--tab-tint, #f1f5f9) !important;
+      color: var(--tab-dark, #475569) !important;
+    }
+
+    &.active {
+      background: var(--tab-solid, #1677ff) !important;
+      border-color: var(--tab-solid, #1677ff) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12) !important;
+
+      .tab-count {
+        background: rgba(255, 255, 255, 0.3) !important;
+        color: #ffffff !important;
+      }
+    }
+  }
+
+  /* 各联盟配色（改色只改这 7 行）。选择器同时覆盖三套既有类名：
+       样式一 表格行/卡片 = alliance-large / alliance-dream / …
+       样式二 表格标签   = alliance-tag-…
+       样式二 标签栏     = alliance-…
+     这样「联盟色 chip」（见 ⑬）无论带哪一套类名都能取到色。 */
+  .salt-field-group :deep(.alliance-large),
+  .salt-field-group :deep(.alliance-tag-dalianmeng),
+  .salt-field-group :deep(.alliance-dalianmeng) { --tab-solid: #52c41a; --tab-dark: #237804; --tab-tint: #f2fbe9; --tab-line: rgba(82, 196, 26, 0.32); } /* 大联盟 · 绿 */
+  .salt-field-group :deep(.alliance-dream),
+  .salt-field-group :deep(.alliance-tag-mengmeng),
+  .salt-field-group :deep(.alliance-mengmeng) { --tab-solid: #faad14; --tab-dark: #ad6800; --tab-tint: #fff8e6; --tab-line: rgba(250, 173, 20, 0.34); } /* 梦盟 · 橙 */
+  .salt-field-group :deep(.alliance-xin-justice),
+  .salt-field-group :deep(.alliance-tag-zhengyi),
+  .salt-field-group :deep(.alliance-zhengyi) { --tab-solid: #f5222d; --tab-dark: #cf1322; --tab-tint: #fff1f0; --tab-line: rgba(245, 34, 45, 0.30); } /* 正义联盟 · 红 */
+  .salt-field-group :deep(.alliance-dragon),
+  .salt-field-group :deep(.alliance-tag-longmeng),
+  .salt-field-group :deep(.alliance-longmeng) { --tab-solid: #722ed1; --tab-dark: #531dab; --tab-tint: #f6f0ff; --tab-line: rgba(114, 46, 209, 0.30); } /* 龙盟 · 紫 */
+  .salt-field-group :deep(.alliance-xi),
+  .salt-field-group :deep(.alliance-tag-ximeng),
+  .salt-field-group :deep(.alliance-ximeng) { --tab-solid: #13c2c2; --tab-dark: #08979c; --tab-tint: #e6fbfb; --tab-line: rgba(19, 194, 194, 0.32); } /* 曦盟 · 青 */
+  .salt-field-group :deep(.alliance-unknown),
+  .salt-field-group :deep(.alliance-other),
+  .salt-field-group :deep(.alliance-tag-unknown),
+  .salt-field-group :deep(.alliance-tag-other) { --tab-solid: #94a3b8; --tab-dark: #475569; --tab-tint: #f4f6f9; --tab-line: #e2e8f0; } /* 未知联盟 / 其它 · 灰 */
+  .salt-field-group :deep(.alliance-all) { --tab-solid: #1677ff; --tab-dark: #0958d9; --tab-tint: #eef5ff; --tab-line: rgba(22, 119, 255, 0.30); } /* 全部 · 蓝 */
+  /* ⑬ 名字行重排（只作用于带 --inline 的名字行）：服务器 id 并入名字行、
+        联盟改成靠右的色 chip、公告移到名字下方单独一行。
+        其他卡片（本周/本月战绩、盐场战况）不带 --inline，名字仍可换行。 */
+  .salt-field-group :deep(.salt-card__head--inline) {
+    flex-wrap: nowrap;
+  }
+  /* 名字占剩余空间，过长省略 → 服务器 id / 联盟 chip 始终留在同一行 */
+  .salt-field-group :deep(.salt-card__head--inline .salt-card__name) {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* 「本俱乐部」徽标不再独占右侧（右侧让给联盟 chip） */
+  .salt-field-group :deep(.salt-card__head--inline .salt-card__badge) {
+    margin-left: 0;
+  }
+  /* 服务器 id：跟在名字后面的浅灰小块 */
+  .salt-field-group :deep(.salt-card__server) {
+    flex: 0 0 auto;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  /* 联盟色 chip：颜色取各联盟的 --tab-* 变量（色板见 ⑫ 段） */
+  .salt-field-group :deep(.salt-card .salt-card__alliance-chip) {
+    margin-left: auto;
+    flex: 0 0 auto;
+    padding: 1px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.6;
+    white-space: nowrap;
+    background: var(--tab-tint, #f4f6f9) !important;
+    color: var(--tab-dark, #475569) !important;
+    border: 1px solid var(--tab-line, #e2e8f0) !important;
+  }
+  /* 编辑模式下联盟改成下拉框，同样靠右 */
+  .salt-field-group :deep(.salt-card .salt-card__alliance-select) {
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  /* ⑭ 收尾细节：公告整行左对齐；卡片描边改用俱乐部（联盟）色 */
+  .salt-field-group :deep(.salt-card__line--announce) {
+    justify-content: flex-start;
+  }
+  .salt-field-group :deep(.salt-card__line--announce .salt-card__value) {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+  }
+  /* 描边色取联盟标签色（色板见 ⑫ 段）；未带联盟类的卡片回落到原边框色 */
+  .salt-field-group :deep(.salt-card) {
+    border-color: var(--tab-solid, var(--n-border-color, #e2e8f0));
+  }
+  /* 卡片字段全部挤到同一行、等宽平分 —— 盐场匹配卡片（红淬 | 战力 | 等级 | 积分）
+        与 本周 / 本月战绩条目（击杀 | 死亡 | 攻城 | 复活丹 | K/D）共用。
+        grid-auto-flow: column + grid-auto-columns —— 列数自动跟随字段数，
+        所以被 v-if 隐藏的字段（盐场「积分」、月报 default 样式的「攻城」）
+        不会留下空列；需先把 base 的 grid-template-columns 清成 none，
+        否则前两项会先占掉 base 的那两列。
+        只作用于带 --1row 的网格 —— .salt-card__grid 是多张卡片共用的类。 */
+  .salt-field-group :deep(.salt-card__grid--1row) {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  /* 盐场战况 · 4 列字段网格 —— 战队 / 个人 / 全部 三个视图共用：
+        战队战况（8 字段，排 4 / 4）：积分 | 击杀数 | 免费复活 | 花费总丹 ／
+                                      四圣 | 人数 | 红数 | 战力
+        个人 · 全部战况（7 字段，排 4 / 3）：积分 | 击杀数 | 死亡次数 | K/D ／
+                                            已复活次数 | 复活丹 | 刨地
+        ⚠️ 战队战况原来写的是 3 / 3 / 2（6 列栅格 + nth-child 跨列）：第三行每格宽度是
+        上面两行的 1.5 倍，视觉不均，已废弃，不要再改回去。
+        只作用于带 --lg 的网格（.salt-card__grid 是多张卡片共用的类）。 */
+  .salt-field-group :deep(.salt-card__grid--lg) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  /* ⑮ 盐场战况 · 全部战况：俱乐部名并入名字行、靠右
+        （原来在名字下方单独一行 .salt-card__line，用户要求跟名字同行）。
+        只作用于带 --club 修饰类的名字行 —— 同 ⑬ 的 --inline，避免影响
+        本周/本月战绩、盐场匹配、个人战况那些共用 .salt-card__head 的卡片。 */
+  .salt-field-group :deep(.salt-card__head--club) {
+    flex-wrap: nowrap;
+  }
+  /* 名字吃剩余空间、过长省略 → 俱乐部名始终留在同一行右侧 */
+  .salt-field-group :deep(.salt-card__head--club .salt-card__name) {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* 俱乐部名：右对齐浅灰小块（配色对齐 .salt-card__rank / .salt-card__server） */
+  .salt-field-group :deep(.salt-card .salt-card__club) {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 50%;
+    margin-left: auto;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* ============================================================================
+ * [本地扩展 · 导出长图期间临时恢复桌面版式]
+ * ----------------------------------------------------------------------------
+ * 起因：<=768px 时各宽表被 display:none 换成卡片（见 ① 与 ⑫），而导出函数是在
+ *      **真机 DOM** 上量 scrollWidth / scrollHeight 的 —— 量到的就是手机版式的
+ *      尺寸，于是长图会导出成卡片版式、或被截断成一条。
+ *      媒体查询按「视口」判定，给元素写死桌面宽度并不会让 @media 失效，所以只能
+ *      在导出期间临时把桌面版式「打开」——用非媒体查询的标记类实现：
+ *        导出前 exportDom.classList.add("export-desktop-layout")
+ *        导出后（finally）移除 → 界面立刻回到手机端卡片视图
+ * 样式二（ClubWarrankV2）本来就用它自己的 .salt-image-exporting 做同类事情，
+ * 这里一并识别它的「恢复宽表 / 隐藏卡片」，不动它的导出逻辑和 1380 宽度。
+ * ========================================================================== */
+
+/* A. 结果区固定桌面宽度（样式二有自己的 1380，不干预） */
+.salt-field-group
+  :deep(.warrank-full-container .export-desktop-layout:not(.salt-image-exporting)) {
+  width: 1280px !important;
+  min-width: 1280px !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* B. 隐藏卡片（导出图里只保留宽表） */
+.salt-field-group :deep(.export-desktop-layout .salt-cards),
+.salt-field-group :deep(.salt-image-exporting .salt-cards) {
+  display: none !important;
+}
+
+/* C. 恢复宽表（revert = 回到浏览器默认 display，div → block、table → table） */
+.salt-field-group :deep(.export-desktop-layout .table-container),
+.salt-field-group :deep(.export-desktop-layout .members-table-wrapper),
+.salt-field-group :deep(.export-desktop-layout .style1-table-container),
+.salt-field-group :deep(.export-desktop-layout .style2-table-wrapper),
+.salt-field-group :deep(.export-desktop-layout .n-data-table),
+.salt-field-group :deep(.salt-image-exporting .table-container),
+.salt-field-group :deep(.salt-image-exporting .n-data-table) {
+  display: revert !important;
+}
+
+/* D. 营地挑战组（CampChallenge 不在 .salt-field-group 里，单独一套） */
+.camp-challenge-group :deep(.export-desktop-layout .member-cards) {
+  display: none !important;
+}
+
+.camp-challenge-group :deep(.export-desktop-layout .table-card .camp-data-table),
+.camp-challenge-group
+  :deep(.export-desktop-layout .members-table-section .camp-data-table) {
+  display: revert !important;
 }
 </style>

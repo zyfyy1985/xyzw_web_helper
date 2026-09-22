@@ -418,6 +418,73 @@
                 </table>
              </div>
           </div>
+
+          <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表。
+               放在样式一/样式二分支之外共用一个：两种样式渲染的是同一份
+               battleRecords.roleDetailsList、同样的 7 列，所以手机端只维护这一套。
+               样式一/样式二 只影响导出的图片版式，不影响这里的卡片。 -->
+          <div class="salt-cards">
+            <div
+              v-for="(player, index) in battleRecords.roleDetailsList"
+              :key="'wk-card-' + player.roleId"
+              class="salt-card"
+            >
+              <div class="salt-card__head">
+                <span class="salt-card__rank">
+                  <template v-if="index < 3">{{
+                    index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"
+                  }}</template>
+                  <template v-else>{{ index + 1 }}</template>
+                </span>
+                <img
+                  v-if="player.headImg"
+                  :src="player.headImg"
+                  class="salt-card__avatar"
+                  @error="handleImageError"
+                />
+                <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+                  player.name?.charAt(0) || "?"
+                }}</span>
+                <span class="salt-card__name">{{ player.name }}</span>
+              </div>
+              <div class="salt-card__grid salt-card__grid--1row">
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">击杀</span>
+                  <span class="salt-card__value is-kill">{{
+                    player.winCnt || 0
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">死亡</span>
+                  <span class="salt-card__value is-death">{{
+                    player.loseCnt || 0
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">攻城</span>
+                  <span class="salt-card__value is-occupy">{{
+                    player.buildingCnt || 0
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">复活丹</span>
+                  <span class="salt-card__value is-revive">{{
+                    Math.max((player.loseCnt || 0) - 6, 0)
+                  }}</span>
+                </div>
+                <div class="salt-card__cell">
+                  <span class="salt-card__label">K/D</span>
+                  <span class="salt-card__value">{{
+                    parseFloat(
+                      player.winCnt && player.loseCnt
+                        ? player.winCnt / player.loseCnt
+                        : 0.0,
+                    ).toFixed(2)
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
           
         </div>
 
@@ -764,6 +831,10 @@ const exportToImage = async () => {
   );
 
   try {
+    // [本地扩展 · 导出桌面版式] 先打标记类：手机上宽表被隐藏、卡片在显示，
+    // 直接量宽高会量到手机版式的尺寸（详见 GameStatus 里的说明）。
+    exportDom.value.classList.add('export-desktop-layout');
+
     containers.forEach((el) => {
       // 用 !important 覆盖样式表中的 overflow/height/max-height 限制
       el.style.setProperty('overflow', 'visible', 'important');
@@ -827,6 +898,9 @@ const exportToImage = async () => {
   } catch (err) {
     console.error('DOM转图片失败：', err);
     alert('导出图片失败，请重试');
+  } finally {
+    // [本地扩展] 摘掉导出标记类，界面回到手机卡片视图
+    if (exportDom.value) exportDom.value.classList.remove('export-desktop-layout');
   }
 };
 
@@ -1554,4 +1628,177 @@ onMounted(() => {
 /* 手机端不再改变布局：保持与桌面一致的结构，
    超出部分由外层容器（GameStatus 的 .warrank-full-container /
    .records-container 覆盖规则）横向滚动查看。 */
+
+/* ============================================================================
+ * [本地扩展 · 手机端重排「统计 / 榜单」方块]
+ * ----------------------------------------------------------------------------
+ * 背景：宽表已在 GameStatus 换成卡片列表（.salt-cards），但样式一 / 样式二 自己的
+ *      统计方块仍按桌面排布 —— 总览每行 4 个、榜单固定 3 列、MVP 固定 160px，
+ *      窄屏下被压扁、文字换行。
+ * 做法：信息全部保留，只重排密度 —— 总览 2 列、榜单 2 列、MVP 转横向，
+ *      样式一「总体统计」整行 + 4 组「前三」2×2。
+ * 与上方「手机端不再改变布局」一句的关系：宽表部分仍保持桌面结构、由外层横滑，
+ *      本段只作用于统计 / 榜单方块。
+ * 桌面端（≥769px）完全不受影响；导出长图按 ≥1280px 渲染，媒体查询不命中，
+ *      导出图里仍是原来的桌面版式。
+ * ========================================================================== */
+@media (max-width: 768px) {
+  /* 结果区少留一点内边距给内容 */
+  .style-1,
+  .style-2 {
+    padding: 12px;
+  }
+
+  /* ---------- 样式一：总体统计整行，4 组「前三」2×2 ---------- */
+  .style1-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    min-width: 0;
+  }
+  .style1-summary .summary-card:first-child {
+    grid-column: 1 / -1;
+  }
+  .summary-card {
+    min-width: 0;
+    border-radius: 10px;
+  }
+  .summary-title {
+    padding: 6px;
+    font-size: 12px;
+  }
+  .summary-item {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .top3-item {
+    gap: 4px;
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .top3-rank {
+    flex: 0 0 auto;
+    width: 18px;
+    margin-right: 2px;
+  }
+  .rank-medal-small {
+    font-size: 14px;
+  }
+  .top3-info {
+    gap: 4px;
+  }
+  /* 名字让出剩余宽度、超长省略，而不是用桌面写死的 max-width: 100px */
+  .top3-name {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  .top3-value {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 28px;
+    margin-left: 4px;
+  }
+
+  /* ---------- 样式二：总览 8 个小方块改 2 列，MVP 转横向 ---------- */
+  .style2-dashboard {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .dashboard-stats {
+    gap: 10px;
+  }
+  .stat-card-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .stat-card-mini {
+    min-width: 0;
+    padding: 10px 8px;
+    border-radius: 10px;
+  }
+  .stat-label-mini {
+    margin-bottom: 2px;
+    font-size: 11px;
+  }
+  .stat-value-mini {
+    font-size: 16px;
+  }
+  .dashboard-mvp {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-align: left;
+  }
+  .mvp-avatar,
+  .mvp-avatar-placeholder {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0;
+    font-size: 18px;
+  }
+  .mvp-crown {
+    top: 6px;
+    right: 10px;
+    font-size: 18px;
+  }
+  .mvp-name {
+    width: auto;
+    font-size: 14px;
+    text-align: left;
+  }
+  .mvp-label {
+    font-size: 11px;
+  }
+
+  /* ---------- 样式二：6 个榜单方块改 2 列 ---------- */
+  .style2-rankings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .rank-card-s2 {
+    min-width: 0;
+    padding: 10px;
+    border-radius: 10px;
+  }
+  .rank-card-title-s2 {
+    gap: 4px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .rank-list-s2 {
+    gap: 6px;
+  }
+  .rank-item-s2 {
+    gap: 4px;
+    font-size: 11px;
+  }
+  .rank-num-s2 {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin-right: 5px;
+    font-size: 9px;
+  }
+  /* 名字占剩余宽度并省略；数值不许被压 */
+  .rank-player-s2 {
+    gap: 4px;
+  }
+  .avatar-xxs {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+  }
+  .rank-val-s2 {
+    flex: 0 0 auto;
+    margin-left: 4px;
+  }
+}
 </style>

@@ -83,7 +83,6 @@
             type="info" 
             :loading="exporting"
             @click="exportImage"
-            :disabled="!validData"
           >
             <template #icon>
               <n-icon>
@@ -97,7 +96,6 @@
             size="small" 
             type="success" 
             @click="exportExcel"
-            :disabled="!validData"
           >
             <template #icon>
               <n-icon>
@@ -223,6 +221,159 @@
             </div>
           </template>
         </n-data-table>
+
+        <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表。
+             三张表分别是 10 / 9 / 10 列且都没设 scroll-x，窄屏会被压成一条。
+             这里按当前 viewMode 渲染对应的卡片列表，字段与列一一对应。
+             注意：宽表对 团队/个人 战况做了分页（20 / 30 条一页），卡片按完整
+             列表展示、排名用整表序号，省掉手机上翻页。
+             默认 display:none + 只在 ≤768px 显示 → 不会影响导出。 -->
+        <div v-if="viewMode === 'legion'" class="salt-cards">
+          <div
+            v-for="(row, index) in legionData"
+            :key="'lg-' + (row.id || index)"
+            class="salt-card"
+            :class="rowClassName(row)"
+          >
+            <div class="salt-card__head">
+              <span class="salt-card__rank">#{{ index + 1 }}</span>
+              <span class="salt-card__name">{{ row.name }}</span>
+            </div>
+            <div class="salt-card__grid salt-card__grid--lg">
+              <!-- 顺序由用户指定：积分 | 击杀数 | 免费复活 | 花费总丹 ／ 四圣 | 人数 | 红数 | 战力 -->
+              <div class="salt-card__cell">
+                <span class="salt-card__label">积分</span>
+                <span class="salt-card__value is-score">{{ row.score }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">击杀数</span>
+                <span class="salt-card__value is-kill">{{ row.killCnt }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">免费复活</span>
+                <span class="salt-card__value">{{ row.reviveCount }}/150</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">花费总丹</span>
+                <span class="salt-card__value">{{ row.danCount }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">四圣</span>
+                <span class="salt-card__value"
+                  >{{ row.blessingCount }}个共{{ row.blessingScore }}分</span
+                >
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">人数</span>
+                <span class="salt-card__value">{{
+                  row.participantsCount
+                }}/30</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">红数</span>
+                <span class="salt-card__value is-red">{{ row.redCount }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">战力</span>
+                <span class="salt-card__value is-power">{{
+                  formatPower(row.power)
+                }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="viewMode === 'individual'" class="salt-cards">
+          <div
+            v-for="(row, index) in individualData"
+            :key="'iv-' + (row.key ?? index)"
+            class="salt-card"
+            :class="rowClassName(row)"
+          >
+            <div class="salt-card__head">
+              <span class="salt-card__rank">#{{ index + 1 }}</span>
+              <span class="salt-card__name">{{ row.name }}</span>
+            </div>
+            <div class="salt-card__grid salt-card__grid--lg">
+              <!-- 顺序由用户指定：积分 | 击杀数 | 死亡次数 | K/D ／ 已复活次数 | 复活丹 | 刨地 -->
+              <div class="salt-card__cell">
+                <span class="salt-card__label">积分</span>
+                <span class="salt-card__value is-score">{{ row.score }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">击杀数</span>
+                <span class="salt-card__value is-kill">{{ row.kill }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">死亡次数</span>
+                <span class="salt-card__value is-death">{{ row.die }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">K/D</span>
+                <span class="salt-card__value">{{ row.kd }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">已复活次数</span>
+                <span class="salt-card__value">{{ row.revive }}/5</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">复活丹</span>
+                <span class="salt-card__value is-revive">{{ row.dan }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">刨地</span>
+                <span class="salt-card__value">{{ row.digGround }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="viewMode === 'all_individual'" class="salt-cards">
+          <div
+            v-for="(row, index) in allIndividualData"
+            :key="'ai-' + (row.key ?? index)"
+            class="salt-card"
+            :class="rowClassName(row)"
+          >
+            <div class="salt-card__head salt-card__head--club">
+              <span class="salt-card__rank">#{{ index + 1 }}</span>
+              <span class="salt-card__name">{{ row.name }}</span>
+              <!-- 俱乐部并入名字行、靠右（原来是名字下方单独一行 .salt-card__line） -->
+              <span class="salt-card__club">{{ row.clubName }}</span>
+            </div>
+            <div class="salt-card__grid salt-card__grid--lg">
+              <!-- 顺序由用户指定：积分 | 击杀数 | 死亡次数 | K/D ／ 已复活次数 | 复活丹 | 刨地 -->
+              <div class="salt-card__cell">
+                <span class="salt-card__label">积分</span>
+                <span class="salt-card__value is-score">{{ row.score }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">击杀数</span>
+                <span class="salt-card__value is-kill">{{ row.kill }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">死亡次数</span>
+                <span class="salt-card__value is-death">{{ row.die }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">K/D</span>
+                <span class="salt-card__value">{{ row.kd }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">已复活次数</span>
+                <span class="salt-card__value">{{ row.revive }}/5</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">复活丹</span>
+                <span class="salt-card__value is-revive">{{ row.dan }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">刨地</span>
+                <span class="salt-card__value">{{ row.digGround }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       </template>
     </div>
@@ -336,6 +487,9 @@ const exportExcel = () => {
   message.success(`导出成功: ${fileName}`);
 };
 
+// 导出固定桌面宽度（沿用其它盐场组件的范式，配合 GameStatus 的导出段）
+const EXPORT_WIDTH = 1280;
+
 const exportImage = async () => {
   const element = document.querySelector(".legion-war-statistics-card .table-content");
   if (!element) {
@@ -347,16 +501,26 @@ const exportImage = async () => {
   // 临时移除最大高度以截取完整内容
   const originalMaxHeight = tableMaxHeight.value;
   tableMaxHeight.value = undefined;
+  // <=768px 时三张宽表被隐藏、只显示卡片，而媒体查询按「视口」判定 ——
+  // 不挂这个标记类，导出的会是手机卡片版式（规则见 GameStatus 的导出段）。
+  element.classList.add("export-desktop-layout");
 
   try {
     await nextTick();
     // 等待一点时间确保渲染完成
     await new Promise(resolve => setTimeout(resolve, 100));
 
+    const renderWidth = Math.max(EXPORT_WIDTH, element.scrollWidth);
+    const renderHeight = element.scrollHeight;
+
     const canvas = await html2canvas(element, {
       useCORS: true,
       scale: 2, // Higher quality
       backgroundColor: "#ffffff",
+      width: renderWidth,
+      height: renderHeight,
+      windowWidth: renderWidth, // 让克隆文档的媒体查询按桌面宽度解析
+      windowHeight: renderHeight,
     });
 
     const link = document.createElement("a");
@@ -369,6 +533,7 @@ const exportImage = async () => {
     console.error("导出失败:", error);
     message.error("导出失败");
   } finally {
+    element.classList.remove("export-desktop-layout");
     tableMaxHeight.value = originalMaxHeight;
     exporting.value = false;
   }
@@ -770,6 +935,58 @@ onUnmounted(() => {
   .header-section {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  /* 「暂未开放」占位：桌面是 height:600px + padding:40px，手机上又高又空。
+     改成「手机端的最小高度 + 居中」：比 600px 矮得多，又靠 align-items:center
+     让内容上下留白自动相等（height:auto 时卡片紧贴内容，只靠 padding 撑不出呼吸感）。
+     内边距 24px，n-result 的图标 / 字号收小。
+     ⚠️ 图标不能用 `--n-icon-size` 覆盖 —— naive-ui 把主题变量写成**行内样式**挂在
+     `.n-result` 根节点上，class 规则赢不了；改为直接命中内部元素提特异性。 */
+  /* ⚠️ 外层容器类必须一起写：桌面规则是「容器 > 卡片 > 占位」三层，少一层就特异性更低、静默失效。 */
+  .legion-war-statistics-container {
+    /* 卡片下方多留一点：容器基础 padding 只有 8px，空状态卡片会贴着容器底，
+       与上方（头部 + 操作栏）的留白不对称。 */
+    padding-bottom: 24px;
+
+    .legion-war-statistics-card {
+      .access-denied-container {
+        height: auto;
+        min-height: 320px;
+        padding: 24px 16px;
+      }
+
+      .access-denied-info {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.6;
+
+        p {
+          margin: 3px 0;
+        }
+      }
+
+      :deep(.n-result-icon__status-image),
+      :deep(.n-result-base-icon),
+      :deep(.n-result-icon svg) {
+        font-size: 48px;
+      }
+
+      :deep(.n-result-header__title) {
+        margin-top: 8px;
+        font-size: 17px;
+      }
+
+      :deep(.n-result-header__description) {
+        margin-top: 6px;
+        font-size: 13px;
+      }
+
+      :deep(.n-result-content),
+      :deep(.n-result-footer) {
+        margin-top: 12px;
+      }
+    }
   }
 }
 </style>
