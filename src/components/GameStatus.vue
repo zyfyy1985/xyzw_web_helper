@@ -1050,10 +1050,13 @@ onUnmounted(() => {
    在手机端 grid 项默认 min-width:auto 会被内容撑开，导致整页横向滚动。
    改为：分组容器允许收缩，子导航/内容容器内允许横向滚动。 */
 @media (max-width: 768px) {
-  /* 三组分组容器允许收缩，避免被 grid 撑出视口 */
+  /* 各分组容器允许收缩，避免被 grid 撑出视口
+     营地挑战 / 逐鹿盐山同样需要，否则内部宽内容会把整页撑出横向滚动条 */
   .salt-field-group,
   .peach-group,
-  .rank-group {
+  .rank-group,
+  .camp-challenge-group,
+  .apex-challenge-group {
     min-width: 0;
   }
 

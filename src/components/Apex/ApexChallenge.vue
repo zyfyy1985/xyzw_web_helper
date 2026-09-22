@@ -154,7 +154,7 @@
           </div>
         </n-card>
 
-        <n-grid :cols="4" :x-gap="12" :y-gap="12" style="margin-top: 12px">
+        <n-grid responsive="screen" cols="2 s:4" :x-gap="12" :y-gap="12" style="margin-top: 12px">
           <n-grid-item v-for="rs in resetCards" :key="rs.label">
             <div class="stat-card" :class="rs.color">
               <div class="stat-icon">{{ rs.icon }}</div>
@@ -2073,6 +2073,7 @@ watch(
 }
 .stat-info {
   flex: 1;
+  min-width: 0;
 }
 .stat-label {
   font-size: 12px;
@@ -2221,5 +2222,71 @@ watch(
 .my-vote {
   margin-left: 6px;
   color: var(--n-primary-color, #18a058);
+}
+
+/* ==================== 移动端（窄屏）适配 ====================
+   仅作用于 < 768px：重置卡片已改为两列（模板 n-grid cols="2 s:4"），
+   这里再压缩内间距与字号，避免 44px 图标把文字挤成竖排 / 截断。
+   桌面端（>= 768px）样式保持原样。 */
+@media (max-width: 767px) {
+  .stat-card {
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    border-radius: 8px;
+  }
+  .stat-label {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .stat-value2 {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  /* 赛季横幅：左右布局改为上下堆叠，统计项均匀分布并加分隔线 */
+  .season-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .banner-title {
+    font-size: 20px;
+  }
+  .banner-sub {
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .banner-right {
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .banner-stat {
+    flex: 1;
+    min-width: 0;
+  }
+  .banner-num {
+    font-size: 20px;
+  }
+  .banner-label {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .season-banner::before {
+    top: -14px;
+    right: 6px;
+    font-size: 76px;
+  }
 }
 </style>

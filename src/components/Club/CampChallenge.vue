@@ -815,6 +815,80 @@
             :scroll-x="900"
             class="camp-data-table"
           />
+
+          <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表 -->
+          <div class="member-cards today-member-cards">
+            <div
+              v-for="(row, index) in sortedTodayMembers"
+              :key="'tcard_' + (row.slot || '') + '_' + row.id + '_' + (row.mirror ? 'mirror' : 'real')"
+              class="member-card"
+            >
+              <div class="member-card__head">
+                <span class="member-card__rank">{{ row.rankIndex || index + 1 }}</span>
+                <n-avatar round :size="36" :src="row.headImg" />
+                <span class="member-card__name" @click="openDuelModal(row)">
+                  {{ row.name }}
+                  <n-tag v-if="row.mirror" size="tiny" type="warning" round :bordered="false">镜像</n-tag>
+                </span>
+                <n-tag class="member-card__slot" size="small" type="info" round :bordered="false">
+                  #{{ row.slot || 1 }} 据点
+                </n-tag>
+              </div>
+
+              <div class="member-card__grid">
+                <div class="member-card__cell">
+                  <span class="member-card__label">真实战力</span>
+                  <span class="member-card__value is-power">{{ formatPower(row.power) }}</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">今日战功贡献</span>
+                  <span class="member-card__value" :class="row.todayScore > 0 ? 'is-gain' : 'is-zero'">
+                    {{ row.todayScore > 0 ? `+${row.todayScore}分` : "0分" }}
+                  </span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">据点防守态势</span>
+                  <n-tag size="small" :type="row.defeated ? 'error' : 'success'" round>
+                    {{ row.defeated ? "💥 已被攻破" : "🛡️ 坚守中" }}
+                  </n-tag>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">今日出刀状态</span>
+                  <n-tag v-if="!row.realAttackCnt" size="small" type="error" :bordered="false">0/3 未出战</n-tag>
+                  <n-tag v-else-if="row.realAttackCnt < 3" size="small" type="warning" :bordered="false">
+                    {{ row.realAttackCnt }}/3 未打满
+                  </n-tag>
+                  <n-tag v-else-if="row.realAttackCnt === 3" size="small" type="success" :bordered="false">
+                    3/3 已打满
+                  </n-tag>
+                  <n-tag v-else size="small" type="info" :bordered="false">{{ row.realAttackCnt }}次 (满战)</n-tag>
+                </div>
+              </div>
+
+              <div class="member-card__line">
+                <span class="member-card__label">防守交战记录</span>
+                <span class="member-card__value">
+                  遭遇 {{ row.challengeCnt || 0 }} 次 / 守住 {{ row.defWins || 0 }} 次 (胜率
+                  {{ row.defWinRate || "—" }})
+                </span>
+              </div>
+
+              <div class="member-card__line">
+                <span class="member-card__label">今日出刀实绩</span>
+                <span v-if="(row.realAttackCnt || 0) > 0" class="member-card__value is-win">
+                  {{ row.attackWins || 0 }}胜 / {{ row.attackLosses || 0 }}负 (胜率
+                  {{ row.attackWinRate || "—" }})
+                </span>
+                <span v-else class="member-card__value is-muted">0刀</span>
+              </div>
+
+              <div class="member-card__foot">
+                <n-button size="tiny" type="primary" @click="openDuelModal(row)">战报流水</n-button>
+              </div>
+            </div>
+
+            <div v-if="!sortedTodayMembers.length" class="member-cards__empty">暂无数据</div>
+          </div>
         </div>
       </div>
 
@@ -907,6 +981,77 @@
             :scroll-x="1000"
             class="camp-data-table"
           />
+
+          <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表 -->
+          <div class="member-cards weekly-member-cards">
+            <div
+              v-for="(row, index) in sortedWeeklyRoster"
+              :key="'wcard_' + (row.slot || '') + '_' + row.id + '_' + (row.mirror ? 'mirror' : 'real')"
+              class="member-card"
+            >
+              <div class="member-card__head">
+                <n-tag
+                  size="small"
+                  round
+                  :type="
+                    (row.currentRank || index + 1) === 1
+                      ? 'warning'
+                      : (row.currentRank || index + 1) === 2
+                      ? 'info'
+                      : (row.currentRank || index + 1) === 3
+                      ? 'success'
+                      : 'default'
+                  "
+                >
+                  第 {{ row.currentRank || index + 1 }} 名
+                </n-tag>
+                <n-avatar round :size="36" :src="row.headImg" />
+                <span class="member-card__name" @click="openDuelModal(row)">
+                  {{ row.name }}
+                  <n-tag v-if="row.mirror" size="tiny" type="warning" round :bordered="false">镜像</n-tag>
+                </span>
+                <span class="member-card__slot-text">#{{ row.slot || 1 }} 据点</span>
+              </div>
+
+              <div class="member-card__grid">
+                <div class="member-card__cell">
+                  <span class="member-card__label">真实战力</span>
+                  <span class="member-card__value is-power">{{ formatPower(row.power) }}</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">红淬</span>
+                  <span class="member-card__value is-red">{{ row.redQuench || 0 }}</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">当周总战功</span>
+                  <span class="member-card__value is-score">{{ row.score || 0 }}分</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">本周遭遇挑战</span>
+                  <span class="member-card__value">{{ row.challengeCnt || 0 }}次</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">本周防守守住</span>
+                  <span class="member-card__value is-win">{{ row.defWins || 0 }}次</span>
+                </div>
+                <div class="member-card__cell">
+                  <span class="member-card__label">本周防守胜率</span>
+                  <span
+                    class="member-card__value"
+                    :class="parseFloat(row.defWinRate) >= 50 ? 'is-win' : 'is-warn'"
+                  >
+                    {{ row.defWinRate }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="member-card__foot">
+                <n-button size="tiny" type="primary" @click="openDuelModal(row)">对战详情</n-button>
+              </div>
+            </div>
+
+            <div v-if="!sortedWeeklyRoster.length" class="member-cards__empty">暂无数据</div>
+          </div>
         </div>
       </div>
 
@@ -943,6 +1088,92 @@
           :scroll-x="1500"
           class="camp-data-table"
         />
+
+        <!-- [本地扩展 · 移动端卡片视图] 桌面隐藏，≤768px 显示并隐藏上方宽表 -->
+        <div class="member-cards lineup-member-cards">
+          <div
+            v-for="(row, index) in currentMemberList"
+            :key="'lcard_' + (row.slot || '') + '_' + row.id + '_' + (row.mirror ? 'mirror' : 'real')"
+            class="member-card"
+          >
+            <div class="member-card__head">
+              <span class="member-card__rank">{{ index + 1 }}</span>
+              <n-avatar round :size="38" :src="row.headImg" />
+              <span class="member-card__name" @click="openDuelModal(row)">{{ row.name }}</span>
+              <span class="member-card__slot-text">ID: {{ row.id }}</span>
+            </div>
+
+            <div class="member-card__grid">
+              <div class="member-card__cell">
+                <span class="member-card__label">真实战力</span>
+                <span class="member-card__value is-power">{{ formatPower(row.power) }}</span>
+              </div>
+              <div class="member-card__cell">
+                <span class="member-card__label">红淬</span>
+                <span class="member-card__value is-red">{{ row.redQuench }}</span>
+              </div>
+              <div class="member-card__cell">
+                <span class="member-card__label">珍卡</span>
+                <n-tag
+                  v-if="row.legacy && legacycolor[row.legacy]"
+                  size="small"
+                  :bordered="false"
+                  :color="{ color: legacycolor[row.legacy].value, textColor: '#fff' }"
+                >
+                  {{ legacycolor[row.legacy].name }}
+                </n-tag>
+                <span v-else class="member-card__value is-muted">—</span>
+              </div>
+              <div class="member-card__cell">
+                <span class="member-card__label">玩具</span>
+                <span class="member-card__value">{{ row.toyName || "—" }}</span>
+              </div>
+              <div class="member-card__cell">
+                <span class="member-card__label">阵容流派</span>
+                <n-tag
+                  size="small"
+                  :bordered="false"
+                  :color="
+                    (LINEUP_RULES.find((r) => r.name === (row.lineupType || '其他')) || {}).colorProps ||
+                    { color: '#e8e8e8', textColor: '#444' }
+                  "
+                >
+                  {{ row.lineupType || "其他" }}
+                </n-tag>
+              </div>
+            </div>
+
+            <div class="member-card__block">
+              <span class="member-card__label">真实营地挑战布阵 (1~5号站位)</span>
+              <div v-if="(row.heroList || []).length" class="lineup-cards-wrapper">
+                <div v-for="hero in row.heroList" :key="hero.slotIndex" class="hero-lineup-card">
+                  <div class="hero-card-header">
+                    <span class="hero-slot-badge">{{ hero.slotIndex }}号位</span>
+                    <span class="hero-name">{{ hero.heroName }}</span>
+                    <span class="hero-red">({{ hero.red }}红)</span>
+                    <span v-if="hero.HolyBeast" class="hb-badge">圣{{ hero.HBlevel }}</span>
+                  </div>
+                  <div class="hero-card-pearl">
+                    <span
+                      v-if="hero.PearlInfo && hero.PearlInfo.FishInfo && hero.PearlInfo.FishInfo.name"
+                      class="fish-name"
+                    >
+                      {{ hero.PearlInfo.FishInfo.name }}
+                    </span>
+                    <span v-else class="text-muted">专属鱼灵</span>
+                  </div>
+                </div>
+              </div>
+              <span v-else class="member-card__value is-muted">暂无出战布阵</span>
+            </div>
+
+            <div class="member-card__foot">
+              <n-button size="tiny" type="primary" @click="openDuelModal(row)">对战详情</n-button>
+            </div>
+          </div>
+
+          <div v-if="!currentMemberList.length" class="member-cards__empty">暂无数据</div>
+        </div>
       </div>
     </div>
 
@@ -4748,4 +4979,458 @@ onMounted(() => {
   font-size: 12px;
   color: #94a3b8;
 }
+
+/* ============================================================================
+ * [本地扩展 · 移动端适配] 手机窄屏（<= 768px）专用 UI 结构
+ * ----------------------------------------------------------------------------
+ * 本段为 fork 追加内容：不修改上方任何上游样式，也不涉及 script / template，
+ * 便于上游更新时直接保留本段做三方合并。
+ *
+ * 手机端把桌面横向排布重排为纵向堆叠：
+ *   ① 操作栏       -> 纵向三段（标题信息 / 阵营切换 / 操作按钮）
+ *   ② 双方 VS 卡片  -> 上下三行（我方 -> VS -> 敌方），两块内容统一左对齐
+ *   ③ 视图 tabs    -> 独占一行的横向滑动导航
+ *   ④ 沙盘控制栏    -> 纵向分段（标题 / 统计标签 / 筛选控件），筛选按钮等宽平分
+ * 桌面端（> 768px）不受本段任何影响。
+ *
+ * 另：⑨ 段配套的 .member-cards 卡片块由模板并列插入（纯插入、0 行删除），
+ *     本样式只负责窄屏显隐；卡片内的字段与点击行为与宽表完全一致。
+ * ========================================================================== */
+.member-cards {
+  display: none;
+}
+@media (max-width: 768px) {
+  .camp-challenge-container {
+    padding: 10px;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* ① 操作栏：纵向堆叠，按钮不再被挤压错位 */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .toolbar .left,
+  .toolbar .right {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .toolbar .left :deep(.n-radio-group) {
+    margin-left: 0 !important;
+  }
+  .toolbar .right :deep(.n-button) {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .match-title {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ② 双方 VS 卡片：上下三行，两块内容统一左对齐 */
+  .club-vs-container {
+    flex-direction: column;
+  }
+  .club-info {
+    padding: 12px 14px;
+  }
+  .club-details {
+    text-align: left;
+  }
+  .club-name {
+    font-size: 15px;
+  }
+  .club-announce-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .vs-badge-container {
+    flex-direction: row;
+    justify-content: center;
+    gap: 14px;
+    padding: 8px 14px;
+  }
+  .vs-badge {
+    font-size: 18px;
+  }
+  .rank-badge-text {
+    margin-top: 0;
+    min-width: 0;
+  }
+
+  /* ③ 视图 tabs：独占一行横向滑动，避免长 tab 被压断 */
+  .view-tabs-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .view-tabs-container::-webkit-scrollbar {
+    display: none;
+  }
+  .camp-main-tabs {
+    min-width: max-content;
+    white-space: nowrap;
+  }
+  .camp-main-tabs :deep(.n-tabs-tab) {
+    flex-shrink: 0;
+    padding: 6px 10px;
+  }
+  .tab-item-content {
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* ④ 沙盘控制栏：纵向分段，筛选按钮等宽平分整行 */
+  .map-control-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .map-side-indicator,
+  .map-metrics-summary,
+  .map-filters-group {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .map-filters-group {
+    align-items: stretch;
+  }
+  .map-filters-group :deep(.n-radio-group) {
+    display: flex;
+    width: 100%;
+  }
+  .map-filters-group :deep(.n-radio-button) {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+  .map-filters-group :deep(.n-select) {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 6px;
+  }
+
+  /* ⑤ 其余卡片：压缩内边距，弹窗内统计改两列 */
+  .stats-panel {
+    padding: 12px;
+  }
+  .attendance-control-panel,
+  .group-rank-section {
+    padding: 12px 14px;
+  }
+  .personal-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .combat-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ⑥ 统计面板与上方 VS 卡片等宽（窄屏左右边缘对齐的关键修复）
+     现象：视口收窄后 .header-section（深色 VS 卡）继续变窄，而
+           .stats-panel.weekly-panel（白卡）缩到某一宽度就停住，右边缘多出 22px。
+     根因：grid / flex 项目的 min-width 默认是 auto，即"不得小于内容 min-content"。
+           .stats-panels-grid 用 grid-template-columns: 1fr（= minmax(auto, 1fr)），
+           而下限被面板内部顶住：.schedule-chip 写死 min-width: 100px，
+           3 个芯片 100×3 + gap 8×2 = 316，叠加 .weekly-schedule-bar padding 20
+           与面板 padding 24，恰好 360px —— 与实测白卡宽度一致。
+           .header-section 是普通 block（内层 .club-vs-container 有 overflow: hidden），
+           没有这个下限，所以能一路缩到容器宽度 339px，两边就此错开。
+     解法：显式写 min-width: 0 解除下限，让三个层级都能缩到内容以下；
+           同时放开芯片自身下限，使 3 个芯片等分而不是被迫横向滚动。
+           只改 min-width，不动 grid-template-columns，601~768px 的 4 列布局保持不变。 */
+  .stats-panel {
+    min-width: 0;
+  }
+  .schedule-chip {
+    min-width: 0;
+  }
+  .metric-card {
+    min-width: 0;
+  }
+
+  /* ⑦ 「今日公会对战详细」比分横幅：窄屏左右分栏 → 上下堆叠
+     现象：.banner-sides-row 在窄屏仍是我方 | VS | 对手 三列，每侧只剩约 147px。
+           而 .combat-rate-display 把"胜率数值 + 出手/防守胜率 + 括注明细"三段
+           挤在同一行（合计约 400px），.score-display 的 38px 比分数值 + "今日积分"
+           也放不下 → 文字被压成逐字竖排；VS 徽章同样被挤成三行。
+     解法：两侧改上下堆叠、各占整行；VS 徽章转横向居中；胜率条允许换行，
+           并让长明细独占一行（flex-basis: 100%）；比分数值略缩、圆角收小。 */
+  .today-versus-score-banner {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+  .banner-sides-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .side-score-box {
+    width: 100%;
+    min-width: 0;
+  }
+  .side-score-box .club-title {
+    justify-content: center;
+    max-width: 100%;
+    font-size: 14px;
+  }
+  .vs-divider {
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+  }
+  .vs-text-styled {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+  .score-display {
+    gap: 4px;
+  }
+  .score-num {
+    font-size: 30px;
+  }
+  .score-label {
+    font-size: 12px;
+  }
+  .combat-rate-display {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    row-gap: 2px;
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+  .combat-rate-display .rate-detail {
+    flex: 1 1 100%;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .sub-stat {
+    text-align: center;
+    line-height: 1.5;
+  }
+  .combat-comparison-bar-container {
+    padding: 10px;
+  }
+  /* 对比条分区标题：窄屏改为"标题独占一行 + 双方数值并排"，避免括号数值单独掉行 */
+  .comparison-bar-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 2px 10px;
+    text-align: center;
+  }
+  .comparison-bar-header .bar-center-title {
+    order: -1;
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .comparison-bar-header .bar-left-text,
+  .comparison-bar-header .bar-right-text {
+    font-size: 11px;
+  }
+
+  /* ⑧ 战绩详表卡片表头：排序维度按钮组溢出卡片右边界
+     现象："排序维度："被挤成逐字竖排，三个 n-radio-button 溢出卡片右侧被截断。
+     根因：naive-ui(2.43.2) 的 .n-radio-button 是 display:inline-block +
+           white-space:nowrap + 左右各 14px padding（size="small" 时字号 14px/高 28px），
+           .n-radio-group--button-group 也是 nowrap → 按钮既不收缩也不换行。
+           三个按钮约需 368px，而卡片内可用宽度仅 331px（视口 383 − 容器 20 − 卡片 32），
+           溢出约 37px；同时 .sort-label 被压到接近 0 宽而成竖排。
+     解法：标签独占一行且不换行；按钮组占满整行；按钮收小内边距以放进一行，
+           并允许收缩 + 文本省略号兜底（万一字体度量不同也不会再溢出）。
+           第 891 行（当周版，2 个按钮）共用同一套 class，一并修好。 */
+  .table-header-title {
+    align-items: stretch;
+    gap: 8px;
+  }
+  .table-header-title .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+  }
+  .table-header-title .header-right-sort {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .table-header-title .sort-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .table-header-title .header-right-sort :deep(.n-radio-group) {
+    display: flex;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+    font-size: 12px;
+  }
+  .table-header-title .header-right-sort :deep(.n-radio-button) {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+  .table-header-title .header-right-sort :deep(.n-radio__label) {
+    padding: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* ⑨ 三张宽表（今日战绩 / 当周战绩 / 成员布阵）→ 窄屏卡片列表
+     背景：三张表各 11 列，列宽合计约 1190 / 1180 / 1560px，而窄屏卡片内可用宽度
+           仅约 331px，只能靠 n-data-table 的 scroll-x 横滑，一屏最多看到两列。
+     做法：卡片块已在模板中并列插入（纯插入、0 行删除），这里只负责窄屏
+           显示卡片、隐藏对应宽表。字段名由卡片内的 .member-card__label 承担，
+           因此**不依赖 CSS 硬编码列名**——上游调整列序也不会静默错位。
+     副作用：排序仍由上方「排序维度」按钮控制，因为卡片与表格用的是同一个
+             sortedTodayMembers / sortedWeeklyRoster 数组。 */
+  .member-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .table-card .camp-data-table,
+  .members-table-section .camp-data-table {
+    display: none;
+  }
+
+  .member-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--n-border-color, #e2e8f0);
+    border-radius: 10px;
+    background: var(--n-card-color, #ffffff);
+  }
+  .member-card__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .member-card__rank {
+    flex: 0 0 auto;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 6px;
+    background: #eef2f7;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .member-card__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1890ff;
+    cursor: pointer;
+  }
+  .member-card__slot,
+  .member-card__slot-text {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .member-card__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
+  }
+  .member-card__cell,
+  .member-card__block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+  .member-card__label {
+    font-size: 11px;
+    line-height: 1.3;
+    color: #94a3b8;
+  }
+  .member-card__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    overflow-wrap: anywhere;
+  }
+  .member-card__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+  .member-card__line .member-card__label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .member-card__line .member-card__value {
+    font-size: 12px;
+    color: #64748b;
+    text-align: right;
+  }
+  .member-card__foot {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .member-cards__empty {
+    padding: 16px 0;
+    text-align: center;
+    font-size: 13px;
+    color: #94a3b8;
+  }
+
+  /* 数值配色对齐桌面表格里的行内色值 */
+  .member-card__value.is-power { color: #fa8c16; }
+  .member-card__value.is-red { color: #ff4d4f; font-weight: 700; }
+  .member-card__value.is-score { color: #6366f1; }
+  .member-card__value.is-gain { color: #10b981; }
+  .member-card__value.is-win { color: #10b981; }
+  .member-card__value.is-warn { color: #f59e0b; }
+  .member-card__value.is-zero,
+  .member-card__value.is-muted { color: #94a3b8; }
+
+  /* 布阵小卡片：桌面为一行 5 张不换行（每张 min-width:110px），窄屏改为两列换行 */
+  .member-card .lineup-cards-wrapper {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .member-card .hero-lineup-card {
+    flex: 1 1 46%;
+    min-width: 0;
+  }
+}
+/* ======================== [本地扩展 · 移动端适配 结束] ======================== */
 </style>
