@@ -721,7 +721,6 @@ import {
 } from "@vicons/ionicons5";
 import ClubHistoryRecords from "./ClubHistoryRecords.vue";
 import ClubWeirdTowerInfo from "./ClubWeirdTowerInfo.vue";
-import CarScoreInfo from "./CarScoreInfo.vue";
 import { $emit } from "@/stores/events";
 import {
   HERO_DICT,

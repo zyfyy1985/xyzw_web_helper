@@ -26,7 +26,7 @@
       <a-modal
         class="token-import-modal"
         v-model:visible="showImportForm"
-        width="40rem"
+        width="52rem"
         :footer="false"
         :default-visible="!tokenStore.hasTokens"
       >
@@ -75,6 +75,11 @@
             @ok="() => (showImportForm = false)"
             v-if="importMethod === 'wxQrcode'"
           />
+          <mobile-token-form
+            @cancel="() => (showImportForm = false)"
+            @ok="() => (showImportForm = false)"
+            v-if="importMethod === 'mobile'"
+          />
           <bin-token-form
             @cancel="() => (showImportForm = false)"
             @ok="() => (showImportForm = false)"
@@ -91,14 +96,15 @@
       <!-- Token列表 -->
       <div v-if="tokenStore.hasTokens" class="tokens-section">
         <div class="section-header">
-          <n-space align="center">
-            <h2>我的Token列表 ({{ tokenStore.gameTokens.length }}个)</h2>
-            <n-radio-group v-model:value="viewMode" size="small">
-              <n-radio-button value="list">列表</n-radio-button>
-              <n-radio-button value="card">卡片</n-radio-button>
-            </n-radio-group>
-            <n-divider vertical style="height: 24px"></n-divider>
-            <n-button-group size="small">
+          <div class="section-main">
+            <div class="section-title-row">
+              <h2>我的Token列表 ({{ tokenStore.gameTokens.length }}个)</h2>
+              <n-radio-group v-model:value="viewMode" size="small">
+                <n-radio-button value="list">列表</n-radio-button>
+                <n-radio-button value="card">卡片</n-radio-button>
+              </n-radio-group>
+            </div>
+            <n-button-group size="small" class="sort-buttons">
               <n-button
                 @click="toggleSort('name')"
                 :type="sortConfig.field === 'name' ? 'primary' : 'default'"
@@ -124,7 +130,7 @@
                 最后使用 {{ getSortIcon("lastUsed") }}
               </n-button>
             </n-button-group>
-          </n-space>
+          </div>
           <div class="header-actions">
             <n-button type="info" @click="openGame">
               <template #icon>
@@ -299,6 +305,8 @@
                       token.importMethod === 'url' ||
                       token.importMethod === 'bin' ||
                       token.importMethod === 'wxQrcode' ||
+                      token.importMethod === 'mobile' ||
+                      token.importMethod === 'wxForceLogout' ||
                       token.upgradedToPermanent
                         ? 'success'
                         : 'warning'
@@ -308,6 +316,8 @@
                       token.importMethod === "url" ||
                       token.importMethod === "bin" ||
                       token.importMethod === "wxQrcode" ||
+                      token.importMethod === "mobile" ||
+                      token.importMethod === "wxForceLogout" ||
                       token.upgradedToPermanent
                         ? "长期有效"
                         : "临时存储"
@@ -322,6 +332,8 @@
                       token.importMethod === 'url' ||
                       token.importMethod === 'bin' ||
                       token.importMethod === 'wxQrcode' ||
+                      token.importMethod === 'mobile' ||
+                      token.importMethod === 'wxForceLogout' ||
                       token.upgradedToPermanent
                     )
                   "
@@ -480,6 +492,8 @@
                     token.importMethod === 'url' ||
                     token.importMethod === 'bin' ||
                     token.importMethod === 'wxQrcode' ||
+                    token.importMethod === 'mobile' ||
+                    token.importMethod === 'wxForceLogout' ||
                     token.upgradedToPermanent
                       ? 'success'
                       : 'warning'
@@ -489,6 +503,8 @@
                     token.importMethod === "url" ||
                     token.importMethod === "bin" ||
                     token.importMethod === "wxQrcode" ||
+                    token.importMethod === "mobile" ||
+                    token.importMethod === "wxForceLogout" ||
                     token.upgradedToPermanent
                       ? "长期"
                       : "临时"
@@ -502,6 +518,8 @@
                       token.importMethod === 'url' ||
                       token.importMethod === 'bin' ||
                       token.importMethod === 'wxQrcode' ||
+                      token.importMethod === 'mobile' ||
+                      token.importMethod === 'wxForceLogout' ||
                       token.upgradedToPermanent
                     )
                   "
@@ -633,12 +651,14 @@ import singleBinTokenForm from "./singlebin.vue";
 import CloudRestoreForm from "./cloudRestore.vue";
 import LocalRestoreForm from "./localRestore.vue";
 import WxQrcodeForm from "./wxqrcode.vue";
+import MobileTokenForm from "./mobile.vue";
 
 import { useTokenStore, selectedTokenId } from "@/stores/tokenStore";
 import {
   Add,
   Copy,
   Create,
+  DownloadOutline,
   EllipsisHorizontal,
   Grid,
   List,
@@ -646,15 +666,27 @@ import {
   Key,
   Menu,
   Refresh,
+  Rocket,
   Star,
   SyncCircle,
   TrashBin,
   GameController,
 } from "@vicons/ionicons5";
 import { NIcon, NAlert, useDialog, useMessage } from "naive-ui";
-import { h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import { computed, h, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { transformToken, scheduleAuthUserRequest } from "@/utils/token";
+import {
+  generateBinFromCombUser,
+  refreshTokenFromCombUser,
+  roleIndexFromServerId,
+} from "@/utils/wechatForceLogout";
+import {
+  buildRoleBin,
+  downloadBinFile,
+  getBinPayload,
+  getRoleBinFileName,
+} from "@/utils/binFile";
 import { $emit } from "@/stores/events/index.ts";
 import useIndexedDB from "@/hooks/useIndexedDB";
 import lz4 from "lz4js";
@@ -903,9 +935,27 @@ const refreshToken = async (token) => {
       });
 
       message.success("Token刷新成功");
+    } else if (token.combUser || token.importMethod === "wxForceLogout") {
+      if (!token.combUser) {
+        throw new Error("该账号未保存 combUser，无法自动刷新");
+      }
+      const refreshed = await refreshTokenFromCombUser(token.combUser, {
+        serverId: token.serverId,
+        roleIndex: token.roleIndex,
+        roleId: token.roleId,
+      });
+      tokenStore.updateToken(token.id, {
+        token: refreshed.token,
+        serverId: refreshed.role.serverId,
+        roleId: refreshed.role.roleId,
+        roleIndex: roleIndexFromServerId(refreshed.role.serverId),
+        lastRefreshed: Date.now(),
+      });
+      message.success("combUser Token刷新成功");
     } else if (
       token.importMethod === "wxQrcode" ||
-      token.importMethod === "bin"
+      token.importMethod === "bin" ||
+      token.importMethod === "mobile"
     ) {
       let userToken = await getArrayBuffer(token.id);
       let usedOldKey = false;
@@ -1116,6 +1166,11 @@ const getTokenActions = (token) => {
       key: "copy",
       icon: () => h(NIcon, null, { default: () => h(Copy) }),
     },
+    {
+      label: "下载 BIN",
+      key: "download-bin",
+      icon: () => h(NIcon, null, { default: () => h(DownloadOutline) }),
+    },
   ];
 
   // 根据Token类型添加刷新选项
@@ -1153,6 +1208,9 @@ const handleTokenAction = async (key, token) => {
       break;
     case "copy":
       copyToken(token);
+      break;
+    case "download-bin":
+      downloadTokenBin(token);
       break;
     case "refresh":
       // 重新获取Token
@@ -1211,6 +1269,39 @@ const copyToken = async (token) => {
   }
 };
 
+const downloadTokenBin = async (token) => {
+  try {
+    let sourceBin;
+    if (token.combUser) {
+      sourceBin = generateBinFromCombUser(token.combUser, token.serverId);
+    } else {
+      sourceBin = await getArrayBuffer(token.id);
+      if (!sourceBin) sourceBin = await getArrayBuffer(token.name);
+      if (!sourceBin) {
+        throw new Error("该账号未保存 BIN 登录凭据，无法下载");
+      }
+    }
+
+    const payload = getBinPayload(sourceBin);
+    const serverId = token.serverId ?? payload.serverId;
+    if (serverId === undefined || serverId === null || serverId === "") {
+      throw new Error("BIN 登录凭据缺少区服信息");
+    }
+
+    const bin = buildRoleBin(payload, serverId);
+    const fileName = getRoleBinFileName({
+      serverId,
+      roleId: token.roleId ?? token.id,
+      name: token.name,
+    });
+    downloadBinFile(fileName, bin);
+    message.success(`已开始下载: ${fileName}`);
+  } catch (error) {
+    console.error("下载 BIN 失败:", error);
+    message.error(error.message || "下载 BIN 失败");
+  }
+};
+
 // 快速编辑备注功能
 const startEditRemark = (token) => {
   editingRemark.value = token.id;
@@ -1262,6 +1353,8 @@ const refreshAllTokens = async () => {
     (token) =>
       token.importMethod === "url" ||
       token.importMethod === "wxQrcode" ||
+      token.importMethod === "mobile" ||
+      token.importMethod === "wxForceLogout" ||
       token.importMethod === "bin",
   );
   const manualTokens = tokenStore.gameTokens.filter(
@@ -1980,8 +2073,10 @@ onUnmounted(() => {
 
 .section-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   margin-bottom: var(--spacing-xl);
   position: sticky;
   top: 0;
@@ -1999,13 +2094,45 @@ onUnmounted(() => {
   }
 }
 
+.section-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.sort-buttons {
+  flex-shrink: 0;
+}
+
 .header-actions {
   display: flex;
-  gap: var(--spacing-md);
+  align-items: center;
+  gap: 8px;
   max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+  overflow: visible;
+  justify-content: flex-end;
+}
+
+.multi-game-selection-count {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.multi-game-token-checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: default;
 }
 
 .tokens-grid {
@@ -2374,6 +2501,19 @@ onUnmounted(() => {
     flex-direction: column;
     gap: var(--spacing-md);
     align-items: stretch;
+  }
+
+  .section-main {
+    width: 100%;
+  }
+
+  .section-title-row {
+    flex-wrap: wrap;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .token-timestamps {
