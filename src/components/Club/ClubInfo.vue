@@ -382,13 +382,6 @@
             <ClubWeirdTowerInfo inline />
           </n-tab-pane>
 
-          <n-tab-pane
-            name="carsocre"
-            tab="赛车积分信息"
-            display-directive="show:lazy"
-          >
-            <CarScoreInfo inline />
-          </n-tab-pane>
         </n-tabs>
       </div>
     </template>

@@ -247,7 +247,7 @@ const quickActions = ref([
     // 右上角额外提供一个「内置脚本设置」齿轮
     settings: true,
   },
-  
+
   {
     id: 2,
     icon: markRaw(Cube),
@@ -269,13 +269,13 @@ const quickActions = ref([
     description: "批量执行任务",
     action: "batch-daily-tasks",
   },
-  {
-    id: 5,
-    icon: markRaw(Cloud),
-    title: "WebSocket测试",
-    description: "测试WebSocket连接和游戏命令",
-    action: "websocket-test",
-  },
+  // {
+  //   id: 5,
+  //   icon: markRaw(Cloud),
+  //   title: "WebSocket测试",
+  //   description: "测试WebSocket连接和游戏命令",
+  //   action: "websocket-test",
+  // },
   {
     id: 6,
     icon: markRaw(Download),
