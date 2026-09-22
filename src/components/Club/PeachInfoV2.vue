@@ -138,6 +138,118 @@
       <n-empty description="暂无敌方数据" />
     </div>
 
+    <!-- [本地扩展 · 移动端卡片视图（P37）] 桌面隐藏，≤768px 显示并隐藏上方 n-data-table。
+         字段与宽表列一一对应：序号/头像/ID/角色名称/战力/红淬/珍卡/玩具/宠物/
+         阵容(红数)[四圣等级]/阵容类型/战斗模拟5次。
+         点名字仍打开「对手信息」弹窗（与宽表列的点击行为一致）。
+         显隐与外观样式在 GameStatus.vue 盐场卡片段（peach-group 已接入 salt-field-group）。 -->
+    <div class="salt-cards">
+      <div
+        v-for="(member, index) in opponentMembers"
+        :key="'pv2-card-' + (member.id ?? index)"
+        class="salt-card"
+      >
+        <div class="salt-card__head">
+          <span class="salt-card__rank">{{ index + 1 }}</span>
+          <img v-if="member.headImg" :src="member.headImg" class="salt-card__avatar" />
+          <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+            member.name?.charAt(0) || "?"
+          }}</span>
+          <span class="salt-card__name" @click="fetchTargetInfo(member.id)">{{
+            member.name
+          }}</span>
+          <!-- [本地扩展 · P37g] 玩家 ID 跟在名字后方小字显示 -->
+          <small class="salt-card__id">ID:{{ member.id }}</small>
+          <!-- [本地扩展 · P37] 阵容类型 chip：配色与宽表「阵容类型」列同源（LINEUP_RULES），贴右上角 -->
+          <span class="salt-card__badge" :style="lineupTypeStyle(member.lineupType)">{{ member.lineupType }}</span>
+        </div>
+        <div class="salt-card__grid salt-card__grid--lg">
+          <div class="salt-card__cell">
+            <span class="salt-card__label">战力</span>
+            <span class="salt-card__value is-power">{{
+              formatPower(member.power)
+            }}</span>
+          </div>
+          <div class="salt-card__cell">
+            <span class="salt-card__label">红淬</span>
+            <span class="salt-card__value is-red">{{ member.redQuench }}</span>
+          </div>
+          <div class="salt-card__cell">
+            <span class="salt-card__label">珍卡</span>
+            <!-- [本地扩展 · P37] 字色 = legacy 自带色名（至尊/珍·至尊 = gold 金色） -->
+            <span
+              class="salt-card__value"
+              :style="legacycolor[member.legacy] ? { color: legacycolor[member.legacy].value } : null"
+            >{{
+              legacycolor[member.legacy]?.name || "—"
+            }}</span>
+          </div>
+          <div class="salt-card__cell">
+            <span class="salt-card__label">玩具</span>
+            <span class="salt-card__value pi-toy">{{ member.toyName || "—" }}</span>
+          </div>
+        </div>
+        <!-- [本地扩展 · P37] 宠物独立行：图标 + 品质色名称 + Lv（品质色随 petId，同宽表列） -->
+        <div class="salt-card__pet">
+          <img
+            v-if="member.pet && member.pet.icon"
+            :src="member.pet.icon"
+            class="salt-card__pet-icon"
+            loading="lazy"
+            @error="(e) => (e.target.style.display = 'none')"
+          />
+          <template v-if="member.pet">
+            <div class="salt-card__pet-text">
+              <span class="salt-card__pet-name" :style="member.pet.color ? { color: member.pet.color } : null">{{
+                member.pet.name
+              }}</span>
+              <span v-if="member.pet.level" class="salt-card__pet-level">Lv.{{ member.pet.level }}</span>
+            </div>
+          </template>
+          <span v-else class="salt-card__pet-none">—</span>
+        </div>
+        <!-- [本地扩展 · P37] 阵容：标签=列名，武将小卡（名(红数)+圣N / 鱼灵|鱼珠）换行排列，
+             复用宽表列的 lineup-hero-card 样式 -->
+        <div class="salt-card__lineup">
+          <span class="salt-card__label">阵容(红数)[四圣等级]</span>
+          <span v-if="!(member.heroList || []).length" class="pi-lineup">—</span>
+          <div v-else class="pi-lineup-wrap">
+            <div
+              v-for="(hero, hi) in member.heroList"
+              :key="'pv2-lu-' + hi"
+              class="lineup-hero-card"
+            >
+              <div class="lineup-card-row lineup-card-row-name">
+                <span class="lineup-hero-name">{{ hero.heroName }}</span>
+                <span class="lineup-hero-red">({{ hero.red }})</span>
+                <span v-if="hero.HolyBeast" class="hb-badge lineup-hero-hb">圣{{ hero.HBlevel }}</span>
+              </div>
+              <div class="lineup-card-row lineup-card-row-pearl">
+                <template v-if="hero.PearlInfo?.FishInfo?.name || hero.PearlInfo?.PearlSkill?.name">
+                  <span v-if="hero.PearlInfo?.FishInfo?.name" class="lineup-fish-name">{{ hero.PearlInfo.FishInfo.name }}</span>
+                  <span v-if="hero.PearlInfo?.FishInfo?.name && hero.PearlInfo?.PearlSkill?.name" class="lineup-pearl-sep">|</span>
+                  <span v-if="hero.PearlInfo?.PearlSkill?.name" class="lineup-pearl-skill">{{ hero.PearlInfo.PearlSkill.name }}</span>
+                </template>
+                <span v-else class="lineup-pearl-empty">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- [本地扩展 · P37h] 战斗模拟5次：复用宽表 sim-* 分色（胜率蓝/0%红/满编绿），纵向排列 -->
+        <div class="salt-card__line">
+          <span class="salt-card__label">战斗模拟5次</span>
+          <span v-if="!battleSimResults[member.id]" class="salt-card__value pi-sim-empty">—</span>
+          <span v-else-if="battleSimResults[member.id].status === 'pending'" class="salt-card__value pi-sim-status">等待中</span>
+          <span v-else-if="battleSimResults[member.id].status === 'fighting'" class="salt-card__value pi-sim-fighting">战斗中…</span>
+          <span v-else-if="battleSimResults[member.id].status === 'timeout'" class="salt-card__value sim-timeout">超时异常</span>
+          <span v-else-if="battleSimResults[member.id].winRate === 0" class="salt-card__value sim-result sim-lose">胜率：0%</span>
+          <span v-else class="salt-card__value sim-result pi-sim-card"
+            ><span class="sim-win-rate">胜率：{{ battleSimResults[member.id].winRate }}%</span
+            ><span v-if="battleSimResults[member.id].fullWinRate > 0" class="sim-full-rate">满编：{{ battleSimResults[member.id].fullWinRate }}%</span></span>
+        </div>
+      </div>
+    </div>
+
     <!-- 玩家信息模态框 -->
     <n-modal v-model:show="showPlayerInfoModal" preset="card" title="对手信息" :style="{ width: '800px' }" :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }" :show-close="false">
@@ -1853,6 +1965,12 @@ const fetchBattleInfo = async (requestTokenId = selectedTokenId.value) => {
   }
 };
 
+// [本地扩展 · P37] 移动端卡片：阵容类型 chip 配色（与宽表「阵容类型」列同源 LINEUP_RULES）
+const lineupTypeStyle = (type) => {
+  const rule = LINEUP_RULES.find((r) => r.name === type);
+  const p = rule?.colorProps || { color: "#f5f5f5", textColor: "#666" };
+  return { background: p.color, color: p.textColor };
+};
 const handleExportImage = async () => {
   if (!exportDom.value) {
     message.error("未找到要导出的内容");
@@ -1888,7 +2006,11 @@ const handleExportImage = async () => {
 
     // 导出期间放开所有横向/纵向限制，让内容完整展开
     root.classList.add("exporting-image");
-    setStyle(root, { width: `${exportWidth}px`, height: "auto", overflow: "visible" });
+    // [本地扩展 · P37] 标准桌面版式标记：隐藏卡片 / 恢复宽表（GameStatus 导出段）
+    root.classList.add("export-desktop-layout");
+    setStyle(root, { height: "auto", overflow: "visible" });
+    // [本地扩展 · P37] 宽度必须 inline !important：inline !important > 样式表 !important
+    root.style.setProperty("width", exportWidth + "px", "important");
     if (toolbarEl) toolbarEl.style.display = "none";
     if (bodyEl) {
       bodyEl.scrollLeft = 0;
@@ -1924,6 +2046,8 @@ const handleExportImage = async () => {
     message.error("导出图片失败，请重试");
   } finally {
     root.classList.remove("exporting-image");
+    // [本地扩展 · P37] 移除桌面版式标记，界面立刻回到手机端卡片视图
+    root.classList.remove("export-desktop-layout");
     for (const { el, cssText } of touched) el.style.cssText = cssText;
     if (toolbarEl) toolbarEl.style.display = toolbarOrigDisplay || "";
     if (bodyEl) {
@@ -1968,6 +2092,113 @@ watch(selectedTokenId, (newTokenId, oldTokenId) => {
 
 /* 导出图片时临时展开：让表格铺满真实内容宽度，
    由 handleExportImage 加/去这个 class，并配合内联的固定宽度 */
+/* ============================================================================
+ * [本地扩展 · P37] 移动端卡片：chip 贴右上角 / 宠物行 / 玩具紫字 / 阵容换行小卡
+ * (.peach-info-card 前缀提权，压过 GameStatus 共用的 .salt-card__head 规则)
+ * ========================================================================== */
+.peach-info-card .salt-cards .salt-card__head {
+  /* 名字过长时省略号，保证 chip 稳定贴右上角 */
+  flex-wrap: nowrap;
+}
+.peach-info-card .salt-cards .salt-card__name {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.peach-info-card .salt-cards .salt-card__id {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 400;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+/* [本地扩展 · P37h] 卡片「战斗模拟5次」：胜率/满编 纵向排列（宽表 .sim-result 默认横排居中） */
+.peach-info-card .salt-cards .pi-sim-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.peach-info-card .salt-cards .pi-sim-empty,
+.peach-info-card .salt-cards .pi-sim-status {
+  color: #94a3b8;
+  font-size: 12px;
+}
+.peach-info-card .salt-cards .pi-sim-fighting {
+  color: #1890ff;
+  font-size: 12px;
+}
+.peach-info-card .salt-cards .salt-card__badge {
+  margin-left: auto;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.peach-info-card .salt-cards .pi-toy {
+  color: #a855f7;
+  font-weight: 600;
+}
+.peach-info-card .salt-cards .salt-card__pet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 2px;
+}
+.peach-info-card .salt-cards .salt-card__pet-icon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+.peach-info-card .salt-cards .salt-card__pet-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.peach-info-card .salt-cards .salt-card__pet-name {
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.peach-info-card .salt-cards .salt-card__pet-level {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.peach-info-card .salt-cards .salt-card__pet-none {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.peach-info-card .salt-cards .salt-card__lineup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  margin-top: 2px;
+}
+.peach-info-card .salt-cards .salt-card__lineup > .salt-card__label {
+  font-size: 11px;
+  line-height: 1.3;
+  color: #94a3b8;
+}
+.peach-info-card .salt-cards .pi-lineup {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.peach-info-card .salt-cards .pi-lineup-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
 .peach-info-card.exporting-image {
   height: auto;
   max-width: none;
@@ -3219,5 +3450,86 @@ watch(selectedTokenId, (newTokenId, oldTokenId) => {
   text-align: center;
   color: var(--text-secondary, #666);
   font-size: var(--font-size-sm, 14px);
+}
+
+/* ============================================================================
+ * [本地扩展 · P37g] 手机端 VS 对战头部重排：双卡纵向堆叠、VS 徽章居中夹在两卡之间。
+ * 桌面导出（export-desktop-layout，克隆视口 1280px）媒体查询不命中，不受影响。
+ * ========================================================================== */
+@media (max-width: 768px) {
+  .club-vs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .vs-badge {
+    align-self: center;
+    width: 54px;
+    height: 54px;
+    margin: -2px 0;
+  }
+
+  .vs-badge::before {
+    inset: -6px;
+  }
+
+  .vs-v,
+  .vs-s {
+    font-size: 22px;
+  }
+
+  .club-info {
+    min-height: 0;
+  }
+
+  .club-info.own,
+  .club-info.opponent {
+    justify-self: auto;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 16px;
+  }
+
+  /* 指向 VS 的小三角在纵向布局里没有意义，隐藏 */
+  .club-info.own::after,
+  .club-info.opponent::after {
+    content: none;
+  }
+
+  /* 纵向堆叠后改用上下渐变，观感统一 */
+  .club-info.own {
+    background: linear-gradient(to bottom, #eaf4fc 0%, #c9e4f6 100%);
+    box-shadow:
+      inset 0 -10px 20px rgba(42, 127, 184, 0.15),
+      0 4px 14px rgba(42, 127, 184, 0.12);
+  }
+
+  .club-info.opponent {
+    background: linear-gradient(to bottom, #fdecea 0%, #f6c9c6 100%);
+    box-shadow:
+      inset 0 -10px 20px rgba(193, 84, 79, 0.15),
+      0 4px 14px rgba(193, 84, 79, 0.12);
+  }
+
+  .club-name-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .club-name,
+  .club-server {
+    font-size: 16px;
+  }
+
+  /* 公告过长限 2 行省略，防止把卡片撑爆 */
+  .club-stats.announcement {
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
 }
 </style>

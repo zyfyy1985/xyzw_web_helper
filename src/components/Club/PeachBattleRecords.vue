@@ -83,7 +83,7 @@
       </div>
 
       <!-- 战绩列表 -->
-      <div v-else-if="battleRecords && battleRecords.ownClub && battleRecords.opponentClub" ref="exportDom" class="records-wrapper">
+      <div v-else-if="battleRecords && battleRecords.ownClub && battleRecords.opponentClub" ref="exportDom" class="records-wrapper" :class="'br-side-' + recordSide">
         <div v-if="currentStyle === 'default'" class="style-default">
           <!-- 头部对战信息 -->
           <div class="battle-header">
@@ -103,6 +103,12 @@
                 <div class="club-power">{{ battleRecords.opponentClub.memberCount }}人 | {{ battleRecords.opponentClub.quenchNum }}红 | {{ formatPower(battleRecords.opponentClub.totalPower) }}</div>
               </div>
             </div>
+          </div>
+
+          <!-- [本地扩展 · P37i] 我方/敌方战绩 tabs（默认我方），仅手机端显示 -->
+          <div class="br-side-tabs">
+            <span class="br-side-tab" :class="{ active: recordSide === 'own' }" @click="recordSide = 'own'">我方战绩</span>
+            <span class="br-side-tab" :class="{ active: recordSide === 'opponent' }" @click="recordSide = 'opponent'">敌方战绩</span>
           </div>
 
           <!-- 总体数据统计 -->
@@ -308,6 +314,11 @@
                     <div class="club-power">{{ battleRecords.opponentClub.memberCount }}人 | {{ battleRecords.opponentClub.quenchNum }}红 | {{ formatPower(battleRecords.opponentClub.totalPower) }}</div>
                   </div>
                 </div>
+             </div>
+             <!-- [本地扩展 · P37i] 我方/敌方战绩 tabs（默认我方），仅手机端显示 -->
+             <div class="br-side-tabs">
+               <span class="br-side-tab" :class="{ active: recordSide === 'own' }" @click="recordSide = 'own'">我方战绩</span>
+               <span class="br-side-tab" :class="{ active: recordSide === 'opponent' }" @click="recordSide = 'opponent'">敌方战绩</span>
              </div>
              <div class="comparison-container">
                <!-- Own Club -->
@@ -521,6 +532,11 @@
                     <div class="club-power">{{ battleRecords.opponentClub.memberCount }}人 | {{ battleRecords.opponentClub.quenchNum }}红 | {{ formatPower(battleRecords.opponentClub.totalPower) }}</div>
                   </div>
                 </div>
+             </div>
+             <!-- [本地扩展 · P37i] 我方/敌方战绩 tabs（默认我方），仅手机端显示 -->
+             <div class="br-side-tabs">
+               <span class="br-side-tab" :class="{ active: recordSide === 'own' }" @click="recordSide = 'own'">我方战绩</span>
+               <span class="br-side-tab" :class="{ active: recordSide === 'opponent' }" @click="recordSide = 'opponent'">敌方战绩</span>
              </div>
              <div class="comparison-container">
                <!-- Own Club -->
@@ -754,6 +770,128 @@
                </div>
              </div>
           </div>
+        <!-- [本地扩展 · 移动端卡片视图（P37）] 桌面隐藏，≤768px 显示并隐藏上方宽表。
+             三个样式分支渲染的是同一份 killRank 数据、同样的 7 列，手机端只维护
+             这一套；「样式一/样式二」开关只影响导出图片的版式，不影响这里的卡片。
+             ⚠️ 位置：records-wrapper 内（上游 wrapper 在 style2 分支后就闭合，空状态的
+             v-else 配对的是外层 loading/wrapper 链）——放这里才被 wrapper 的
+             battleRecords 守卫覆盖，battleRecords=null 时不会渲染。
+             显隐与外观样式在 GameStatus.vue 盐场卡片段（peach-group 已接入
+             salt-field-group），导出时由 export-desktop-layout 段恢复宽表。 -->
+        <div class="salt-cards">
+          <div class="salt-cards__group" v-show="recordSide === 'own'">我方 · {{ battleRecords.ownClub.name }}</div>
+          <div
+            v-for="(player, index) in battleRecords.ownClub.killRank"
+            :key="'pb-own-' + index"
+            v-show="recordSide === 'own'"
+            class="salt-card"
+          >
+            <div class="salt-card__head">
+              <span class="salt-card__rank">
+                <template v-if="index < 3">{{
+                  index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"
+                }}</template>
+                <template v-else>{{ index + 1 }}</template>
+              </span>
+              <img
+                v-if="player.roleInfo.headImg"
+                :src="player.roleInfo.headImg"
+                class="salt-card__avatar"
+                @error="handleImageError"
+              />
+              <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+                player.roleInfo.name?.charAt(0) || "?"
+              }}</span>
+              <span class="salt-card__name">{{ player.roleInfo.name }}</span>
+            </div>
+            <div class="salt-card__grid salt-card__grid--1row">
+              <div class="salt-card__cell">
+                <span class="salt-card__label">击杀</span>
+                <span class="salt-card__value is-kill">{{
+                  player.killCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">连杀</span>
+                <span class="salt-card__value">{{
+                  player.mCKCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">抢船</span>
+                <span class="salt-card__value is-occupy">{{
+                  player.carCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">复活</span>
+                <span class="salt-card__value is-revive">{{
+                  player.reviveCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">K/D</span>
+                <span class="salt-card__value">{{ player.kd }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="salt-cards__group" v-show="recordSide === 'opponent'">敌方 · {{ battleRecords.opponentClub.name }}</div>
+          <div
+            v-for="(player, index) in battleRecords.opponentClub.killRank"
+            :key="'pb-opp-' + index"
+            v-show="recordSide === 'opponent'"
+            class="salt-card"
+          >
+            <div class="salt-card__head">
+              <span class="salt-card__rank">
+                <template v-if="index < 3">{{
+                  index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"
+                }}</template>
+                <template v-else>{{ index + 1 }}</template>
+              </span>
+              <img
+                v-if="player.roleInfo.headImg"
+                :src="player.roleInfo.headImg"
+                class="salt-card__avatar"
+                @error="handleImageError"
+              />
+              <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+                player.roleInfo.name?.charAt(0) || "?"
+              }}</span>
+              <span class="salt-card__name">{{ player.roleInfo.name }}</span>
+            </div>
+            <div class="salt-card__grid salt-card__grid--1row">
+              <div class="salt-card__cell">
+                <span class="salt-card__label">击杀</span>
+                <span class="salt-card__value is-kill">{{
+                  player.killCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">连杀</span>
+                <span class="salt-card__value">{{
+                  player.mCKCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">抢船</span>
+                <span class="salt-card__value is-occupy">{{
+                  player.carCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">复活</span>
+                <span class="salt-card__value is-revive">{{
+                  player.reviveCnt || 0
+                }}</span>
+              </div>
+              <div class="salt-card__cell">
+                <span class="salt-card__label">K/D</span>
+                <span class="salt-card__value">{{ player.kd }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
 
         <!-- 空状态 -->
@@ -874,6 +1012,9 @@ const getMaxKills = (clubData) => {
   if (!clubData || !clubData.killRank) return 0;
   return Math.max(...clubData.killRank.map(p => p.killCnt || 0), 0);
 };
+
+// [本地扩展 · P37i] 手机端战绩 tab：own=我方（默认） / opponent=敌方
+const recordSide = ref("own");
 
 // 计算百分比
 const getPercent = (val, max) => {
@@ -1171,6 +1312,9 @@ const exportToImage = async () => {
   );
 
   try {
+    // [本地扩展 · P37] 导出期间临时恢复桌面版式（宽表显示、卡片隐藏）：
+    // 否则真机 DOM 上量到的是手机卡片版式尺寸，长图会截断/导成卡片版式。
+    exportDom.value.classList.add("export-desktop-layout");
     containers.forEach((el) => {
       el.style.setProperty('overflow', 'visible', 'important');
       el.style.setProperty('height', 'auto', 'important');
@@ -1233,6 +1377,9 @@ const exportToImage = async () => {
   } catch (err) {
     console.error('DOM转图片失败：', err);
     alert('导出图片失败，请重试');
+  } finally {
+    // [本地扩展 · P37] 移除桌面版式标记，界面立刻回到手机端卡片视图
+    exportDom.value.classList.remove("export-desktop-layout");
   }
 };
 
@@ -2322,5 +2469,51 @@ onMounted(() => {
 
 .opponent-column.style-2 .summary-title {
   background: #e53935;
+}
+
+/* ============================================================================
+ * [本地扩展 · P37i] 我方/敌方战绩 tabs：chips 桌面/导出隐藏，≤768px 显示；
+ * 选中态写在 records-wrapper 的 br-side-* 类上，隐藏另一方 统计/榜单/明细。
+ * （default 分支 .stats-side/.ranking-side/.god-ranking；style1/2 分支 .own-column/.opponent-column）
+ * ========================================================================== */
+.br-side-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .br-side-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+  }
+
+  .br-side-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    border-radius: 18px;
+    background: #eef2f7;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+
+  .br-side-tab.active {
+    background: #e0f2fe;
+    color: #2a7fb8;
+    border-color: #b8d9f5;
+  }
+
+  .records-wrapper.br-side-own .stats-side.opponent,
+  .records-wrapper.br-side-own .ranking-side.opponent,
+  .records-wrapper.br-side-own .god-ranking.opponent,
+  .records-wrapper.br-side-own .opponent-column,
+  .records-wrapper.br-side-opponent .stats-side.own,
+  .records-wrapper.br-side-opponent .ranking-side.own,
+  .records-wrapper.br-side-opponent .god-ranking.own,
+  .records-wrapper.br-side-opponent .own-column {
+    display: none;
+  }
 }
 </style>

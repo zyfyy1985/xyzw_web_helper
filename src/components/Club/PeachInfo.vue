@@ -80,6 +80,55 @@
       <n-empty description="暂无敌方数据" />
     </div>
 
+    <!-- [本地扩展 · 移动端卡片视图（P37）] 桌面隐藏，≤768px 显示并隐藏上方 n-data-table。
+         字段与宽表列基本对应：序号/头像/角色名称/战力/红淬/阵容(红数)[四圣等级]；阵容类型以右上角 chip 呈现。
+         点名字仍打开「对手信息」弹窗（与宽表列的点击行为一致）。
+         显隐与外观样式在 GameStatus.vue 盐场卡片段（peach-group 已接入 salt-field-group）。 -->
+    <div class="salt-cards">
+      <div
+        v-for="(member, index) in opponentMembers"
+        :key="'pi-card-' + (member.id ?? index)"
+        class="salt-card"
+      >
+        <div class="salt-card__head">
+          <span class="salt-card__rank">{{ index + 1 }}</span>
+          <img v-if="member.headImg" :src="member.headImg" class="salt-card__avatar" />
+          <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+            member.name?.charAt(0) || "?"
+          }}</span>
+          <span class="salt-card__name" @click="fetchTargetInfo(member.id)">{{
+            member.name
+          }}</span>
+          <!-- [本地扩展 · P37] 阵容类型 chip：配色与宽表「阵容类型」列同源（LINEUP_RULES），贴右上角 -->
+          <span class="salt-card__badge" :style="lineupTypeStyle(member.lineupType)">{{ member.lineupType }}</span>
+        </div>
+        <div class="salt-card__grid salt-card__grid--1row">
+          <div class="salt-card__cell">
+            <span class="salt-card__label">战力</span>
+            <span class="salt-card__value is-power">{{
+              formatPower(member.power)
+            }}</span>
+          </div>
+          <div class="salt-card__cell">
+            <span class="salt-card__label">红淬</span>
+            <span class="salt-card__value is-red">{{ member.redQuench }}</span>
+          </div>
+        </div>
+        <!-- [本地扩展 · P37] 阵容行：标签=列名「阵容(红数)[四圣等级]」，数值另起一行；
+             红数红字、四圣等级绿字（与宽表列配色一致） -->
+        <div class="salt-card__lineup">
+          <span class="salt-card__label">阵容(红数)[四圣等级]</span>
+          <span v-if="!(member.heroList || []).length" class="pi-lineup">—</span>
+          <span v-else class="pi-lineup"
+            ><template v-for="(hero, hi) in member.heroList" :key="'pi-lu-' + hi"
+              ><span>{{ hero.heroName }}</span
+              ><span class="pi-lineup-red">({{ hero.red }})</span
+              ><span v-if="hero.HolyBeast" class="pi-lineup-hb">[{{ hero.HBlevel }}]</span
+              ><span v-if="hi < member.heroList.length - 1" class="pi-lineup-sep">, </span></template></span>
+        </div>
+      </div>
+    </div>
+
     <!-- 玩家信息模态框 -->
     <n-modal v-model:show="showPlayerInfoModal" preset="card" title="对手信息" :style="{ width: '800px' }" :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }" :show-close="false">
@@ -1366,6 +1415,16 @@ const fetchBattleInfo = async () => {
   }
 };
 
+// [本地扩展 · P37] 移动端卡片：阵容类型 chip 配色（与宽表「阵容类型」列同源 LINEUP_RULES）
+const lineupTypeStyle = (type) => {
+  const rule = LINEUP_RULES.find((r) => r.name === type);
+  const p = rule?.colorProps || { color: "#f5f5f5", textColor: "#666" };
+  return { background: p.color, color: p.textColor };
+};
+
+// [本地扩展 · P37] 导出图片固定桌面渲染宽度（盐场导出范式）
+const EXPORT_WIDTH = 1280;
+
 const handleExportImage = async () => {
   // 校验：确保DOM已正确绑定
   if (!exportDom.value) {
@@ -1380,6 +1439,10 @@ const handleExportImage = async () => {
 
   try {
     message.loading("正在生成图片，请稍候...");
+
+    // [本地扩展 · P37] 导出期间临时恢复桌面版式（宽表显示、卡片隐藏）：
+    // 否则真机 DOM 上量到的是手机卡片版式尺寸，长图会截断/导成卡片版式。
+    exportDom.value.classList.add("export-desktop-layout");
 
     // 临时调整表格容器高度，确保所有内容可见
     // 对于 n-data-table，我们需要处理它的内部滚动容器
@@ -1406,6 +1469,10 @@ const handleExportImage = async () => {
     // 等待DOM更新
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // [本地扩展 · P37] 等桌面版式稳定后再量，交给 html2canvas 按桌面宽度渲染
+    const renderWidth = Math.max(EXPORT_WIDTH, exportDom.value.scrollWidth);
+    const renderHeight = exportDom.value.scrollHeight;
+
     // 5. 用html2canvas渲染DOM为Canvas
     const canvas = await html2canvas(exportDom.value, {
       scale: 2, // 放大2倍，解决图片模糊问题
@@ -1413,6 +1480,10 @@ const handleExportImage = async () => {
       backgroundColor: "#ffffff", // 避免透明背景
       logging: false, // 关闭控制台日志
       allowTaint: true, // 允许跨域图片污染画布
+      width: renderWidth, // 确保捕获完整宽度
+      height: renderHeight, // 确保捕获完整高度
+      windowWidth: renderWidth, // 以桌面宽度作为渲染窗口（媒体按桌面布局解析）
+      windowHeight: renderHeight // 以内容完整高度作为渲染窗口
     });
 
     // 6. Canvas转图片链接并下载
@@ -1424,6 +1495,9 @@ const handleExportImage = async () => {
     console.error("DOM转图片失败：", err);
     message.error("导出图片失败，请重试");
   } finally {
+    // [本地扩展 · P37] 移除桌面版式标记，界面立刻回到手机端卡片视图
+    exportDom.value.classList.remove("export-desktop-layout");
+
     // 恢复原始样式
     exportDom.value.style.height = "";
     exportDom.value.style.overflow = "";
@@ -2206,5 +2280,57 @@ onMounted(() => {
   text-align: center;
   color: var(--text-secondary, #666);
   font-size: var(--font-size-sm, 14px);
+}
+
+/* ============================================================================
+ * [本地扩展 · P37] 移动端卡片：阵容类型 chip 贴右上角 + 阵容行分色
+ * (.peach-info-card 前缀提权到 (0,4,0)，压过 GameStatus 共用的 .salt-card__head 规则)
+ * ========================================================================== */
+.peach-info-card .salt-cards .salt-card__head {
+  /* 名字过长时省略号，保证 chip 稳定贴右上角，不会被挤到下一行 */
+  flex-wrap: nowrap;
+}
+.peach-info-card .salt-cards .salt-card__name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.peach-info-card .salt-cards .salt-card__badge {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.peach-info-card .salt-card__lineup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  margin-top: 2px;
+}
+.peach-info-card .salt-card__lineup .salt-card__label {
+  font-size: 11px;
+  line-height: 1.3;
+  color: #94a3b8;
+}
+.peach-info-card .salt-card__lineup .pi-lineup {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+.peach-info-card .salt-card__lineup .pi-lineup-red {
+  color: #ff4d4f;
+  font-weight: 700;
+}
+.peach-info-card .salt-card__lineup .pi-lineup-hb {
+  color: #52c41a;
+  font-weight: 700;
+}
+.peach-info-card .salt-card__lineup .pi-lineup-sep {
+  color: #cbd5e1;
+  font-weight: 400;
 }
 </style>

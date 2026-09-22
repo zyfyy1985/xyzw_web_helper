@@ -261,7 +261,7 @@
     </div>
 
     <!-- 蟠桃园分组 -->
-    <div class="peach-group" v-if="activeSection === 'peachGroup'">
+    <div class="peach-group salt-field-group" v-if="activeSection === 'peachGroup'">
       <div
         class="sub-nav"
         style="
@@ -1827,5 +1827,28 @@ onUnmounted(() => {
 .camp-challenge-group
   :deep(.export-desktop-layout .members-table-section .camp-data-table) {
   display: revert !important;
+}
+
+/* ============================================================================
+ * [本地扩展 · 蟠桃园组移动端卡片（P37）]
+ * ----------------------------------------------------------------------------
+ * peach-group 根节点已加 salt-field-group 类（模板 1 行改动），盐场卡片全套
+ * 规则（① 宽表/n-data-table 隐藏、② 结果区手机宽度、③~⑪ 卡片外观、
+ * 导出段 export-desktop-layout 恢复宽表/隐藏卡片）对蟠桃园三个组件
+ * （PeachBattleRecords / PeachInfo / PeachInfoV2）直接生效。
+ * 这里只补一条：PeachInfo / PeachInfoV2 的根容器 .peach-info-card 原本被
+ * 上方「.warrank-full-container > * = 1280px」顶宽（它不在盐场放行名单里，
+ * 整卡 1280px、手机上要横滑）。手机端放回 100% 宽度；导出期间由
+ * export-desktop-layout 规则（更深层选择器）或内联 !important 宽度接管。
+ * ========================================================================== */
+@media (max-width: 768px) {
+  .warrank-full-container :deep(.peach-info-card) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
 }
 </style>
