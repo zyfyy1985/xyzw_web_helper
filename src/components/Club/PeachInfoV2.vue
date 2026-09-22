@@ -3532,4 +3532,27 @@ watch(selectedTokenId, (newTokenId, oldTokenId) => {
     overflow: hidden;
   }
 }
+
+/* [本地扩展 · 工具栏按钮换行间距]
+ * 现象：手机端窄屏下 .right 的按钮（一键切磋5次 / 导出图片 / 刷新）折行后
+       行与行贴在一起（inline 流排版只有 line-height，没有行间距）。
+ * 方案：.toolbar 允许换行并加 row-gap；.right 改 flex + gap 统一横纵向间距；
+       按钮 inline 的 margin-right 由 gap 接管（需 !important 覆盖行内样式）。
+ */
+.toolbar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.toolbar .right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+}
+
+.toolbar .right .n-button {
+  margin-right: 0 !important;
+}
+
 </style>
