@@ -151,8 +151,10 @@
       >
         <div class="salt-card__head">
           <span class="salt-card__rank">{{ index + 1 }}</span>
-          <img v-if="member.headImg" :src="member.headImg" class="salt-card__avatar" />
-          <span v-else class="salt-card__avatar salt-card__avatar--ph">{{
+          <img v-if="member.headImg" :src="member.headImg" class="salt-card__avatar"
+            style="cursor: pointer" @click="fetchTargetInfo(member.id)" />
+          <span v-else class="salt-card__avatar salt-card__avatar--ph" style="cursor: pointer"
+            @click="fetchTargetInfo(member.id)">{{
             member.name?.charAt(0) || "?"
           }}</span>
           <span class="salt-card__name" @click="fetchTargetInfo(member.id)">{{
@@ -235,7 +237,7 @@
             </div>
           </div>
         </div>
-        <!-- [本地扩展 · P37h] 战斗模拟5次：复用宽表 sim-* 分色（胜率蓝/0%红/满编绿），纵向排列 -->
+        <!-- [本地扩展 · P37h] 战斗模拟5次：复用宽表 sim-* 结构；胜率>50%绿/<50%红，满编(不掉将)蓝；单行不换行 -->
         <div class="salt-card__line">
           <span class="salt-card__label">战斗模拟5次</span>
           <span v-if="!battleSimResults[member.id]" class="salt-card__value pi-sim-empty">—</span>
@@ -244,14 +246,14 @@
           <span v-else-if="battleSimResults[member.id].status === 'timeout'" class="salt-card__value sim-timeout">超时异常</span>
           <span v-else-if="battleSimResults[member.id].winRate === 0" class="salt-card__value sim-result sim-lose">胜率：0%</span>
           <span v-else class="salt-card__value sim-result pi-sim-card"
-            ><span class="sim-win-rate">胜率：{{ battleSimResults[member.id].winRate }}%</span
+            ><span class="sim-win-rate" :class="simRateClass(battleSimResults[member.id].winRate)">胜率：{{ battleSimResults[member.id].winRate }}%</span
             ><span v-if="battleSimResults[member.id].fullWinRate > 0" class="sim-full-rate">满编：{{ battleSimResults[member.id].fullWinRate }}%</span></span>
         </div>
       </div>
     </div>
 
     <!-- 玩家信息模态框 -->
-    <n-modal v-model:show="showPlayerInfoModal" preset="card" title="对手信息" :style="{ width: '800px' }" :bordered="false"
+    <n-modal v-model:show="showPlayerInfoModal" preset="card" title="对手信息" :style="{ width: '800px', maxWidth: '94vw' }" :bordered="false"
       :segmented="{ content: 'soft', footer: 'soft' }" :show-close="false">
       <template #header-extra>
         <span v-if="playerInfo" class="player-id">ID: {{ playerInfo.id }}</span>
@@ -317,98 +319,48 @@
         </div>
 
         <!-- 最终结果统计 -->
-        <div v-if="fightResult.visible" class="fight-result">
-          <!-- 结果标题和统计信息 -->
-          <div class="result-header">
-            <h4 class="result-title">切磋结果</h4>
-            <div class="result-summary">
-              <div class="summary-item">
-                <span class="summary-label">总次数：</span>
-                <span class="summary-value">{{ fightResult.totalCount }}</span>
+        <div v-if="fightResult.visible" class="duel-result">
+          <!-- [本地扩展] 一键切磋结果展示：全新 duel-* 样式（不复用旧 result-* CSS）；统计行单行不换行；胜率>50%绿/<50%红；掉将率蓝 -->
+          <div class="duel-result-head">
+            <span class="duel-result-head-title">切磋结果</span>
+            <div class="duel-result-stats">
+              <span class="duel-stat">总次数 <b>{{ fightResult.totalCount }}</b></span>
+              <span class="duel-stat">胜 <b class="duel-c-green">{{ fightResult.winCount }}</b></span>
+              <span class="duel-stat">负 <b class="duel-c-red">{{ fightResult.lossCount }}</b></span>
+              <span class="duel-stat">胜率 <b :class="duelWinRateClass">{{ duelWinRate.toFixed(2) }}%</b></span>
+              <span class="duel-stat">我方掉将率 <b class="duel-c-blue">{{ duelDieRateOur.toFixed(2) }}%</b></span>
+              <span class="duel-stat">敌方掉将率 <b class="duel-c-blue">{{ duelDieRateEnemy.toFixed(2) }}%</b></span>
+            </div>
+          </div>
+
+          <!-- 每场对战：固定单行布局，不换行 -->
+          <div class="duel-battle-list">
+            <div
+              v-for="(battle, index) in fightResult.resultCount"
+              :key="index"
+              class="duel-battle-item"
+              :class="battle.isWin ? 'duel-win' : 'duel-loss'"
+            >
+              <span class="duel-battle-index">第 {{ index + 1 }} 场</span>
+              <div class="duel-battle-side">
+                <n-avatar round :size="28" :src="battle.leftheadImg" />
+                <span class="duel-battle-name">{{ battle.leftName || "未知" }}</span>
+                <span class="duel-battle-power">{{ battle.leftpower }}</span>
+                <span class="duel-battle-die">掉将 {{ battle.leftDieHero }}</span>
               </div>
-              <div class="summary-item">
-                <span class="summary-label">胜：</span>
-                <span class="summary-value win">{{
-                  fightResult.winCount
-                }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">负：</span>
-                <span class="summary-value loss">{{
-                  fightResult.lossCount
-                }}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">胜率：</span>
-                <span class="summary-value">{{
-                  (
-                    (fightResult.winCount / fightResult.totalCount) *
-                    100
-                  ).toFixed(2)
-                }}%</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">我方掉将率：</span>
-                <span class="summary-value">{{
-                  (
-                    (dieStats.ourDieHeroGameCount / fightResult.totalCount) *
-                    100
-                  ).toFixed(2)
-                }}%</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">敌方掉将率：</span>
-                <span class="summary-value">{{
-                  (
-                    (dieStats.enemyDieHeroGameCount /
-                      fightResult.totalCount) *
-                    100
-                  ).toFixed(2)
-                }}%</span>
+              <n-tag :type="battle.isWin ? 'success' : 'error'" size="small">
+                {{ battle.isWin ? "胜" : "负" }}
+              </n-tag>
+              <div class="duel-battle-side duel-battle-side-right">
+                <n-avatar round :size="28" :src="battle.rightheadImg" />
+                <span class="duel-battle-name">{{ battle.rightName || "未知" }}</span>
+                <span class="duel-battle-power">{{ battle.rightpower }}</span>
+                <span class="duel-battle-die">掉将 {{ battle.rightDieHero }}</span>
               </div>
             </div>
           </div>
 
-          <!-- 战斗结果列表 -->
-          <div class="result-list">
-            <div v-for="(battle, index) in fightResult.resultCount" :key="index"
-              :class="['battle-result-item', battle.isWin ? 'win' : 'loss']">
-              <div class="battle-header">
-                <span class="battle-index">第 {{ index + 1 }} 场</span>
-                <n-tag :type="battle.isWin ? 'success' : 'error'" size="small">
-                  {{ battle.isWin ? "胜利" : "失败" }}
-                </n-tag>
-              </div>
-
-              <div class="battle-details">
-                <div class="battle-side left-side">
-                  <n-avatar round :size="32" :src="battle.leftheadImg" class="side-avatar" />
-                  <div class="side-info">
-                    <span class="side-name">{{
-                      battle.leftName || "未知"
-                    }}</span>
-                    <span class="side-power">战力: {{ battle.leftpower }}</span>
-                    <span class="side-die">掉将: {{ battle.leftDieHero }} 个</span>
-                  </div>
-                </div>
-
-                <div class="battle-vs">VS</div>
-
-                <div class="battle-side right-side">
-                  <n-avatar round :size="32" :src="battle.rightheadImg" class="side-avatar" />
-                  <div class="side-info">
-                    <span class="side-name">{{
-                      battle.rightName || "未知"
-                    }}</span>
-                    <span class="side-power">战力: {{ battle.rightpower }}</span>
-                    <span class="side-die">掉将: {{ battle.rightDieHero }} 个</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="result-actions">
+          <div class="duel-result-actions">
             <n-button type="primary" @click="resetFightResult">重新切磋</n-button>
             <n-button @click="fightResult.visible = false">关闭结果</n-button>
           </div>
@@ -830,11 +782,29 @@ const battleSimResults = ref({});
 // 一键挑战是否正在运行
 const batchDuelRunning = ref(false);
 
+// [本地扩展] 模拟胜率配色：>50%绿 / <50%红 / =50%中性
+const simRateClass = (rate) =>
+  rate >= 50 ? "sim-rate-high" : "sim-rate-low";
+
 // 掉将统计
 const dieStats = reactive({
   ourDieHeroGameCount: 0,
   enemyDieHeroGameCount: 0,
 });
+
+// [本地扩展] 切磋结果统计派生值（duel-* 新展示用：胜率>50%绿/<50%红，掉将率蓝）
+const duelWinRate = computed(() =>
+  fightResult.totalCount ? (fightResult.winCount / fightResult.totalCount) * 100 : 0
+);
+const duelWinRateClass = computed(() =>
+  duelWinRate.value > 50 ? "duel-c-green" : duelWinRate.value < 50 ? "duel-c-red" : ""
+);
+const duelDieRateOur = computed(() =>
+  fightResult.totalCount ? (dieStats.ourDieHeroGameCount / fightResult.totalCount) * 100 : 0
+);
+const duelDieRateEnemy = computed(() =>
+  fightResult.totalCount ? (dieStats.enemyDieHeroGameCount / fightResult.totalCount) * 100 : 0
+);
 
 // 武将详情模态框状态
 const showHeroModal = ref(false);
@@ -1458,12 +1428,16 @@ const columns = [
           src: row.headImg,
           class: "member-avatar-cell",
           alt: row.name,
+          style: { cursor: "pointer" },
+          onClick: () => fetchTargetInfo(row.id),
         });
       }
       return h(
         "div",
         {
           class: "member-avatar-placeholder-cell",
+          style: { cursor: "pointer" },
+          onClick: () => fetchTargetInfo(row.id),
         },
         row.name?.charAt(0) || "?"
       );
@@ -1660,7 +1634,7 @@ const columns = [
         return h("span", { class: "sim-result sim-lose" }, "胜率：0%");
       }
       const parts = [
-        h("span", { class: "sim-win-rate" }, `胜率：${sim.winRate}%`),
+        h("span", { class: `sim-win-rate ${simRateClass(sim.winRate)}` }, `胜率：${sim.winRate}%`),
       ];
       if (sim.fullWinRate > 0) {
         parts.push(h("span", { class: "sim-sep" }, " "));
@@ -3553,6 +3527,196 @@ watch(selectedTokenId, (newTokenId, oldTokenId) => {
 
 .toolbar .right .n-button {
   margin-right: 0 !important;
+}
+
+
+/* [本地扩展 · 一键切磋结果 duel-* 样式]
+ * 不复用旧 result-* CSS；统计行单行不换行（窄屏横向滑动）；
+ * 胜率 >50% 绿 / <50% 红；掉将率蓝；每场对战固定单行布局。 */
+.duel-result {
+  margin: 15px 0;
+  padding: 12px 14px;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.duel-result-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+  white-space: nowrap;
+}
+
+.duel-result-head-title {
+  flex-shrink: 0;
+  font-weight: bold;
+  color: #333;
+}
+
+.duel-result-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  font-size: 13px;
+  color: #666;
+}
+
+.duel-result-stats::-webkit-scrollbar {
+  display: none;
+}
+
+.duel-stat b {
+  font-weight: 600;
+}
+
+.duel-c-green {
+  color: #52c41a;
+}
+
+.duel-c-red {
+  color: #ff4d4f;
+}
+
+.duel-c-blue {
+  color: #1677ff;
+}
+
+.duel-battle-list {
+  margin-bottom: 10px;
+}
+
+.duel-battle-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-left: 4px solid #eee;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.duel-battle-item.duel-win {
+  border-left-color: #52c41a;
+}
+
+.duel-battle-item.duel-loss {
+  border-left-color: #ff4d4f;
+}
+
+.duel-battle-index {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.duel-battle-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.duel-battle-side-right {
+  justify-content: flex-end;
+}
+
+.duel-battle-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #333;
+}
+
+.duel-battle-power {
+  flex-shrink: 0;
+  color: #999;
+  font-size: 12px;
+}
+
+.duel-battle-die {
+  flex-shrink: 0;
+  color: #1677ff;
+  font-size: 12px;
+}
+
+.duel-result-actions {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 15px;
+}
+
+
+/* [本地扩展 · 战斗模拟5次单行配色]
+ * 胜率/满编 同行不换行；胜率 >50% 绿 / <50% 红 / =50% 中性；满编(不掉将)蓝。 */
+:deep(.sim-result) {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+:deep(.sim-rate-high) {
+  color: #52c41a;
+}
+
+:deep(.sim-rate-low) {
+  color: #ff4d4f;
+}
+
+:deep(.sim-rate-mid) {
+  color: #666;
+}
+
+:deep(.sim-full-rate) {
+  color: #1677ff;
+}
+
+.peach-info-card .salt-cards .pi-sim-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+
+
+/* [本地扩展 · 战斗模拟5次配色补强]
+ * 0% 红色：GameStatus 卡片规则 (.salt-card__line .salt-card__value, 0,3,0) 压过
+ * :deep(.sim-lose)，需更高特异性覆盖；50% 已并入绿色档。 */
+:deep(.sim-lose) {
+  color: #ff4d4f;
+  font-weight: 700;
+}
+
+.peach-info-card .salt-cards .salt-card__value.sim-lose {
+  color: #ff4d4f;
+  font-weight: 700;
+}
+
+
+/* [本地扩展 · 对手信息弹窗适配]
+ * 弹窗 maxWidth:94vw 后，切磋结果区窄屏不撑破：
+ * 统计行内部横向滑动；每场对战列表整体横向滑动兜底。 */
+.player-info-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.duel-result-stats {
+  max-width: 100%;
+}
+
+.duel-battle-list {
+  overflow-x: auto;
 }
 
 </style>

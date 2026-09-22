@@ -5544,4 +5544,21 @@ onMounted(() => {
   }
 }
 /* ======================== [本地扩展 · 移动端适配 结束] ======================== */
+
+/* [本地扩展 · VS 卡片公告防溢出]
+ * 现象：.club-info 是 flex:1 但缺 min-width:0，flex 项默认 min-width:auto；
+       超长公告（nowrap 单行省略）会把 min-content 撑到整行文本宽，
+       两个 club-info 相加超出容器，对手侧被顶出卡片硬裁，省略号失效。
+ * 方案：给 club-info / club-details 补 min-width:0，让 nowrap+ellipsis 生效；
+       窄屏段（≤768px）的 line-clamp 不受影响。
+ */
+.club-vs-container .club-info {
+  min-width: 0;
+}
+
+.club-vs-container .club-details {
+  min-width: 0;
+  overflow: hidden;
+}
+
 </style>
