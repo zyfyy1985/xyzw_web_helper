@@ -237,7 +237,7 @@
                 :x-gap="12"
                 :y-gap="8"
                 responsive="screen"
-                :cols="[1, 2, 3, batchSettings.tokenListColumns]"
+                :cols=batchSettings.tokenListColumns
               >
                 <n-grid-item v-for="token in sortedTokens" :key="token.id">
                   <div class="token-row">

@@ -240,7 +240,7 @@ const currentDate = computed(() => {
 const quickActions = ref([
   {
     id: 1,
-    icon: GameController,
+    icon: markRaw(GameController),
     title: "打开游戏",
     description: "使用当前Token直接进入游戏",
     action: "open-game",
