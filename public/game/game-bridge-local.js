@@ -105,12 +105,9 @@
       var valid = list.filter(function (id) {
         return typeof id === 'string' && known[id];
       });
-      valid = valid.filter(function (id, i) {
+      return valid.filter(function (id, i) {
         return valid.indexOf(id) === i; // 去重
       });
-      // 账号切换登录器是基础能力：无论历史勾选记录如何，始终加载
-      if (valid.indexOf('账号切换.js') === -1) valid.push('账号切换.js');
-      return valid;
     } catch (e) {
       console.warn('[GameBridge] 内置脚本记录无效，按默认项处理:', e);
       return DEFAULT_FEATURES.slice();

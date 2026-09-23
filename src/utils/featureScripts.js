@@ -77,22 +77,17 @@ const STORAGE_KEY = "h5_enabled_features";
 const DEFAULT_FEATURES = ["账号切换.js"];
 
 /** 读取勾选记录；无记录 / 记录损坏时返回默认项。
- *  账号切换登录器是基础能力：无论勾选记录如何，始终包含。 */
+ *  是否加载「账号切换」完全由用户勾选决定，不做强制并入。 */
 export function getEnabledFeatures() {
-  const base = (() => {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-      if (Array.isArray(raw)) {
-        return FEATURE_SCRIPTS.map((f) => f.id).filter((id) => raw.includes(id));
-      }
-    } catch (e) {
-      /* 记录损坏，按首次使用处理 */
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (Array.isArray(raw)) {
+      return FEATURE_SCRIPTS.map((f) => f.id).filter((id) => raw.includes(id));
     }
-    return DEFAULT_FEATURES.slice();
-  })();
-  return base.includes("账号切换.js")
-    ? base
-    : [...base, "账号切换.js"];
+  } catch (e) {
+    /* 记录损坏，按首次使用处理 */
+  }
+  return DEFAULT_FEATURES.slice();
 }
 
 /** 写入勾选记录 */
