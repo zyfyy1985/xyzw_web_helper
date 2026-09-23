@@ -52,6 +52,7 @@
   }
   var host = twin || window;
   var doc = host.document;
+  var hostDoc = doc; // 宿主文档固定引用（全屏时 doc 会切到 iframe 文档）
 
   // ── 工具 ─────────────────────────────────────────────────────────────
   function esc(s) {
@@ -93,7 +94,7 @@
     return { item: null, idx: -1 };
   }
   function gameFrame() {
-    return doc.querySelector('iframe.game-iframe') || doc.querySelector('iframe');
+    return hostDoc.querySelector('iframe.game-iframe') || hostDoc.querySelector('iframe');
   }
   // 局部刷新：只重载游戏 iframe（可选带 bin_id），面板挂在宿主窗口不受影响
   function reloadGame(binId) {
@@ -227,6 +228,76 @@
     pill.style.right = 'auto';
   }
 
+  // ── 全屏适配：最大化时把面板/悬浮球/样式搬进 iframe 文档 ─────────────
+  // 实测（真机探针）：进入游戏自动最大化 = 真·全屏 API，
+  // hostFS=iframe.game-iframe、iframeFS=body → top layer 只渲染全屏元素子树，
+  // 宿主 body 上的面板/球必然被盖住 → 全屏期间搬进 iframe 文档，退出搬回。
+  // doc 同步切换，控制器所有 getElementById 自动落到当前所在文档。
+  function fsActiveDoc() {
+    var f = gameFrame();
+    try {
+      var fd = f && f.contentDocument;
+      return (fd && fd.fullscreenElement) ? fd : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  function syncFullscreen() {
+    var panel = hostDoc.getElementById(PANEL_ID);
+    var pill = hostDoc.getElementById(PILL_ID);
+    if (!panel || !pill) return; // iframe 重载后面板重建前不动作
+    var fd = fsActiveDoc();
+    if (fd && panel.ownerDocument !== fd) {
+      // 进全屏：样式+面板+球 搬进全屏元素（body），doc 切到 iframe 文档
+      var fsEl = fd.fullscreenElement;
+      var style = hostDoc.getElementById('acctSwitchStyle');
+      fsEl.appendChild(style);
+      fsEl.appendChild(panel);
+      fsEl.appendChild(pill);
+      doc = fd;
+      try { fd.defaultView.__ACCT_SWITCH__ = host[CTRL_KEY]; } catch (e) {}
+      if (pill.style.display !== 'none') applyPillPos();
+    } else if (!fd && panel.ownerDocument !== hostDoc) {
+      // 退全屏：搬回宿主，doc 切回
+      var style2 = panel.ownerDocument.getElementById('acctSwitchStyle');
+      if (hostDoc.head && style2) hostDoc.head.appendChild(style2);
+      hostDoc.body.appendChild(panel);
+      hostDoc.body.appendChild(pill);
+      doc = hostDoc;
+      try {
+        var f = gameFrame();
+        if (f && f.contentDocument && f.contentDocument.defaultView) {
+          f.contentDocument.defaultView.__ACCT_SWITCH__ = undefined;
+        }
+      } catch (e) {}
+    }
+  }
+  function installFsSync() {
+    if (host.__acctFsSyncOnFs) {
+      host.removeEventListener('fullscreenchange', host.__acctFsSyncOnFs);
+      host.removeEventListener('webkitfullscreenchange', host.__acctFsSyncOnFs);
+    }
+    try {
+      var f = gameFrame();
+      if (host.__acctFsSyncOnIframeFs && f && f.contentDocument) {
+        f.contentDocument.removeEventListener('fullscreenchange', host.__acctFsSyncOnIframeFs);
+      }
+    } catch (e) {}
+    host.__acctFsSyncOnFs = function () { syncFullscreen(); };
+    host.addEventListener('fullscreenchange', host.__acctFsSyncOnFs);
+    host.addEventListener('webkitfullscreenchange', host.__acctFsSyncOnFs);
+    // 全屏请求发自 iframe 文档内部，该文档也会派发 fullscreenchange
+    try {
+      var f2 = gameFrame();
+      if (f2 && f2.contentDocument) {
+        host.__acctFsSyncOnIframeFs = host.__acctFsSyncOnFs;
+        f2.contentDocument.addEventListener('fullscreenchange', host.__acctFsSyncOnIframeFs);
+      }
+    } catch (e) {}
+    // 挂载时可能已处于全屏（接管场景）
+    syncFullscreen();
+  }
+
   // ── 控制器（每次 boot 用新上下文替换宿主上的旧引用）─────────────────
   var ctrl = {
     version: VERSION,
@@ -350,6 +421,18 @@
         var el = doc.getElementById(id);
         if (el && el.parentNode) el.parentNode.removeChild(el);
       });
+      if (host.__acctFsSyncOnFs) {
+        host.removeEventListener('fullscreenchange', host.__acctFsSyncOnFs);
+        host.removeEventListener('webkitfullscreenchange', host.__acctFsSyncOnFs);
+        host.__acctFsSyncOnFs = null;
+      }
+      try {
+        var f = gameFrame();
+        if (host.__acctFsSyncOnIframeFs && f && f.contentDocument) {
+          f.contentDocument.removeEventListener('fullscreenchange', host.__acctFsSyncOnIframeFs);
+          host.__acctFsSyncOnIframeFs = null;
+        }
+      } catch (e) {}
       if (host.__acctSwitchMsgTimer) host.clearTimeout(host.__acctSwitchMsgTimer);
       try { delete host[CTRL_KEY]; } catch (e) { host[CTRL_KEY] = undefined; }
     }
@@ -436,11 +519,14 @@
     doc.body.appendChild(pill);
   }
 
+
+
   if (host[CTRL_KEY] && doc.getElementById(PANEL_ID)) {
     // 已有面板：只换新控制器（旧 iframe 上下文即将销毁），重画当前账号标记
     host[CTRL_KEY] = ctrl;
     render();
     applyMinState(host.localStorage.getItem(MIN_KEY) === '1');
+    installFsSync();
     console.log('[账号切换] v' + VERSION + ' 控制器已接管，面板复用');
     return;
   }
@@ -454,5 +540,6 @@
   injectPanel();
   render();
   applyMinState(host.localStorage.getItem(MIN_KEY) === '1');
+  installFsSync();
   console.log('[账号切换] 面板就绪 v' + VERSION + '（宿主=' + (twin ? 'parent' : 'self') + '）');
 })();
