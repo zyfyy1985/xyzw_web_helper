@@ -315,9 +315,15 @@
         pill.style.top = ny + 'px';
         pill.style.right = 'auto';
       }
+      function onTouchMove(ev) {
+        // 触屏兜底：阻止浏览器把按住拖动识别成滚动（否则触发 pointercancel 拖不动）
+        ev.preventDefault();
+      }
       function onUp() {
         doc.removeEventListener('pointermove', onMove);
         doc.removeEventListener('pointerup', onUp);
+        doc.removeEventListener('pointercancel', onUp);
+        doc.removeEventListener('touchmove', onTouchMove);
         if (moved) {
           ctrl.__skipClick = true;
           var r = pill.getBoundingClientRect();
@@ -326,6 +332,8 @@
       }
       doc.addEventListener('pointermove', onMove);
       doc.addEventListener('pointerup', onUp);
+      doc.addEventListener('pointercancel', onUp);
+      doc.addEventListener('touchmove', onTouchMove, { passive: false });
     },
     fullscreen: function () {
       if (doc.fullscreenElement) {
@@ -357,7 +365,8 @@
     '#' + PILL_ID + '{position:fixed;top:8px;right:8px;z-index:2147483000;width:34px;height:34px;',
     'background:#ffffff;border:1px solid #d0d3d9;border-radius:50%;color:#1f2329;',
     "font:13px/1.5 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif;text-align:left;",
-    'box-shadow:0 4px 16px rgba(0,0,0,0.14);user-select:none;',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.14);user-select:none;-webkit-user-select:none;',
+    'touch-action:none;-webkit-touch-callout:none;',
     'display:none;align-items:center;justify-content:center;cursor:pointer;padding:0;}',
     '.as-head{display:flex;align-items:center;gap:8px;padding:9px 12px;',
     'background:#f7f8fa;border-bottom:1px solid #e6e8ec;}',
