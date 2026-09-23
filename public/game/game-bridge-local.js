@@ -83,11 +83,12 @@
     '自动蟠桃.js',
     '装备洗练消耗显示.js',
     '长按连点.js',
-    '阵容显示.js'
+    '阵容显示.js',
+    '账号切换.js'
   ];
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
   // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）
-  var DEFAULT_FEATURES = ['长按连点.js'];
+  var DEFAULT_FEATURES = ['账号切换.js'];
   var featurePromises = {};
 
   /** 读取勾选记录；无记录 / 记录损坏时返回默认项（仅「长按连点」） */
@@ -104,9 +105,12 @@
       var valid = list.filter(function (id) {
         return typeof id === 'string' && known[id];
       });
-      return valid.filter(function (id, i) {
+      valid = valid.filter(function (id, i) {
         return valid.indexOf(id) === i; // 去重
       });
+      // 账号切换登录器是基础能力：无论历史勾选记录如何，始终加载
+      if (valid.indexOf('账号切换.js') === -1) valid.push('账号切换.js');
+      return valid;
     } catch (e) {
       console.warn('[GameBridge] 内置脚本记录无效，按默认项处理:', e);
       return DEFAULT_FEATURES.slice();

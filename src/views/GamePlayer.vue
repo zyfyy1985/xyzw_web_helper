@@ -13,11 +13,31 @@
 </template>
 
 <script setup>
+import { computed, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
-const gameSrc = import.meta.env.BASE_URL + 'game/index.html'
+// 账号切换.js 的「启动」会以 /game?bin_id=<id> 开新标签页；
+// 这里把 bin_id 透传给游戏页，game-bridge 优先读 URL 参数登录对应账号
+const gameSrc = computed(() => {
+  const base = import.meta.env.BASE_URL + 'game/index.html'
+  const binId = route.query.bin_id
+  return binId ? `${base}?bin_id=${encodeURIComponent(String(binId))}` : base
+})
+
+// 账号切换.js 把浮层挂在本页 body 上，离开游戏页时要显式清掉，
+// 否则返回 dashboard 后悬浮球会残留
+onUnmounted(() => {
+  try {
+    const s = window.__ACCT_SWITCH__
+    if (s && typeof s.destroy === 'function') s.destroy()
+  } catch (e) {
+    /* 浮层不存在时忽略 */
+  }
+})
 
 function goBack() {
   router.push('/admin/dashboard')
