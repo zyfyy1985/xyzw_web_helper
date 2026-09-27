@@ -1,5 +1,5 @@
 // @name         阵容显示
-// @version      1.3.7
+// @version      1.3.8
 // @description  在盐场与蟠桃队伍列表中识别并显示真实阵容类型
 
 
@@ -69,7 +69,7 @@
   "use strict";
 
   const SCRIPT_NAME = "阵容显示";
-  const SCRIPT_VERSION = "1.3.7";
+  const SCRIPT_VERSION = "1.3.8";
   const GLOBAL_MARK = "__MENGWANG_SALT_LINEUP_DISPLAY__";
   const TEAM_RESOLVER_KEY = "__MENGWANG_SALT_LINEUP_TEAM_RESOLVER__";
   const HOOK_MARK = "__mengwangSaltLineupDisplayHooked";
@@ -1198,7 +1198,12 @@
     const teamInfo = await requestTeamInfo(playerId);
     if (!teamInfo || !hasMissingHeroIdentity(teamInfo)) return teamInfo;
 
-    const rankTeamInfo = await loadRankTeamInfo(playerId);
+    // 盐场 player.roleId 是 3 位 codeIdV2，RANK.sendGetRoleTeam 的 targetId
+    // 只认全局 9 位 roleId → 从头像 URL 反解，解不出就放弃
+    const globalRoleId = extractRoleIdFromHeadImg(player?.headImg);
+    if (globalRoleId <= 0) return teamInfo;
+
+    const rankTeamInfo = await loadRankTeamInfo(globalRoleId);
     return rankTeamInfo && getTeamHeroIds(rankTeamInfo).length > 0
       ? rankTeamInfo
       : teamInfo;
@@ -1245,7 +1250,7 @@
 
     let request;
     try {
-      request = rankModule.sendGetRoleTeam(String(roleId), 17);
+      request = rankModule.sendGetRoleTeam(roleId, 17);
     } catch (error) {
       warn(`盐场外阵容请求失败: roleId=${roleId}`, error);
       return Promise.resolve(null);
