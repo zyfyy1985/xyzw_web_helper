@@ -74,17 +74,14 @@
   // 勾选记录由前端「打开游戏」对话框写入（key: h5_enabled_features，值为 id 数组）
   // BUILTIN_FEATURES 需与 src/utils/featureScripts.js 的 FEATURE_SCRIPTS 保持一致
   var BUILTIN_FEATURES = [
-    'Monster.js',
-    '咸鱼简报迁移.js',
-    '宠物-自动合成.js',
+
+
     '模拟战斗.js',
-    '盐场视距.js',
-    '自动星级挑战.js',
     '自动蟠桃.js',
-    '装备洗练消耗显示.js',
     '长按连点.js',
     '阵容显示.js',
-    '账号切换.js'
+    '账号切换.js',
+    '标记攻击.js',
   ];
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
   // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）

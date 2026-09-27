@@ -3,54 +3,21 @@
 // 用户从未选择过时，只默认开启「长按连点」，其余全部关闭
 
 export const FEATURE_SCRIPTS = [
-  {
-    id: "Monster.js",
-    name: "游戏助手",
-    description: "游戏功能助手",
-    version: "1.0.0",
-  },
-  {
-    id: "咸鱼简报迁移.js",
-    name: "咸鱼简报迁移",
-    description: "将仓库中的咸鱼简报入口迁移到英雄页底部按钮栏",
-    version: "1.0.0",
-  },
-  {
-    id: "宠物-自动合成.js",
-    name: "宠物蛋自动开启合成",
-    description: "在宠物界面增加自动开蛋合成和图鉴激活领奖按钮",
-    version: "1.0.0",
-  },
+
   {
     id: "模拟战斗.js",
     name: "模拟战斗",
     description: "",
     version: "",
   },
-  {
-    id: "盐场视距.js",
-    name: "盐场视距",
-    description: "",
-    version: "",
-  },
-  {
-    id: "自动星级挑战.js",
-    name: "自动星级挑战",
-    description: "在星级挑战面板增加原生自动挑战按钮。",
-    version: "",
-  },
+ 
   {
     id: "自动蟠桃.js",
     name: "自动蟠桃",
     description: "在蟠桃园提供自动布阵和自动上船操作",
     version: "1.0.0",
   },
-  {
-    id: "装备洗练消耗显示.js",
-    name: "装备洗练消耗显示",
-    description: "在装备洗练对话框居中显示当前白玉/彩玉图标与已用数量",
-    version: "1.0.0",
-  },
+  
   {
     id: "长按连点.js",
     name: "长按连点",
@@ -61,7 +28,14 @@ export const FEATURE_SCRIPTS = [
     id: "阵容显示.js",
     name: "阵容显示",
     description: "在盐场与蟠桃队伍列表中识别并显示真实阵容类型",
-    version: "1.3.5",
+    version: "1.3.7",
+  },
+  {
+    id: "标记攻击.js",
+    name: "标记攻击",
+    description:
+      "驻守时自动挑战：两种模式 ——「精准锁定」只打锁定名单里的人，「无差别攻击」有目标就发；",
+    version: "2.31.1",
   },
   {
     id: "账号切换.js",

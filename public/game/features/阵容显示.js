@@ -1,5 +1,5 @@
 // @name         阵容显示
-// @version      1.3.0
+// @version      1.3.7
 // @description  在盐场与蟠桃队伍列表中识别并显示真实阵容类型
 
 
@@ -69,10 +69,12 @@
   "use strict";
 
   const SCRIPT_NAME = "阵容显示";
-  const SCRIPT_VERSION = "1.3.0";
+  const SCRIPT_VERSION = "1.3.7";
   const GLOBAL_MARK = "__MENGWANG_SALT_LINEUP_DISPLAY__";
   const TEAM_RESOLVER_KEY = "__MENGWANG_SALT_LINEUP_TEAM_RESOLVER__";
   const HOOK_MARK = "__mengwangSaltLineupDisplayHooked";
+  // 诊断用：服务端失败日志（定位「出了点小问题，请尝试重启游戏解决～」是哪条调用被拒）
+  const NET_FAILURES_KEY = "__MENGWANG_SALT_LINEUP_NET_FAILURES__";
   const REQUEST_INTERVAL_MS = 180;
   const REQUEST_TIMEOUT_MS = 1800;
   const CACHE_TTL_MS = 5000;
@@ -207,6 +209,52 @@
     } catch (_) {
       // Ignore console failures in embedded runtimes.
     }
+  }
+
+  // ── 诊断：服务端拒绝日志 ──────────────────────────────────────────────
+  // 游戏会把服务端返回的 error 文本直接弹成提示，所以「出了点小问题，请尝试重启游戏解决～」
+  // 必然伴随某个请求 code != 0。脚本原先把这些 code 全静默吞掉，这里统一记下来：
+  // 哪条调用、参数是什么、code 与 error 原文。
+  function logNetFailure(where, params, payload) {
+    const code = payload?.code;
+    const error = payload?.error ?? payload?.message ?? payload?.msg ?? "";
+    const entry = {
+      time: new Date().toLocaleTimeString(),
+      where,
+      code,
+      error,
+      params
+    };
+    const list = (window[NET_FAILURES_KEY] = window[NET_FAILURES_KEY] || []);
+    list.push(entry);
+    if (list.length > 30) list.shift();
+    warn(`[网络失败] ${where} code=${code} error="${error}"`, params, payload);
+  }
+
+  // 常驻监听 War_GetTeamInfoResp：即便我们的请求已超时、临时监听已摘掉，也能记下被拒的那次
+  let netFailureLoggerInstalled = false;
+  function installTeamInfoFailureLogger() {
+    if (netFailureLoggerInstalled) return false;
+    const module = getLegionWarModule();
+    const Generated = requireGameModule("data-index");
+    const responseEvent = Generated?.RESPS?.War_GetTeamInfoResp;
+    if (!module?.network || !responseEvent) return false;
+    netFailureLoggerInstalled = true;
+    module.network.on(
+      responseEvent,
+      (event) => {
+        if (!event?.data?.code) return;
+        const self = module?._battlefield?.self;
+        logNetFailure("LEGION_WAR.sendGetTeamInfo → War_GetTeamInfoResp", {
+          battlefieldId: module?._battlefieldId ?? null,
+          isSignIn: self?.isSignIn ?? null,
+          sentField: self?.isSignIn ? "roleCodeId(3位codeId)" : "roleId"
+        }, event.data);
+      },
+      {}
+    );
+    log("已挂服务端失败日志：War_GetTeamInfoResp");
+    return true;
   }
 
   function readH5UsageCredentials(bootstrap) {
@@ -1069,8 +1117,9 @@
       };
 
       module.network.on(responseEvent, onResponse, context);
+      installTeamInfoFailureLogger();
       try {
-        module.sendGetTeamInfo(String(playerId));
+        module.sendGetTeamInfo(playerId);
       } catch (error) {
         warn(`请求阵容失败: roleId=${playerId}`, error);
         finish(null);
@@ -1100,8 +1149,16 @@
     if (!rankModule?.sendGetRoleInfoWithCache) return null;
     try {
       const roleInfo = await Promise.resolve(rankModule.sendGetRoleInfoWithCache(roleId));
+      if (!roleInfo) {
+        logNetFailure("RANK.sendGetRoleInfoWithCache", { roleId }, { note: "返回 null：被服务端拒（该 service 把 code 吞了）" });
+        return null;
+      }
       const battleTeam = roleInfo?.battleTeam;
-      return getTeamSize(battleTeam) > 0 ? battleTeam : null;
+      if (getTeamSize(battleTeam) <= 0) {
+        logNetFailure("RANK.sendGetRoleInfoWithCache", { roleId }, { note: "回包里没有 battleTeam" });
+        return null;
+      }
+      return battleTeam;
     } catch (error) {
       warn(`通过头像角色信息读取阵容失败: roleId=${roleId}`, error);
       return null;
@@ -1196,9 +1253,16 @@
 
     const pending = Promise.resolve(request)
       .then((response) => {
-        if (response?.code) return null;
+        if (!response || response?.code) {
+          logNetFailure("RANK.sendGetRoleTeam", { roleId, teamType: 17 }, response || { note: "resolve(null)：被服务端拒（该 service 把 code 吞了）" });
+          return null;
+        }
         const fighterMap = response?.teamInfo?.team || null;
-        if (fighterMap) rankTeamCache.set(roleId, fighterMap);
+        if (!fighterMap) {
+          logNetFailure("RANK.sendGetRoleTeam", { roleId, teamType: 17 }, { note: "回包里没有 teamInfo.team" });
+          return null;
+        }
+        rankTeamCache.set(roleId, fighterMap);
         return fighterMap;
       })
       .catch((error) => {
