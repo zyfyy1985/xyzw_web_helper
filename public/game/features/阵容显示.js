@@ -77,7 +77,7 @@
   const NET_FAILURES_KEY = "__MENGWANG_SALT_LINEUP_NET_FAILURES__";
   const REQUEST_INTERVAL_MS = 180;
   const REQUEST_TIMEOUT_MS = 1800;
-  const CACHE_TTL_MS = 5000;
+  const CACHE_TTL_MS = 1000*120;
   const H5_SESSION_STORAGE_KEY = "monster_h5_session_bootstrap_v1";
   const H5_DEVICE_STORAGE_KEY = "monster_h5_device_id";
   const USAGE_REPORT_MARK = "__MENGWANG_SALT_LINEUP_DISPLAY_USAGE_REPORTED__";
