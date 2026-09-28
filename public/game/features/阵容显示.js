@@ -1,5 +1,5 @@
 // @name         阵容显示
-// @version      1.3.8
+// @version      1.4.0
 // @description  在盐场与蟠桃队伍列表中识别并显示真实阵容类型
 
 
@@ -69,7 +69,7 @@
   "use strict";
 
   const SCRIPT_NAME = "阵容显示";
-  const SCRIPT_VERSION = "1.3.8";
+  const SCRIPT_VERSION = "1.4.0";
   const GLOBAL_MARK = "__MENGWANG_SALT_LINEUP_DISPLAY__";
   const TEAM_RESOLVER_KEY = "__MENGWANG_SALT_LINEUP_TEAM_RESOLVER__";
   const HOOK_MARK = "__mengwangSaltLineupDisplayHooked";
@@ -1021,14 +1021,20 @@
   function summarizeTeam(teamInfo) {
     const size = getTeamSize(teamInfo);
     if (size <= 0) return "";
-    const parts = [detectTeamTag(teamInfo)];
+    const tag = detectTeamTag(teamInfo);
+    const parts = [teamInfo?.[IMG_MATCH_FLAG] ? `${tag}·图识` : tag];
     const missing = Math.max(0, 5 - size);
     if (missing > 0) parts.push(`缺${missing}`);
     return parts.join(" ");
   }
 
   function cloneTeamInfo(teamInfo) {
-    return teamInfo instanceof Map ? new Map(teamInfo) : teamInfo;
+    if (teamInfo instanceof Map) {
+      const cloned = new Map(teamInfo);
+      if (teamInfo[IMG_MATCH_FLAG]) cloned[IMG_MATCH_FLAG] = true;
+      return cloned;
+    }
+    return teamInfo;
   }
 
   function buildTeamCacheKey(playerId, mode = "salt") {
@@ -1079,6 +1085,151 @@
       });
   }
 
+  // ── 隐藏阵容 → 用图片识别英雄（依赖同目录 features/heroImageMatcher.js）────────
+  const HERO_MATCHER_FILE = "heroImageMatcher.js";
+  const IMG_MATCH_FLAG = "__mengwanImgMatched";
+  const IMAGE_REQUEST_TIMEOUT_MS = 1000;
+
+  // 本脚本自身的 URL（供按相对路径注入同目录库）；加载期取值 —— 异步里 document.currentScript 会是 null
+  const SELF_SCRIPT_URL = (() => {
+    try {
+      const current = document.currentScript;
+      if (current?.src) return current.src;
+      const scripts = document.querySelectorAll("script[src]");
+      for (let i = scripts.length - 1; i >= 0; i -= 1) {
+        if (/阵容显示\.js/.test(scripts[i].src)) return scripts[i].src;
+      }
+    } catch (_) {}
+    return location.href;
+  })();
+
+  let heroMatcherPromise = null;
+
+  /** 注入并等英雄识别库就绪；失败返回 null（静默降级，不影响现有功能） */
+  function ensureHeroImageMatcher() {
+    if (window.__HERO_IMG_MATCH__) return Promise.resolve(window.__HERO_IMG_MATCH__);
+    if (heroMatcherPromise) return heroMatcherPromise;
+    heroMatcherPromise = new Promise((resolve) => {
+      try {
+        const script = document.createElement("script");
+        script.src = new URL(HERO_MATCHER_FILE, SELF_SCRIPT_URL).href;
+        script.onload = () => resolve(window.__HERO_IMG_MATCH__ || null);
+        script.onerror = () => {
+          warn("英雄识别库加载失败，隐藏阵容仍显示为「阵容已隐藏」");
+          resolve(null);
+        };
+        (document.head || document.documentElement).appendChild(script);
+      } catch (error) {
+        warn("英雄识别库注入失败", error);
+        resolve(null);
+      }
+    });
+    return heroMatcherPromise;
+  }
+
+  /** 第二段请求：图片名 → base64 图（War_GetTeamImgInfoResp.teamInfo） */
+  function requestTeamImgInfo(module, names) {
+    const Generated = requireGameModule("data-index");
+    const responseEvent = Generated?.RESPS?.War_GetTeamImgInfoResp;
+    const ResponseType = Generated?.War_GetTeamImgInfoResp;
+    if (!module?.network || !module?.sendGetTeamImgInfo || !responseEvent || !ResponseType) {
+      return Promise.resolve(null);
+    }
+    return new Promise((resolve) => {
+      const context = {};
+      let completed = false;
+      let timeoutId = null;
+      const finish = (images) => {
+        if (completed) return;
+        completed = true;
+        if (timeoutId !== null) window.clearTimeout(timeoutId);
+        module.network.off(responseEvent, onResponse, context);
+        resolve(images || null);
+      };
+      const onResponse = (event) => {
+        if (event?.data?.code) {
+          finish(null);
+          return;
+        }
+        try {
+          const response = event.data.getData(new ResponseType());
+          finish(response?.teamInfo || null);
+        } catch (error) {
+          finish(null);
+        }
+      };
+      module.network.on(responseEvent, onResponse, context);
+      try {
+        module.sendGetTeamImgInfo(names);
+      } catch (error) {
+        finish(null);
+        return;
+      }
+      timeoutId = window.setTimeout(() => finish(null), IMAGE_REQUEST_TIMEOUT_MS);
+    });
+  }
+
+  /** 按槽位写入 heroId（兼容 Map / 数组 / 普通对象；浅拷贝替换，避免碰 protobuf 访问器） */
+  function setTeamHeroId(teamInfo, index, heroId) {
+    try {
+      const slot = getTeamValues(teamInfo)[index];
+      if (!slot || typeof slot !== "object") return false;
+      const replaced = Object.assign({}, slot, { heroId });
+      if (teamInfo instanceof Map) {
+        const keys = Array.from(teamInfo.keys());
+        if (keys[index] === undefined) return false;
+        teamInfo.set(keys[index], replaced);
+      } else if (Array.isArray(teamInfo)) {
+        teamInfo[index] = replaced;
+      } else {
+        const keys = Object.keys(teamInfo);
+        if (keys[index] === undefined) return false;
+        teamInfo[keys[index]] = replaced;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /** 用图片识别补全隐藏阵容的 heroId；补到至少一格就返回原 teamInfo（已就地补全并打标） */
+  async function fillHeroIdsFromImages(module, teamInfo, teamImgInfo) {
+    const imgNames = getTeamValues(teamImgInfo);
+    const names = imgNames.filter((name) => typeof name === "string" && name.length > 0);
+    if (names.length === 0) return null;
+
+    const api = await ensureHeroImageMatcher();
+    if (!api || typeof api.identify !== "function") return null;
+
+    const images = await requestTeamImgInfo(module, names);
+    if (!images) return null;
+
+    const size = getTeamSize(teamInfo);
+    const slots = getTeamValues(teamInfo);
+    let filled = 0;
+    for (let index = 0; index < size; index += 1) {
+      const slot = slots[index];
+      if (!slot || toSafeNumber(slot.heroId) > 0) continue;
+      const name = imgNames[index];
+      if (!name) continue;
+      const base64 = typeof images.get === "function" ? images.get(name) : images[name];
+      if (!base64 || typeof base64 !== "string") continue;
+      let hit = null;
+      try {
+        hit = await api.identify(base64);
+      } catch (_) {
+        hit = null;
+      }
+      if (hit?.matched && hit.heroId > 0 && setTeamHeroId(teamInfo, index, hit.heroId)) filled += 1;
+    }
+    if (filled === 0) return null;
+    try {
+      teamInfo[IMG_MATCH_FLAG] = true;
+    } catch (_) {}
+    log(`图识别补全隐藏阵容 ${filled} 格`);
+    return teamInfo;
+  }
+
   function requestTeamInfo(playerId) {
     const module = getLegionWarModule();
     const Generated = requireGameModule("data-index");
@@ -1094,12 +1245,23 @@
       let completed = false;
       let timeoutId = null;
 
-      const finish = (teamInfo) => {
+      // B 方案：heroId 被隐藏时，用第一段回包的 teamImgInfo 换 base64 图 → 认英雄 → 把
+      // heroId 补回对应格（末尾标「·图识」）；整段失败就按原样返回，绝不比现状更差
+      const finish = async (teamInfo, teamImgInfo) => {
         if (completed) return;
         completed = true;
         if (timeoutId !== null) window.clearTimeout(timeoutId);
         module.network.off(responseEvent, onResponse, context);
-        resolve(teamInfo || null);
+        let result = teamInfo || null;
+        if (result && teamImgInfo && hasMissingHeroIdentity(result)) {
+          try {
+            const filled = await fillHeroIdsFromImages(module, result, teamImgInfo);
+            if (filled) result = filled;
+          } catch (error) {
+            warn(`图识别阵容失败: roleId=${playerId}`, error);
+          }
+        }
+        resolve(result);
       };
 
       const onResponse = (event) => {
@@ -1109,7 +1271,7 @@
         }
         try {
           const response = event.data.getData(new ResponseType());
-          finish(response?.teamInfo || null);
+          finish(response?.teamInfo || null, response?.teamImgInfo || null);
         } catch (error) {
           warn(`解析阵容失败: roleId=${playerId}`, error);
           finish(null);

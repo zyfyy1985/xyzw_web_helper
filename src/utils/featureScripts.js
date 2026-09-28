@@ -28,7 +28,7 @@ export const FEATURE_SCRIPTS = [
     id: "阵容显示.js",
     name: "阵容显示",
     description: "在盐场与蟠桃队伍列表中识别并显示真实阵容类型",
-    version: "1.3.7",
+    version: "1.4.0",
   },
   {
     id: "标记攻击.js",
