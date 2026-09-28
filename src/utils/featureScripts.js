@@ -35,7 +35,7 @@ export const FEATURE_SCRIPTS = [
     name: "标记攻击",
     description:
       "驻守时自动挑战：两种模式 ——「精准锁定」只打锁定名单里的人，「无差别攻击」有目标就发；",
-    version: "2.31.1",
+    version: "2.32.0",
   },
   {
     id: "账号切换.js",
