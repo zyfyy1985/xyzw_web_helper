@@ -11,13 +11,13 @@
     >
       <template #header-extra>
         <span class="opened-badge">
-          已开启 {{ checkedIds.length }} / {{ FEATURE_SCRIPTS.length }}
+          已开启 {{ checkedIds.length }} / {{ scriptList.length }}
         </span>
       </template>
 
       <div class="script-list">
         <div
-          v-for="f in FEATURE_SCRIPTS"
+          v-for="f in scriptList"
           :key="f.id"
           class="script-item"
           :class="{ checked: checkedIds.includes(f.id) }"
@@ -54,9 +54,12 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { selectedTokenId } from "@/stores/tokenStore";
 import {
   FEATURE_SCRIPTS,
+  fetchFeatureScripts,
   getEnabledFeatures,
+  pruneEnabledFeatures,
   setEnabledFeatures,
 } from "@/utils/featureScripts";
 
@@ -76,12 +79,21 @@ const dashboardOverrides = {
 };
 
 const checkedIds = ref([]);
+// 脚本清单：优先线上（tokenid 命中白名单才含受限脚本），失败自动回退本地
+const scriptList = ref(FEATURE_SCRIPTS.slice());
 
-// 每次打开时从 localStorage 恢复上次的勾选
+// 每次打开时拉取线上清单 → 清掉已失效的勾选 → 恢复剩余勾选
 watch(
   () => props.show,
-  (v) => {
-    if (v) checkedIds.value = getEnabledFeatures();
+  async (v) => {
+    if (!v) return;
+    checkedIds.value = getEnabledFeatures(scriptList.value.map((f) => f.id));
+    const list = await fetchFeatureScripts(selectedTokenId.value);
+    scriptList.value = list;
+    const ids = list.map((f) => f.id);
+    // 勾选过但已不在清单里的脚本（如 tokenid 失效后受限脚本被剔除）→ 取消勾选
+    pruneEnabledFeatures(ids);
+    checkedIds.value = getEnabledFeatures(ids);
   },
   { immediate: true }
 );
