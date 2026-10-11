@@ -22,12 +22,7 @@ export const FEATURE_SCRIPTS = [
     description: "长按游戏画面后自动连续点击，松手立即停止",
     version: "1.0.0",
   },
-  {
-    id: "阵容显示.js",
-    name: "阵容显示",
-    description: "在盐场与蟠桃队伍列表中识别并显示真实阵容类型",
-    version: "1.4.0",
-  },
+
   {
     id: "账号切换.js",
     name: "账号切换",
