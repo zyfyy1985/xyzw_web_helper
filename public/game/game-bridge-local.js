@@ -72,13 +72,16 @@
 
   // ============ 内置功能脚本 ============
   // 勾选记录由前端「打开游戏」对话框写入（key: h5_enabled_features，值为 id 数组）
-  // BUILTIN_FEATURES 需与 src/utils/featureScripts.js 的 FEATURE_SCRIPTS 保持一致
+  // 本清单 = featureScripts.js 的 FEATURE_SCRIPTS + 「工具坞.js」。
+  // ⚠️「工具坞.js」不在前端勾选清单里（它是入口容器，由本文件强制前置注入，见下方
+  //    loadSelectedFeatures），但写在这里才能通过 `known[id]` 校验、不被当脏数据剔除。
   var BUILTIN_FEATURES = [
+    '工具坞.js',
     '模拟战斗.js',
     '自动蟠桃.js',
     '长按连点.js',
     '账号切换.js',
-    '标记攻击.js',
+    '盐场辅助.js',
     '云阵容.js',
     '蟠桃辅助.js',
   ];
@@ -163,10 +166,14 @@
       console.log('[GameBridge] 未勾选任何内置脚本，跳过加载');
       return Promise.resolve();
     }
+    // 「工具坞」是各功能入口的统一容器，必须最先加载，
+    // 其余脚本才能在启动时向它注册入口。用户没勾它也强制前置注入。
+    var DOCK = '工具坞.js';
+    var ordered = list.indexOf(DOCK) === -1 ? [DOCK].concat(list) : list;
     console.log(
-      '[GameBridge] 加载内置脚本 (' + list.length + '): ' + list.join(', ')
+      '[GameBridge] 加载内置脚本 (' + ordered.length + '): ' + ordered.join(', ')
     );
-    return list.reduce(function (chain, name) {
+    return ordered.reduce(function (chain, name) {
       return chain.then(function () {
         return loadFeature(name);
       });

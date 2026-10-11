@@ -1,5 +1,5 @@
 // @name         账号切换
-// @version      1.1.0
+// @version      1.1.1
 // @description  游戏内账号切换登录器：白色浮层面板，显示当前登录账号与启动列表，
 //               支持切换（当前窗口换号并重载游戏）/ 刷新（重开当前账号游戏）/
 //               启动（新标签页打开该账号）/ 删除（仅移除 bin_file_list 条目与 bin_data 缓存，
@@ -35,11 +35,24 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.1.2';
   var MIN_KEY = 'xyzw_acct_switch_min';
   var PANEL_ID = 'acctSwitchPanel';
   var PILL_ID = 'acctSwitchPill';
   var CTRL_KEY = '__ACCT_SWITCH__';
+
+  // ── 左上角槽位：与 盐场辅助 / 云阵容 / 蟠桃辅助 三块面板对齐 ──────────
+  //   这三块都钉在 left:12px top:64px，并各自量对方几何往下排（UI_STACK_ANCHORS）。
+  //   本脚本站同一槽位、同一避让口径：先量这几块，把自己排到它们下面，面板互不遮挡。
+  var UI_BASE_TOP = 64;
+  var UI_STACK_GAP = 8;
+  var UI_STACK_ANCHORS = [
+    'salt-mark-attack-panel',
+    'lh-lineup-panel',
+    'peach-helper-panel',
+    'salt-peach-auto-panel',
+    'salt-peach-auto-fallback-button',
+  ];
 
   // ── 宿主窗口：优先父窗口（同源），否则自己 ──────────────────────────
   var twin = null;
@@ -202,6 +215,7 @@
     if (panel) panel.style.display = min ? 'none' : 'block';
     if (pill) pill.style.display = min ? 'flex' : 'none'; // flex：保证头像与球心对齐
     if (min) applyPillPos();
+    else applyStackTop();
   }
 
   // 悬浮球位置：存 localStorage('bin_tool_position') 的 acctSwitch 字段，
@@ -229,6 +243,38 @@
     pill.style.left = Math.max(0, Math.min(p.x, maxX)) + 'px';
     pill.style.top = Math.max(0, Math.min(p.y, maxY)) + 'px';
     pill.style.right = 'auto';
+  }
+
+  /** 左上角槽位避让：量 UI_STACK_ANCHORS 里那几块浮层的几何，把自己排到它们下面。
+   *  与 盐场辅助 / 云阵容 / 蟠桃辅助 同口径（基线 64、间隙 8）。
+   *  ⚠️ 锚点面板与本面板可能分处不同文档（非全屏时本面板挂父窗口、其余在 iframe 内），
+   *     跨文档 getBoundingClientRect 坐标系不同、不可直接比 → 只在【同一文档】里量。
+   *     同文档内能取到就说明可见，直接用其 rect.bottom。 */
+  function applyStackTop() {
+    var panel = doc.getElementById(PANEL_ID);
+    if (!panel) return;
+    var top = UI_BASE_TOP;
+    for (var i = 0; i < UI_STACK_ANCHORS.length; i++) {
+      var el = null;
+      try {
+        el = doc.getElementById(UI_STACK_ANCHORS[i]);
+      } catch (e) {
+        el = null;
+      }
+      if (!el) continue;
+      if (el.hidden || el.style.display === 'none') continue;
+      if (typeof el.getBoundingClientRect !== 'function') continue;
+      var rect = null;
+      try {
+        rect = el.getBoundingClientRect();
+      } catch (e) {
+        rect = null;
+      }
+      if (!rect || !isFinite(rect.bottom) || rect.height === 0) continue;
+      var next = Math.round(rect.bottom + UI_STACK_GAP);
+      if (next > top) top = next;
+    }
+    panel.style.top = top + 'px';
   }
 
   // ── 全屏适配：最大化时把面板/悬浮球/样式搬进 iframe 文档 ─────────────
@@ -282,19 +328,21 @@
     var curDoc = overlayDoc();
     if (!curDoc) return; // 面板不存在（iframe 重载后重建中）
     var panel = curDoc.getElementById(PANEL_ID);
+    // 折叠悬浮球已移除（入口收进工具坞），只需面板在位即可；pill 可能为 null。
     var pill = curDoc.getElementById(PILL_ID);
-    if (!panel || !pill) return;
+    if (!panel) return;
     var fd = fsActiveDoc();
     if (fd && curDoc !== fd) {
-      // 进全屏：样式+面板+球 搬进全屏元素（body），doc 切到 iframe 文档
+      // 进全屏：样式+面板（+球，若有）搬进全屏元素（body），doc 切到 iframe 文档
       var fsEl = fd.fullscreenElement || fd.body;
       var style = curDoc.getElementById('acctSwitchStyle');
       if (style) fsEl.appendChild(style);
       fsEl.appendChild(panel);
-      fsEl.appendChild(pill);
+      if (pill) fsEl.appendChild(pill);
       doc = fd;
       try { fd.defaultView.__ACCT_SWITCH__ = host[CTRL_KEY]; } catch (e) {}
-      if (pill.style.display !== 'none') applyPillPos();
+      if (pill && pill.style.display !== 'none') applyPillPos();
+      if (panel.style.display !== 'none') applyStackTop();
     } else if (!fd && curDoc !== hostDoc) {
       // 退全屏：搬回宿主，doc 切回
       returnPanelToHost();
@@ -449,7 +497,7 @@
 
   // ── 注入样式与面板 ───────────────────────────────────────────────────
   var css = [
-    '#' + PANEL_ID + '{position:fixed;top:44px;right:8px;z-index:2147483000;width:300px;',
+    '#' + PANEL_ID + '{position:fixed;top:64px;left:12px;z-index:2147483000;width:300px;',
     'background:#ffffff;border:1px solid #d0d3d9;border-radius:12px;color:#1f2329;',
     "font:13px/1.5 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif;text-align:left;",
     'box-shadow:0 4px 16px rgba(0,0,0,0.14);overflow:hidden;user-select:none;}',
@@ -497,9 +545,26 @@
     'display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}'
   ].join('\n');
 
+  /** 向「工具坞」注册本脚本入口（统一右上角圆钮 + 菜单）。
+   *  工具坞运行在游戏 iframe 文档里，本脚本也在 iframe 里执行 → window 上能拿到。
+   *  面板 DOM 仍挂父窗口，点菜单项 → restore() 展开面板。 */
+  function registerDockEntry() {
+    var dock = window.__XYZW_DOCK__;
+    if (!dock || typeof dock.register !== 'function') return;
+    dock.register({
+      id: 'account',
+      name: '账号切换',
+      char: '号',
+      color: '#378add',
+      order: 10,
+      open: function () {
+        ctrl.restore();
+      },
+    });
+  }
+
   function injectPanel() {
-    var style = doc.createElement('style');
-    style.id = 'acctSwitchStyle';
+    var style = doc.createElement('style');    style.id = 'acctSwitchStyle';
     style.textContent = css;
     doc.head.appendChild(style);
 
@@ -518,14 +583,11 @@
       '<div class="as-list" id="acctSwitchList"></div>' +
       '<div id="acctSwitchMsg"></div>';
     doc.body.appendChild(panel);
+    applyStackTop();
 
-    var pill = doc.createElement('section');
-    pill.id = PILL_ID;
-    pill.title = '拖动移动位置 · 点击打开账号切换面板';
-    pill.setAttribute('onclick', '__ACCT_SWITCH__.restore()');
-    pill.setAttribute('onpointerdown', '__ACCT_SWITCH__.dragStart(event)');
-    pill.innerHTML = '<div class="as-pill-ava" id="acctSwitchPillAva">?</div>';
-    doc.body.appendChild(pill);
+    // 折叠入口不再由本脚本自绘悬浮球，改为注册进「工具坞」（统一右上角圆钮 + 菜单）。
+    // ⚠️ 面板本身仍挂父窗口（防 iframe 重载丢面板），工具坞在 iframe 文档里。
+    registerDockEntry();
   }
 
 
@@ -536,6 +598,9 @@
     render();
     applyMinState(host.localStorage.getItem(MIN_KEY) === '1');
     installFsSync();
+    // ★ iframe 每次重载都是新的 window / 新的工具坞实例 → 必须重新注册，
+    //   否则重载后「账号切换」会从菜单里消失（面板还在，但入口没了）。
+    registerDockEntry();
     console.log('[账号切换] v' + VERSION + ' 控制器已接管，面板复用');
     return;
   }
