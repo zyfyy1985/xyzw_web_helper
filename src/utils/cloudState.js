@@ -6,6 +6,8 @@
  *
  * 约定：
  *   - 读：`cloudGetEx(key)` 返回完整结果，调用方据此决定「用云端 / 迁移本地 / 保持原样」
+ *   - 批量读：`cloudGetAllEx()`（`?list=1&values=1`）一次拿回**全部键 + 值**，
+ *     登录首次对账用它，避免「先 list、再逐个 get」的 N 次串行往返（详见其注释）
  *   - 写：`cloudSet(key, value)` 是**异步 + 按 key 防抖合并**的，永不抛异常，失败仅告警
  *   - 任何云端问题都不阻断本地读写（本地始终是"先写、先读、保底"的那一份）
  *
@@ -149,20 +151,73 @@ export function cloudIsAbsent(res) {
 
 /**
  * 列出云端某前缀下的逻辑键（新设备发现云端有哪些数据用，例如 bin 文件）。
- * @returns 完整结果对象；`ok:true` 时 `keys` 是逻辑键数组
+ * @param {string} prefix     逻辑键前缀（默认全部）
+ * @param {object} [opts]
+ * @param {boolean} [opts.values] 传 true 走 `values=1`：**一次把键和值都拿回来**，
+ *        替代「先 list、再逐个 cloudGet」的 N 次往返（登录对账就靠它）
+ * @returns 完整结果对象；`ok:true` 时 `keys` 是逻辑键数组；
+ *          带 `values` 时还有 `items` / `omitted` / `truncated`
  */
-export async function cloudListEx(prefix = "") {
-  const query = prefix ? `list=1&prefix=${encodeURIComponent(prefix)}` : "list=1";
+export async function cloudListEx(prefix = "", opts = {}) {
+  const query = [
+    "list=1",
+    prefix ? `prefix=${encodeURIComponent(prefix)}` : "",
+    opts.values ? "values=1" : "",
+  ]
+    .filter(Boolean)
+    .join("&");
   return request("GET", { query, timeout: 20000 });
 }
 
 /**
- * 列出云端逻辑键。
+ * 列出云端逻辑键（只列键）。
  * @returns {string[]|null} 成功返回数组（可能为空）；**拉取失败返回 null**（别当空处理）
  */
 export async function cloudList(prefix = "") {
   const res = await cloudListEx(prefix);
   return res.ok && Array.isArray(res.keys) ? res.keys : null;
+}
+
+/**
+ * ★ 批量读：一次请求拿回「全部逻辑键 + 值」（`?list=1&values=1`）。
+ *
+ * 为什么需要：登录后的首次对账原本是「list（1 次）+ 逐个 cloudGetEx（N 次）」，
+ * 这 N 次是**串行**的，直接叠进登录等待（`saved_lineups_*` 每个 token 一条，
+ * token 一多就是十几次往返）。服务端支持 `values=1` 之后，整个对账只剩 1 次往返。
+ *
+ * ⚠️ 服务端有**体积预算**（见 E:\xyzw_server 的 `MAX_INLINE_BYTES`）：预算用尽、
+ *    或云端键数超过 `MAX_LIST` 时，多出来的键只会出现在 `omitted`（或者整份被
+ *    `truncated` 截断）里、**没有值** —— 调用方必须为这些键保留「单键 cloudGetEx 兜底」，
+ *    否则会静默漏数据。
+ * ⚠️ 老版本服务端不认 `values=1` 时只会回 `{keys}`（没有 `items`）⇒ `values` 为空
+ *    ⇒ 调用方全部走单键兜底，退化成改造前的行为（能用，只是慢）。不会出错。
+ *
+ * @returns {Promise<object>} `ok:false` 时形状同 request（status / error / message）；
+ *   `ok:true` 时：
+ *     - keys      string[]          云端全部逻辑键（已排序）
+ *     - values    Map<string, any>  键 → 值（**只有内联成功的那些**）
+ *     - omitted   Set<string>       预算用尽、只给键没给值的键
+ *     - truncated boolean           云端键数超过服务端单次上限，列表本身被截断
+ */
+export async function cloudGetAllEx(prefix = "") {
+  const res = await cloudListEx(prefix, { values: true });
+  if (!res.ok) return res;
+
+  const values = new Map();
+  const items = Array.isArray(res.items) ? res.items : [];
+  for (const it of items) {
+    if (!it || typeof it.key !== "string") continue;
+    values.set(it.key, it.value === undefined ? null : it.value);
+  }
+
+  return {
+    ok: true,
+    status: res.status,
+    keys: Array.isArray(res.keys) ? res.keys : [],
+    values,
+    omitted: new Set(Array.isArray(res.omitted) ? res.omitted : []),
+    truncated: !!res.truncated,
+  };
 }
 
 // ==================== 未推送标记（dirty）====================

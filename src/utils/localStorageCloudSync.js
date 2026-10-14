@@ -14,11 +14,15 @@
  *   ③ `online` 事件 → `flushDirty()`：网络恢复时立刻把没推上去的键补推（见 ⑤）
  *   ④ `pullFromCloudOnce()`：首次登录 / 刷新时做一次双向对账
  *      - **先补推上次没推成功的键**（见 ⑤）—— 必须在下面的覆盖之前，否则本地改动会被云端旧值盖掉
+ *      - **一次请求**用 `cloudGetAllEx()`（`?list=1&values=1`）把「云端全部键 + 值」拿回来
+ *        （旧实现是 list 1 次 + 逐个 get N 次，N 次串行 = 登录卡顿的主因；见 cloudState 的注释）
  *      - 云端有、本地没有 → 写进本地
  *      - 本地有、云端没有 → 推上去（首次上云迁移、备份恢复后的补推）
  *      - 云端是**空数组**而本地非空 → 不覆盖，改为把本地回推（防「凭空清空」）
  *      - 仍然带着未推送标记的键 → **不覆盖**（本地更新，云端是旧的）
- *      - 顺带对账 IndexedDB 的 bin：拉回本地缺的 + 补推云端没有的
+ *      - 服务端体积预算挤掉值（`omitted` / `truncated`）→ 那些键退化成单键 `cloudGetEx` 兜底
+ *      - 顺带对账 IndexedDB 的 bin：拉回本地缺的 + 补推云端没有的（bin 是 base64 大块，
+ *        体积不可控，仍走「列键 + 按需单取」，不走批量读）
  *   ⑤ 写入失败不丢：`cloudState` 会在 localStorage 留 `cloud_pending_<key>` 标记并退避重试，
  *      标记**跨会话保留**。这是「断网改完、下次打开被云端覆盖」那条老路径的唯一挡板。
  *   ⑥ `pagehide` / `beforeunload` → `cloudFlush(keepalive)` + `flushDirty(keepalive)`：
@@ -31,9 +35,9 @@
  */
 import {
   cloudGetEx,
+  cloudGetAllEx,
   cloudSet,
   cloudDel,
-  cloudList,
   cloudFlush,
   flushDirty,
   listDirty,
@@ -174,6 +178,66 @@ function localSyncableKeys() {
 }
 
 /**
+ * 当前账号「合法拥有」的 bin 键（= 账号数据 `gameTokens` 里每个 token 的 `id` 与 `name`）。
+ *
+ * ★ 为什么必须有它：IndexedDB 在本地是**全账号共享**的（bin 按 tokenId 存），而 bin 的补推规则
+ *   是「本地有、当前账号云端没有 → 推上去」。换账号登录时，**上一个账号遗留的 bin 不在新账号的
+ *   云端键列表里** ⇒ 会被当成「本地独有数据」整批迁进新账号的云端（真机现象：B 的云端里出现
+ *   一整套 A 的 bin）。这里按归属收口：匹配不上的本地 bin **一律不推**。
+ *
+ * 判据为什么可信：`gameTokens` 是账号数据（白名单内、登录首拉 A 段刚按云端写过），它天然代表
+ *   「本账号应该有哪些 token」；bin 的逻辑键历史上可能是 `tokenId`，也可能是 `token.name`，两个都比。
+ * 匹配不上的 bin **只留在本地、绝不删除** —— 它可能是别的账号的，也可能是超过 700KB 从没上过云的
+ *   （那种情况下本地就是唯一副本，删了就真丢了）。
+ * 解析失败 ⇒ 返回空集合 ⇒ 本轮不推任何 bin（宁可不推，也不串号）。
+ */
+function ownedBinKeys() {
+  const out = new Set();
+  try {
+    const list = JSON.parse(localStorage.getItem("gameTokens") || "[]");
+    if (Array.isArray(list)) {
+      for (const t of list) {
+        if (!t) continue;
+        if (t.id) out.add(String(t.id));
+        if (t.name) out.add(String(t.name));
+      }
+    }
+  } catch {
+    /* ignore → 空集合 */
+  }
+  return out;
+}
+
+/**
+ * bin 的「派生缓存」键：它们只是 IndexedDB 内容的投影（`bin_data_<tokenId>` 是 hex 副本、
+ * `current_bin_id` 是当前选中的 bin、`bin_file_list` 是列表元数据），**进了游戏/选了 token 就会重建**
+ * ⇒ 账号边界清掉它们不会丢数据；不清则会把上一个账号的 bin 列表/选中项留在界面上。
+ * ⚠️ 这三个键既不在同步白名单里、也不在 BLOCK 名单里，所以 `localSyncableKeys()` 抓不到它们。
+ */
+const BIN_DERIVED_KEYS = ["current_bin_id", "bin_file_list"];
+const BIN_DERIVED_PREFIXES = ["bin_data_"];
+
+function isBinDerivedKey(key) {
+  if (!key) return false;
+  if (BIN_DERIVED_KEYS.includes(key)) return true;
+  return BIN_DERIVED_PREFIXES.some((p) => key.startsWith(p));
+}
+
+/** 本地残留的 bin 派生缓存键（账号边界清理用） */
+function localBinDerivedKeys() {
+  const keys = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && isBinDerivedKey(k)) keys.push(k);
+    }
+  } catch {
+    /* ignore */
+  }
+  return keys;
+}
+
+/**
  * 一个键发生变化 → 推云端（或删云端）
  */
 function notify(key, rawValue) {
@@ -199,26 +263,45 @@ async function waitDbReady(db, timeoutMs = 5000) {
 }
 
 /**
- * 把本地有、云端还没有的 bin 补推上去。
+ * 把本地有、当前账号云端还没有的 bin 补推上去。
  * 主要场景：备份恢复（恢复流程直接写 IndexedDB，绕过了 useIndexedDB 的推送钩子）。
- * 副作用：别的设备删掉的 bin 若本地还在，会被重新推回云端 —— 但那只是个孤儿文件，
- * 没有对应账号就读不到，无害；换来的是「恢复出来的 bin 一定不会丢」。
+ *
+ * ⚠️ 早期版本这里没有归属判断，注释还写着「推上去也只是无害孤儿」—— **那个判断是错的**：
+ *    换账号后登录，上一个账号遗留的本地 bin 不在新账号的云端键列表里，会被整批迁进新账号云端，
+ *    而它们是**可读的**（新账号能读到），于是变成真实的跨账号数据泄漏。现在只推 ownedBinKeys()
+ *    里有的（= 本账号 gameTokens 的 token），其余一律留在本地。
+ *
+ * @param {string[]|null} cloudBinKeys 云端已有的 bin 逻辑键。**由调用方从批量响应里取好传进来** ——
+ *   登录对账里「拉回缺的」与「补推多的」共用同一份清单。
+ *   `null` = 列取失败（未登录 / 网络异常）→ 什么都不做。
  */
-async function pushLocalOnlyBins(db) {
-  const cloudBinKeys = await cloudList(CLOUD_BIN_PREFIX); // null = 拉取失败
+async function pushLocalOnlyBins(db, cloudBinKeys) {
   if (!cloudBinKeys) return 0;
 
   const inCloud = new Set(cloudBinKeys);
+  // ★ 只推「本账号自己拥有」的 bin —— 见 ownedBinKeys() 的说明。
+  //   不加这道门 = 换账号时把上个账号的 bin 整批迁进新账号云端（串号）。
+  const owned = ownedBinKeys();
   let pushed = 0;
+  let foreign = 0;
 
   const localKeys = await db.getAllKeys();
   for (const binKey of localKeys) {
     if (inCloud.has(CLOUD_BIN_PREFIX + binKey)) continue;
+    if (!owned.has(String(binKey))) {
+      foreign++; // 别的账号遗留 / 无主：留在本地，不推、不删
+      continue;
+    }
     const buffer = await db.getArrayBuffer(binKey);
     if (buffer) {
       pushBinToCloud(binKey, buffer);
       pushed++;
     }
+  }
+  if (foreign) {
+    console.info(
+      `[cloudSync] 本地有 ${foreign} 个不属于当前账号的 bin，已跳过（不推给本账号、也不删除）`,
+    );
   }
   return pushed;
 }
@@ -344,8 +427,13 @@ let firstPullPromise = null;
  * 从云端把数据拉回本地，并把本地独有的键推上去。
  * 幂等：同一会话默认只跑一次；未登录时不消费这次机会（下次还能跑）。
  *
- * ⚠️ 顺序不可调换：**先补推上次没推成功的键（A0），再执行「云端→本地」覆盖（A）**。
+ * ★ 登录卡顿的根因就在这里的**读取次数**上：旧实现是 list（1 次）+ 逐个 cloudGetEx（N 次），
+ *   而 N 次是串行的（saved_lineups_* 每个 token 一条）。现在改用
+ *   `cloudGetAllEx()`（`?list=1&values=1`）一次拿回全部键 + 值，对账只剩 1 次往返。
+ *
+ * ⚠️ 顺序不可调换：**先补推上次没推成功的键（A0），再做批量读（A）**。
  *    反过来就等于把断网期间的本地改动直接抹掉 —— 别再"顺手"把这段挪走。
+ *    （换批量读之后这条更要紧：批量值必须取在补推**之后**，否则拿回的是推送前的旧值。）
  */
 export async function pullFromCloudOnce(force = false) {
   if (pulledOnce && !force) return { pulled: false, reason: "already" };
@@ -380,23 +468,11 @@ export function waitFirstPull(timeoutMs = 30000) {
 }
 
 async function doFirstPull() {
-  let cloudKeys = null;
-  try {
-    cloudKeys = await cloudList(); // 失败返回 null
-  } catch (e) {
-    console.warn("[cloudSync] 列出云端键失败:", e);
-  }
-  if (!cloudKeys) {
-    pulledOnce = false; // 拉取失败，允许下次重试
-    return { pulled: false, reason: "list_failed" };
-  }
-
-  // 确认能和云端对话了，从这一刻起本地改动才开始往上推
-  pushEnabled = true;
-
   // A0. ★ 先把「上次没推成功」的键补推上去。
-  //     必须在 A 段之前 —— 否则云端那份旧值会把本地的新改动直接覆盖掉，
+  //     必须在下面的「云端 → 本地」之前 —— 否则云端那份旧值会把本地的新改动直接覆盖掉，
   //     这正是「断网改完、下次打开就丢」的成因。
+  //     ⚠️ 也必须在**批量读之前**：批量读是「读云端的值」，只有先推完，
+  //        读回来的才是本次推送后的新值（顺序换了就是上面那条数据丢失路径）。
   let dirtyPushed = 0;
   try {
     const r = await flushDirty();
@@ -405,11 +481,35 @@ async function doFirstPull() {
     console.warn("[cloudSync] 补推未推送成功的键出错:", e);
   }
 
+  // A. 批量读：一次请求拿回「全部逻辑键 + 值」（`?list=1&values=1`）。
+  //    旧实现是「先 list（1 次）再逐个 cloudGetEx（N 次）」—— 这 N 次是串行的，
+  //    直接叠进登录等待（saved_lineups_* 每个 token 一条，token 一多就是十几次往返）。
+  let batch = null;
+  try {
+    batch = await cloudGetAllEx(); // 失败返回 { ok:false, ... }
+  } catch (e) {
+    console.warn("[cloudSync] 批量拉取云端数据失败:", e);
+  }
+  if (!batch || !batch.ok) {
+    pulledOnce = false; // 拉取失败，允许下次重试
+    return { pulled: false, reason: "list_failed" };
+  }
+  const cloudKeys = batch.keys;
+  if (batch.truncated) {
+    console.warn(
+      `[cloudSync] 云端键数超过服务端单次上限，列表可能不全（已拿到 ${cloudKeys.length} 条）`,
+    );
+  }
+
+  // 确认能和云端对话了，从这一刻起本地改动才开始往上推
+  pushEnabled = true;
+
   const targets = cloudKeys.filter(isSyncableKey);
   const stillDirty = new Set(listDirty()); // 补推后仍然没上去的（还在断网 / 服务端拒绝）
   const retryLocal = []; // 因空值保护而暂时不覆盖的键
   let wrote = 0;
   let keptLocal = 0;
+  let fetchedOne = 0; // 批量响应里没带值、改为单键兜底的次数（正常应为 0）
 
   // A. 云端 → 本地
   suppress++;
@@ -421,16 +521,25 @@ async function doFirstPull() {
         continue;
       }
 
-      const res = await cloudGetEx(key);
-      if (!res.ok) continue;
+      // 值随批量响应一起回来了，直接用；只有被服务端体积预算挤掉（omitted）
+      // 或响应被截断时才退化成单键读取（老版本服务端不认 values=1 时全走这条路）
+      let value;
+      if (batch.values.has(key)) {
+        value = batch.values.get(key);
+      } else {
+        const res = await cloudGetEx(key);
+        if (!res.ok) continue;
+        value = res.value;
+        fetchedOne++;
+      }
 
-      if (isEmptyArray(res.value) && localIsNonEmptyArray(key)) {
+      if (isEmptyArray(value) && localIsNonEmptyArray(key)) {
         // 云端空的、本地有货 → 保本地，稍后回推
         retryLocal.push(key);
         continue;
       }
 
-      const raw = stringifyValue(res.value);
+      const raw = stringifyValue(value);
       if (raw === null) continue;
       const oldRaw = safeGet(key);
       safeSet(key, raw);
@@ -465,9 +574,19 @@ async function doFirstPull() {
   try {
     const db = useIndexedDB();
     if (await waitDbReady(db)) {
-      const pulled = await db.syncFromCloud(); // 云端 → 本地（只增不删）
+      // ★ bin 的**键和值都来自上面那一次批量读**（`?list=1&values=1`）：
+      //   · 键 = 批量响应里的 keys ⇒ 不再单独发一条 `?list=1&prefix=bins/`
+      //   · 值 = 批量响应里的 items ⇒ 预算内的直接用（**0 请求**），被 omitted 的才逐键并发兜底
+      //   ⚠️ `isSyncableKey` 那张白名单管的是「**哪些键写进 localStorage / 参与本地→云端迁移**」，
+      //      管不到这里：bins 不在白名单里是对的（它们存 IndexedDB），而批量响应本身返回的是
+      //      **全部键值**（服务端不知道我们的白名单）。以前是「白名单外的值没人读、随 batch 一起
+      //      被回收」，所以才要多发一轮请求去取；现在直接从同一个 Map 里取出来用。
+      //   改造前是「批量读先把所有 bin 下下来 → 客户端丢掉 → 再列一次键 → 再逐条 GET」：
+      //   真机实测登录时 8 条 bin = 8 条串行请求（外加 8 个 CORS 预检），界面就卡在登录页。
+      const binKeys = cloudKeys.filter((k) => k.startsWith(CLOUD_BIN_PREFIX));
+      const pulled = await db.syncFromCloud(binKeys, batch.values); // 云端 → 本地（只增不删）
       binsIn = pulled.added;
-      binsOut = await pushLocalOnlyBins(db); // 本地 → 云端（补推云端还没有的）
+      binsOut = await pushLocalOnlyBins(db, binKeys); // 本地 → 云端（补推云端还没有的）
     } else {
       console.warn("[cloudSync] IndexedDB 未就绪，跳过 bin 对账");
     }
@@ -476,12 +595,12 @@ async function doFirstPull() {
   }
 
   console.info(
-    `[cloudSync] 补推 ${dirtyPushed} 个未上传键、云端→本地 ${wrote} 个键、` +
-      `本地→云端 ${pushed} 个键、保留本地 ${keptLocal} 个（尚未推成功）、` +
-      `bin 拉回 ${binsIn} / 补推 ${binsOut}`,
+    `[cloudSync] 补推 ${dirtyPushed} 个未上传键、批量拉取 1 次（云端→本地 ${wrote} 个键、` +
+      `单键兜底 ${fetchedOne} 个）、本地→云端 ${pushed} 个键、` +
+      `保留本地 ${keptLocal} 个（尚未推成功）、bin 拉回 ${binsIn} / 补推 ${binsOut}`,
   );
 
-  return { pulled: true, wrote, pushed, binsIn, binsOut, dirtyPushed, keptLocal };
+  return { pulled: true, wrote, pushed, binsIn, binsOut, dirtyPushed, keptLocal, fetchedOne };
 }
 
 /** 强制把排队的写入立刻发出去（例如跳转前） */
@@ -511,16 +630,20 @@ export function pushAllLocalKeysToCloud() {
  *    （ref 置空 → 内部 watch 回写）是异步 flush 的，若在它落地前放开 suppress，
  *    那些回写会被当成用户操作推上云端。按住的窗口里发生的回写只会落在本地
  *    （值是空默认，无害），不会被推、也不会留标记。
- * ⚠️ 只清 localStorage：IndexedDB 的 bin 按 tokenId 存放、跨账号混在本地，
- *    且云端对孤儿文件天然容忍（推上去也只是无害孤儿），不动它。
- * @returns {number} 清掉的键数
+ * ⚠️ 只清 localStorage，**不动 IndexedDB 里的 bin**：bin 有可能超过云端单条上限（700KB）而从没上过云，
+ *    本地就是唯一副本，删了就真丢。所以「bin 跨账号混在本地」这件事改用**按归属推送**收口
+ *    （见 `ownedBinKeys` / `pushLocalOnlyBins`），而不是在这里删数据。
+ *    但 bin 的**派生缓存**（`bin_data_*` / `current_bin_id` / `bin_file_list`）必须一起清掉 ——
+ *    否则换账号后界面/游戏仍会读到上一个账号的 bin（它们是 IndexedDB 的投影，清了会自动重建）。
+ * @returns {number} 清掉的键数（业务键 + bin 派生缓存）
  */
 export function clearLocalBusinessKeys(holdMs = 120) {
   const keys = localSyncableKeys();
-  if (!keys.length) return 0;
+  const derived = localBinDerivedKeys(); // bin 的派生缓存（不在同步白名单里，得单独收）
+  if (!keys.length && !derived.length) return 0;
   suppress++;
   try {
-    for (const key of keys) {
+    for (const key of [...keys, ...derived]) {
       const oldRaw = safeGet(key);
       try {
         localStorage.removeItem(key);
@@ -536,7 +659,7 @@ export function clearLocalBusinessKeys(holdMs = 120) {
       suppress--;
     }, holdMs);
   }
-  return keys.length;
+  return keys.length + derived.length;
 }
 
 /**

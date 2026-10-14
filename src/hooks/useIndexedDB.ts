@@ -5,6 +5,7 @@ import {
   pushBinToCloud,
   deleteBinFromCloud,
   fetchCloudBin,
+  base64ToAb,
 } from "@/utils/binCloud";
 import { cloudList, cloudDel } from "@/utils/cloudState";
 
@@ -45,7 +46,10 @@ interface UseIndexedDBReturn {
    * 从云端把本地缺失的 bin 拉回来（**只增不删**：不会因为云端没有就删本地）。
    * 直接写 DB、不再推回云端，避免回环。
    */
-  syncFromCloud: () => Promise<{ added: number; skipped: number }>;
+  syncFromCloud: (
+    cloudKeys: string[] | null,
+    inlineValues?: Map<string, string> | null,
+  ) => Promise<{ added: number; skipped: number }>;
 }
 
 // 配置接口
@@ -250,30 +254,33 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
 
   /**
    * 从云端把本地缺失的 bin 拉回来（只增不删）
+   *
+   * @param cloudKeys    云端已有的 bin 逻辑键 —— **由调用方从批量响应里取好传进来**
+   *                     （见 localStorageCloudSync 的 D 段）；null = 列取失败。
+   * @param inlineValues 批量读（`?list=1&values=1`）**已经拿回来的值**（逻辑键 → base64 字符串）。
+   *   体积预算（服务端 8MB）内的值都在这里 ⇒ 正常情况下**一个请求都不用再发**；
+   *   被预算挤掉（omitted）/ 老服务端没带值的，才逐键兜底。
    */
-  const syncFromCloud = async (): Promise<{ added: number; skipped: number }> => {
-    if (!db.value) return { added: 0, skipped: 0 };
-
-    let keys: string[] | null = null;
-    try {
-      keys = await cloudList(CLOUD_BIN_PREFIX);
-    } catch (e) {
-      console.warn("列出云端 bin 失败:", e);
-      return { added: 0, skipped: 0 };
-    }
-    // 拉不到（未登录 / 网络异常）→ 什么都不做，别把本地当成"云端为空"
-    if (!keys) return { added: 0, skipped: 0 };
+  const syncFromCloud = async (
+    cloudKeys: string[] | null,
+    inlineValues?: Map<string, string> | null,
+  ): Promise<{ added: number; skipped: number }> => {
+    // 拉不到（未登录 / 网络异常 → null）→ 什么都不做，别把本地当成"云端为空"
+    if (!db.value || !cloudKeys) return { added: 0, skipped: 0 };
+    const database = db.value;
 
     let added = 0;
     let skipped = 0;
 
-    for (const logical of keys) {
+    /** 先只查本地：本地区全有 ⇒ 一个请求都不发（同设备刷新的常见路径） */
+    const missing: { localKey: string; logical: string }[] = [];
+    for (const logical of cloudKeys) {
       const localKey = logical.slice(CLOUD_BIN_PREFIX.length);
       if (!localKey) continue;
 
       let existing: unknown = null;
       try {
-        existing = await db.value.get(storeName, localKey);
+        existing = await database.get(storeName, localKey);
       } catch {
         existing = null;
       }
@@ -281,16 +288,13 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
         skipped++;
         continue;
       }
+      missing.push({ localKey, logical });
+    }
 
-      const buffer = await fetchCloudBin(localKey);
-      if (!buffer) {
-        skipped++;
-        continue;
-      }
-
+    /** 写进 DB（不走 storeArrayBuffer，避免又推回云端形成回环） */
+    const put = async (localKey: string, buffer: ArrayBuffer): Promise<void> => {
       try {
-        // 直接写 DB（不走 storeArrayBuffer），避免又推回云端形成回环
-        await db.value.put(storeName, {
+        await database.put(storeName, {
           id: localKey,
           data: buffer,
           metadata: { fromCloud: true },
@@ -305,6 +309,37 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
         console.error(`从云端恢复 bin「${localKey}」失败:`, err);
         skipped++;
       }
+    };
+
+    // ① 值已随批量响应一起回来了 → 直接用，**不发任何请求**
+    const needFetch: string[] = [];
+    for (const { localKey, logical } of missing) {
+      const raw = inlineValues ? inlineValues.get(logical) : undefined;
+      if (typeof raw === "string" && raw) {
+        try {
+          await put(localKey, base64ToAb(raw));
+          continue;
+        } catch (e) {
+          console.warn(`解析批量响应里的 bin「${localKey}」失败，改走单键取:`, e);
+        }
+      }
+      needFetch.push(localKey);
+    }
+
+    // ② 兜底：单键取。**并发**（原先是逐条 await ⇒ N 条 bin = N 轮串行往返 + N 个
+    //    CORS 预检；真机实测登录时 8 条 bin 把界面卡在登录页）。限并发 4，别把移动端打爆。
+    const CONCURRENCY = 4;
+    for (let i = 0; i < needFetch.length; i += CONCURRENCY) {
+      await Promise.all(
+        needFetch.slice(i, i + CONCURRENCY).map(async (localKey) => {
+          const buffer = await fetchCloudBin(localKey);
+          if (!buffer) {
+            skipped++;
+            return;
+          }
+          await put(localKey, buffer);
+        }),
+      );
     }
 
     return { added, skipped };
