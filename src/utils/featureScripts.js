@@ -34,7 +34,7 @@ export const FEATURE_SCRIPTS = [
 const STORAGE_KEY = "h5_enabled_features";
 
 // 脚本清单 API（硬编码；tokenid 命中服务端白名单才返回受限脚本）
-const SCRIPTS_API = "https://wordbook-3uy.pages.dev/api/scripts";
+const SCRIPTS_API = "https://www.kofs.kdns.fr/api/scripts";
 
 // 用户未做过选择时的默认开启项
 const DEFAULT_FEATURES = ["账号切换.js"];
