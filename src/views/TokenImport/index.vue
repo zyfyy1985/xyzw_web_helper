@@ -688,7 +688,11 @@ import {
   getRoleBinFileName,
 } from "@/utils/binFile";
 import { $emit } from "@/stores/events/index.ts";
-import { waitFirstPull } from "@/utils/localStorageCloudSync";
+import {
+  waitFirstPull,
+  getLastPullResult,
+} from "@/utils/localStorageCloudSync";
+import { useAuthStore } from "@/stores/auth";
 import useIndexedDB from "@/hooks/useIndexedDB";
 import lz4 from "lz4js";
 const { getArrayBuffer, storeArrayBuffer, deleteArrayBuffer, clearAll } =
@@ -705,6 +709,7 @@ const props = defineProps({
 
 const router = useRouter();
 const message = useMessage();
+const authStore = useAuthStore();
 const dialog = useDialog();
 const tokenStore = useTokenStore();
 
@@ -1853,7 +1858,25 @@ onMounted(async () => {
   //   waitFirstPull：对账在途就等它落地（成功失败都算）；30s 仍未落地就不自动弹
   //   （空态里有「打开Token管理」按钮兜底），绝不凭「本地是空的」抢跑。
   const cloudReady = await waitFirstPull();
-  if (cloudReady && !tokenStore.hasTokens && !props.token && !props.api) {
+  const noLocalData = !tokenStore.hasTokens && !props.token && !props.api;
+  const pull = getLastPullResult();
+
+  // ★★ 本地空 + 对账**失败** ⇒ 那不是「你没有数据」，是「数据没拿到」，绝不能弹「添加Token」：
+  //    本页是顶层路由（没有抽屉菜单）⇒ 弹了也重试不了、更退不出去，只能卡在空页上（真机踩过）。
+  //    直接退回登录页 —— 重新登录就是一次重试（登录成功后会再拉一次云端数据）。
+  if (noLocalData && pull && pull.ok === false) {
+    message.warning("云端数据加载失败，请重新登录后重试");
+    try {
+      // 必须登出：路由守卫会拦「已登录还停在 /login」，不登出就是把自己弹回 dashboard
+      await authStore.logout();
+    } catch {
+      /* 退不出去也得跳，别把人困在这页 */
+    }
+    router.replace({ path: "/login", query: { redirect: "/tokens" } });
+    return;
+  }
+
+  if (cloudReady && noLocalData) {
     showImportForm.value = true;
   }
 });
