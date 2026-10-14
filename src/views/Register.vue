@@ -4,8 +4,10 @@
       <div class="register-card glass">
         <div class="card-header">
           <div class="brand">
-            <img src="/icons/xiaoyugan.png" alt="XYZW" class="brand-logo" />
-            <h1 class="brand-title">注册 XYZW 账户</h1>
+            <n-icon class="brand-logo" :size="64">
+              <GameController />
+            </n-icon>
+            <h1 class="brand-title">注册账户</h1>
           </div>
           <p class="welcome-text">加入我们，开始您的游戏管理之旅</p>
         </div>
@@ -50,12 +52,12 @@
               <n-input
                 v-model:value="registerForm.password"
                 type="password"
-                placeholder="密码"
+                placeholder="密码（8-64 位，含大小写字母和数字）"
                 :input-props="{ autocomplete: 'new-password' }"
               >
                 <template #prefix>
                   <n-icon>
-                    <Lock />
+                    <LockClosed />
                   </n-icon>
                 </template>
               </n-input>
@@ -67,11 +69,26 @@
                 type="password"
                 placeholder="确认密码"
                 :input-props="{ autocomplete: 'new-password' }"
+              >
+                <template #prefix>
+                  <n-icon>
+                    <LockClosed />
+                  </n-icon>
+                </template>
+              </n-input>
+            </n-form-item>
+
+            <n-form-item path="inviteCode">
+              <n-input
+                v-model:value="registerForm.inviteCode"
+                placeholder="邀请码"
+                :maxlength="14"
+                :input-props="{ autocomplete: 'off' }"
                 @keydown.enter="handleRegister"
               >
                 <template #prefix>
                   <n-icon>
-                    <Lock />
+                    <Key />
                   </n-icon>
                 </template>
               </n-input>
@@ -120,7 +137,8 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
-import { PersonCircle, Mail } from "@vicons/ionicons5";
+import { passwordRules } from "@/utils/passwordPolicy";
+import { PersonCircle, Mail, LockClosed, Key, GameController } from "@vicons/ionicons5";
 
 const router = useRouter();
 const message = useMessage();
@@ -130,11 +148,23 @@ const registerFormRef = ref(null);
 // 注册表单数据
 const registerForm = reactive({
   username: "",
+  inviteCode: "",
   email: "",
   password: "",
   confirmPassword: "",
   agreeTerms: false,
 });
+
+// 邀请码归一化：与后端 shared/auth.js 的 normalizeInviteCode 完全一致
+// （去空格/横线/下划线 → 转大写 → 剥掉 XYZW 前缀），保证前后端判定同源
+const INVITE_BODY_RE = /^[A-HJ-NP-Z2-9]{8}$/;
+const normalizeInviteCode = (value) => {
+  let s = String(value == null ? "" : value)
+    .toUpperCase()
+    .replace(/[\s\-_]/g, "");
+  if (s.startsWith("XYZW")) s = s.slice(4);
+  return s;
+};
 
 // 表单验证规则
 const registerRules = {
@@ -148,6 +178,18 @@ const registerRules = {
       min: 3,
       max: 20,
       message: "用户名长度应在3-20个字符之间",
+      trigger: ["input", "blur"],
+    },
+  ],
+  inviteCode: [
+    {
+      required: true,
+      message: "请输入邀请码",
+      trigger: ["input", "blur"],
+    },
+    {
+      validator: (_rule, value) => INVITE_BODY_RE.test(normalizeInviteCode(value)),
+      message: "邀请码格式不正确（8 位字母数字，如 3F7K-9QMD）",
       trigger: ["input", "blur"],
     },
   ],
@@ -169,11 +211,7 @@ const registerRules = {
       message: "请输入密码",
       trigger: ["input", "blur"],
     },
-    {
-      min: 6,
-      message: "密码长度不能少于6位",
-      trigger: ["input", "blur"],
-    },
+    ...passwordRules(),
   ],
   confirmPassword: [
     {
@@ -207,6 +245,7 @@ const handleRegister = async () => {
       username: registerForm.username,
       email: registerForm.email,
       password: registerForm.password,
+      inviteCode: registerForm.inviteCode,
     });
 
     if (result.success) {
@@ -271,9 +310,7 @@ const handleRegister = async () => {
 }
 
 .brand-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: var(--border-radius-large);
+  color: var(--primary-color);
 }
 
 .brand-title {

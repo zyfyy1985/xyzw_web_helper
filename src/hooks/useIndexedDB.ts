@@ -1,5 +1,12 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import { ref } from "vue";
+import {
+  CLOUD_BIN_PREFIX,
+  pushBinToCloud,
+  deleteBinFromCloud,
+  fetchCloudBin,
+} from "@/utils/binCloud";
+import { cloudList, cloudDel } from "@/utils/cloudState";
 
 // 数据库结构定义
 interface ArrayBufferDB extends DBSchema {
@@ -27,12 +34,18 @@ interface UseIndexedDBReturn {
     key: string,
     data: ArrayBuffer,
     metadata?: Record<string, any>,
+    options?: { skipCloud?: boolean },
   ) => Promise<boolean>;
   getArrayBuffer: (key: string) => Promise<ArrayBuffer | null>;
   getAllKeys: () => Promise<string[]>;
   deleteArrayBuffer: (key: string) => Promise<boolean>;
   clearAll: () => Promise<boolean>;
   getStorageInfo: () => Promise<{ totalSize: number; keyCount: number }>;
+  /**
+   * 从云端把本地缺失的 bin 拉回来（**只增不删**：不会因为云端没有就删本地）。
+   * 直接写 DB、不再推回云端，避免回环。
+   */
+  syncFromCloud: () => Promise<{ added: number; skipped: number }>;
 }
 
 // 配置接口
@@ -99,6 +112,7 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
     key: string,
     data: ArrayBuffer,
     metadata?: Record<string, any>,
+    options?: { skipCloud?: boolean },
   ): Promise<boolean> => {
     if (!db.value) {
       error.value = "数据库未初始化";
@@ -118,6 +132,10 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
       console.log(
         `✅ ArrayBuffer 存储成功，键: ${key}, 大小: ${data.byteLength} 字节`,
       );
+
+      // 云端同步（异步、防抖、失败仅告警；绝不阻塞本地写入）
+      if (!options?.skipCloud) pushBinToCloud(key, data);
+
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "未知错误";
@@ -187,6 +205,10 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
     try {
       await db.value.delete(storeName, key);
       console.log(`✅ ArrayBuffer 删除成功，键: ${key}`);
+
+      // 云端同步（异步、失败仅告警）
+      deleteBinFromCloud(key);
+
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "未知错误";
@@ -208,6 +230,15 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
     try {
       await db.value.clear(storeName);
       console.log("✅ 所有 ArrayBuffer 数据已清空");
+
+      // 云端同步：清掉本账号下的全部 bin（拉不到列表就放弃，别误删）
+      try {
+        const cloudKeys = await cloudList(CLOUD_BIN_PREFIX);
+        if (cloudKeys) cloudKeys.forEach((k) => cloudDel(k, { dirty: false }));
+      } catch (e) {
+        console.warn("清空云端 bin 失败:", e);
+      }
+
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "未知错误";
@@ -215,6 +246,68 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
       console.error("❌ 清空数据错误:", err);
       return false;
     }
+  };
+
+  /**
+   * 从云端把本地缺失的 bin 拉回来（只增不删）
+   */
+  const syncFromCloud = async (): Promise<{ added: number; skipped: number }> => {
+    if (!db.value) return { added: 0, skipped: 0 };
+
+    let keys: string[] | null = null;
+    try {
+      keys = await cloudList(CLOUD_BIN_PREFIX);
+    } catch (e) {
+      console.warn("列出云端 bin 失败:", e);
+      return { added: 0, skipped: 0 };
+    }
+    // 拉不到（未登录 / 网络异常）→ 什么都不做，别把本地当成"云端为空"
+    if (!keys) return { added: 0, skipped: 0 };
+
+    let added = 0;
+    let skipped = 0;
+
+    for (const logical of keys) {
+      const localKey = logical.slice(CLOUD_BIN_PREFIX.length);
+      if (!localKey) continue;
+
+      let existing: unknown = null;
+      try {
+        existing = await db.value.get(storeName, localKey);
+      } catch {
+        existing = null;
+      }
+      if (existing) {
+        skipped++;
+        continue;
+      }
+
+      const buffer = await fetchCloudBin(localKey);
+      if (!buffer) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        // 直接写 DB（不走 storeArrayBuffer），避免又推回云端形成回环
+        await db.value.put(storeName, {
+          id: localKey,
+          data: buffer,
+          metadata: { fromCloud: true },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        console.log(
+          `⬇️ 已从云端恢复 bin「${localKey}」，${buffer.byteLength} 字节`,
+        );
+        added++;
+      } catch (err) {
+        console.error(`从云端恢复 bin「${localKey}」失败:`, err);
+        skipped++;
+      }
+    }
+
+    return { added, skipped };
   };
 
   /**
@@ -257,6 +350,7 @@ export function useIndexedDB(config: DBConfig = {}): UseIndexedDBReturn {
     deleteArrayBuffer,
     clearAll,
     getStorageInfo,
+    syncFromCloud,
   };
 }
 

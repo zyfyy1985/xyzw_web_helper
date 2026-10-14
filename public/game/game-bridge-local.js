@@ -71,13 +71,14 @@
   }
 
   // ============ 内置功能脚本 ============
-  // 勾选记录由前端「打开游戏」对话框写入（key: h5_enabled_features，值为 id 数组）
-  // 本清单 = featureScripts.js 的 FEATURE_SCRIPTS + 「工具坞.js」。
+  // 勾选记录由前端「打开游戏」对话框写入（key: h5_enabled_features，值 { [tokenid]: id[] }）
+  // 本清单 = featureScripts.js 的 FEATURE_SCRIPTS + 「工具坞.js」+ 受限脚本。
   // ⚠️「工具坞.js」不在前端勾选清单里（它是入口容器，由本文件强制前置注入，见下方
-  //    loadSelectedFeatures），但写在这里才能通过 `known[id]` 校验、不被当脏数据剔除。
+  //    loadSelectedFeatures），但写在这里才能通过 known[id] 校验、不被当脏数据剔除。
   var BUILTIN_FEATURES = [
     '工具坞.js',
     '模拟战斗.js',
+    '盐场视距.js',
     '自动蟠桃.js',
     '长按连点.js',
     '账号切换.js',
@@ -90,12 +91,22 @@
   var DEFAULT_FEATURES = ['账号切换.js'];
   var featurePromises = {};
 
-  /** 读取勾选记录；无记录 / 记录损坏时返回默认项（仅「长按连点」） */
+  /** 读取当前 token 的勾选记录；缺失 / 损坏 / 旧扁平格式时返回默认项（仅「账号切换」） */
   function getEnabledFeatures() {
+    var binId = getBinId();
+    if (!binId) {
+      console.warn('[GameBridge] 无 bin_id，内置脚本按默认项处理');
+      return DEFAULT_FEATURES.slice();
+    }
     try {
       var raw = localStorage.getItem(FEATURE_STORAGE_KEY);
       if (raw === null || raw === '') return DEFAULT_FEATURES.slice();
-      var list = JSON.parse(raw);
+      var map = JSON.parse(raw);
+      if (!map || typeof map !== 'object' || Array.isArray(map)) {
+        console.warn('[GameBridge] 勾选记录格式不符（旧扁平格式或损坏），按默认项处理');
+        return DEFAULT_FEATURES.slice();
+      }
+      var list = map[binId];
       if (!Array.isArray(list)) return DEFAULT_FEATURES.slice();
       var known = {};
       BUILTIN_FEATURES.forEach(function (id) {
@@ -159,17 +170,13 @@
     return p;
   }
 
-  /** 按用户在对话框里的勾选，依次加载内置脚本 */
+  /** 按当前 token 的勾选依次加载内置脚本（仍返回 Promise，兼容 h5-bootstrap） */
   function loadSelectedFeatures() {
-    var list = getEnabledFeatures();
-    if (!list.length) {
-      console.log('[GameBridge] 未勾选任何内置脚本，跳过加载');
-      return Promise.resolve();
-    }
+    var enabled = getEnabledFeatures();
     // 「工具坞」是各功能入口的统一容器，必须最先加载，
     // 其余脚本才能在启动时向它注册入口。用户没勾它也强制前置注入。
     var DOCK = '工具坞.js';
-    var ordered = list.indexOf(DOCK) === -1 ? [DOCK].concat(list) : list;
+    var ordered = enabled.indexOf(DOCK) === -1 ? [DOCK].concat(enabled) : enabled;
     console.log(
       '[GameBridge] 加载内置脚本 (' + ordered.length + '): ' + ordered.join(', ')
     );

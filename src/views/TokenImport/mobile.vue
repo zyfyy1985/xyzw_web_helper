@@ -114,7 +114,7 @@ import {
   downloadBinFile,
   getRoleBinFileName,
 } from "@/utils/binFile";
-import { useTokenStore } from "@/stores/tokenStore";
+import { useTokenStore, MAX_GAME_TOKENS } from "@/stores/tokenStore";
 
 const emit = defineEmits(["cancel", "ok"]);
 const message = useMessage();
@@ -451,6 +451,18 @@ const removeRole = (index: number) => roleList.value.splice(index, 1);
 const handleImport = () => {
   if (roleList.value.length === 0) {
     message.error("请先登录并选择角色");
+    return;
+  }
+  // ★ Token 数量上限：只拦「净新增」，已存在 id 的角色（更新）不受影响
+  const existIds = new Set(tokenStore.gameTokens.map((t) => t.id));
+  const remain = MAX_GAME_TOKENS - tokenStore.gameTokens.length;
+  const newCount = roleList.value.filter((r) => !existIds.has(r.id)).length;
+  if (newCount > remain) {
+    message.error(
+      remain <= 0
+        ? `最多只能有 ${MAX_GAME_TOKENS} 个 Token，已达上限（如需更换请先删除现有的）`
+        : `最多只能有 ${MAX_GAME_TOKENS} 个 Token，还能添加 ${remain} 个，请减少勾选的角色`,
+    );
     return;
   }
   isImporting.value = true;

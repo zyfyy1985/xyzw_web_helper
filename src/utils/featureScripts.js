@@ -1,7 +1,10 @@
 // 内置 H5 功能脚本清单 + 勾选记录（localStorage）
-// 记录 key: h5_enabled_features，值为 id（文件名）数组
+// 记录 key: h5_enabled_features，值为 { [tokenid]: id(文件名)[] } —— 按 tokenid 隔离，
+// 避免换 token 后沿用上一个 token 的勾选（把受限脚本带给无权限的 token，越权）。
 // 清单真源为线上 /api/scripts（tokenid 命中白名单才返回受限脚本），
 // 拉取失败时回退到下方本地 FEATURE_SCRIPTS，保证离线可用。
+
+import { api } from "./endpoints";
 
 export const FEATURE_SCRIPTS = [
   {
@@ -33,11 +36,24 @@ export const FEATURE_SCRIPTS = [
 
 const STORAGE_KEY = "h5_enabled_features";
 
-// 脚本清单 API（硬编码；tokenid 命中服务端白名单才返回受限脚本）
-const SCRIPTS_API = "https://www.kofs.kdns.fr/api/scripts";
+// 脚本清单 API —— 地址跟随 ./endpoints（与 /api/auth、/api/state 同一个后端）
+// tokenid 命中服务端白名单才返回受限脚本
+const SCRIPTS_API = api("/api/scripts");
 
 // 用户未做过选择时的默认开启项
 const DEFAULT_FEATURES = ["账号切换.js"];
+
+function readRecord() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  } catch (e) {
+    return undefined; // 记录损坏
+  }
+}
+
+function isMap(v) {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
 
 /** 拉取线上脚本清单；tokenid 缺省 / 未命中白名单时服务端自动剔除受限脚本。
  *  任何异常（网络 / 非 200 / 结构不符）都回退到本地 FEATURE_SCRIPTS。 */
@@ -57,47 +73,66 @@ export async function fetchFeatureScripts(tokenid) {
   }
 }
 
-/** 读取勾选记录；无记录 / 记录损坏时返回默认项。
+/** 读取当前 token 的勾选记录；无记录 / 记录损坏 / 旧扁平格式（不可信，可能混入
+ *  其他 token 勾选的受限脚本）时返回默认项。
  *  validIds 为可选白名单（脚本 id 数组），缺省时用本地 FEATURE_SCRIPTS。
  *  是否加载「账号切换」完全由用户勾选决定，不做强制并入。 */
-export function getEnabledFeatures(validIds) {
-  try {
-    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (Array.isArray(raw)) {
-      const allowed = Array.isArray(validIds)
-        ? validIds
-        : FEATURE_SCRIPTS.map((f) => f.id);
-      return allowed.filter((id) => raw.includes(id));
-    }
-  } catch (e) {
-    /* 记录损坏，按首次使用处理 */
+export function getEnabledFeatures(validIds, tokenid) {
+  const raw = readRecord();
+  if (isMap(raw) && tokenid && Array.isArray(raw[tokenid])) {
+    const allowed = Array.isArray(validIds)
+      ? validIds
+      : FEATURE_SCRIPTS.map((f) => f.id);
+    const set = new Set(raw[tokenid].filter((id) => typeof id === "string"));
+    return allowed.filter((id) => set.has(id));
   }
   return DEFAULT_FEATURES.slice();
 }
 
-/** 清理勾选记录中已不在清单里的 id（如 tokenid 失效后受限脚本被剔除）。
- *  仅在确有失效项时写回；返回被移除的 id 数组。 */
-export function pruneEnabledFeatures(validIds) {
-  if (!Array.isArray(validIds)) return [];
-  let raw;
-  try {
-    raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-  } catch (e) {
-    return [];
-  }
-  if (!Array.isArray(raw)) return [];
-
+/** 清理当前 token 勾选记录中已不在清单里的 id（如 tokenid 失效后受限脚本被剔除）。
+ *  只修剪当前 token 的条目，其他 token 不动；空数组会保留 = 显式「全不勾」
+ *  （区别于条目缺失 → 默认项）。
+ *  兼容迁移：读到旧扁平数组（全局无隔离的格式）时，与服务端清单取交集后归属到
+ *  当前 token 并移除旧值 —— 交集保证不会把受限脚本迁给无权限的 token。
+ *  仅在确有改动时写回；返回被移除的 id 数组。 */
+export function pruneEnabledFeatures(validIds, tokenid) {
+  if (!Array.isArray(validIds) || !tokenid) return [];
+  const raw = readRecord();
   const allowed = new Set(validIds);
-  const kept = raw.filter((id) => allowed.has(id));
-  const removed = raw.filter((id) => !allowed.has(id));
+
+  if (Array.isArray(raw)) {
+    // 旧扁平格式 → 迁移（此路径必在拿到服务端清单后才会走到，迁移是权限安全的）
+    const removed = raw.filter((id) => !allowed.has(id));
+    const record = { [tokenid]: raw.filter((id) => allowed.has(id)) };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    if (removed.length) {
+      console.warn(
+        "[featureScripts] 迁移旧勾选记录时移除失效脚本:",
+        removed.join(", ")
+      );
+    }
+    return removed;
+  }
+
+  if (!isMap(raw) || !Array.isArray(raw[tokenid])) return [];
+  const entry = raw[tokenid].filter((id) => typeof id === "string");
+  const kept = entry.filter((id) => allowed.has(id));
+  const removed = entry.filter((id) => !allowed.has(id));
   if (removed.length) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(kept));
+    raw[tokenid] = kept; // 空数组保留 = 显式全不勾
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
     console.warn("[featureScripts] 已从勾选记录移除失效脚本:", removed.join(", "));
   }
   return removed;
 }
 
-/** 写入勾选记录 */
-export function setEnabledFeatures(ids) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+/** 写入当前 token 的勾选记录（其他 token 条目不动） */
+export function setEnabledFeatures(ids, tokenid) {
+  if (!tokenid) return;
+  const raw = readRecord();
+  const record = isMap(raw) ? raw : {};
+  record[tokenid] = Array.isArray(ids)
+    ? ids.filter((id) => typeof id === "string")
+    : [];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
 }

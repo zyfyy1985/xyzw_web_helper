@@ -1,149 +1,176 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { useLocalTokenStore } from "./localTokenManager";
+import { authApi, AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/utils/authApi";
+import { pullFromCloudOnce, accountBoundaryCleanup } from "@/utils/localStorageCloudSync";
 
+function readJSON(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 账号认证 store（对接 E:\xyzw_server 的 EdgeOne `/api/auth`）
+ *
+ * 对外 API 与旧版本保持一致：user / token / isLoading / isAuthenticated / userInfo
+ *                              login / register / logout / fetchUserInfo / initAuth
+ * 新增：changePassword
+ */
 export const useAuthStore = defineStore("auth", () => {
   // 状态
-  const user = ref(null);
-  const token = ref(localStorage.getItem("token") || null);
+  const user = ref(readJSON(AUTH_USER_KEY));
+  const token = ref(localStorage.getItem(AUTH_TOKEN_KEY) || null);
   const isLoading = ref(false);
-
-  const localTokenStore = useLocalTokenStore();
+  /** 登录已成功、正在同步等待云端首拉（Login 页据此把按钮文案换成「正在加载数据」） */
+  const isSyncing = ref(false);
+  const isInitialized = ref(false);
 
   // 计算属性
   const isAuthenticated = computed(() => !!token.value && !!user.value);
   const userInfo = computed(() => user.value);
 
-  // 登录 - 移除API调用，使用本地认证
-  const login = async (credentials) => {
+  // 持久化
+  const persist = () => {
+    if (token.value) localStorage.setItem(AUTH_TOKEN_KEY, token.value);
+    else localStorage.removeItem(AUTH_TOKEN_KEY);
+
+    if (user.value) localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user.value));
+    else localStorage.removeItem(AUTH_USER_KEY);
+  };
+
+  const clear = () => {
+    token.value = null;
+    user.value = null;
+    persist();
+  };
+
+  // 登录
+  const login = async (credentials = {}) => {
+    isLoading.value = true;
     try {
-      isLoading.value = true;
+      const res = await authApi.login(credentials.username, credentials.password);
 
-      // 模拟本地认证逻辑
-      const mockUser = {
-        id: "local_user_" + Date.now(),
-        username: credentials.username,
-        email: credentials.email || `${credentials.username}@local.game`,
-        avatar: "/icons/xiaoyugan.png",
-        createdAt: new Date().toISOString(),
-      };
+      if (!res.ok) {
+        return { success: false, message: res.message, code: res.error };
+      }
 
-      const mockToken =
-        "local_token_" +
-        Date.now() +
-        "_" +
-        Math.random().toString(36).substr(2, 9);
+      // ★ 账号边界：此刻 localStorage 里还是上一个账号的 token / auth_user。
+      //   若换了账号：先趁旧 token 有效补推它的未上传改动，再清掉旧账号的本地业务键
+      //   —— 否则下面的拉取会把旧账号残留当成「本地独有数据」迁进新账号云端（数据串号）。
+      //   （未登录过的新用户 / 无痕模式没有 prevUser，跳过 —— 本地预置数据的首次上云迁移不受影响）
+      const prevUser = readJSON(AUTH_USER_KEY);
+      const nameOf = (u) => (u && (u.username || u.u || u.name)) || "";
+      if (prevUser && res.user && nameOf(prevUser) !== nameOf(res.user)) {
+        await accountBoundaryCleanup();
+      }
 
-      token.value = mockToken;
-      user.value = mockUser;
+      token.value = res.token;
+      user.value = res.user;
+      persist();
 
-      // 保存到本地存储
-      localStorage.setItem("token", token.value);
-      localStorage.setItem("user", JSON.stringify(user.value));
-
-      // 同时保存到token管理器
-      localTokenStore.setUserToken(mockToken);
+      // 登录成功后拉一次云端数据。★ 只有登录这一处是**同步等待**（等拉取完再进页面）：
+      // 内部顺序 = 先补推脏数据（A0）→ 再云端→本地（A），「未上传的先上传、然后再拉取」由此保证；
+      // 对账完成后才返回，跳转目标页时本地已是云端最新 —— 无痕模式不会再误判「没有Token」。
+      // initAuth 的启动拉取保持异步，不阻塞首屏；对账失败也不阻断登录。
+      isSyncing.value = true; // 登录已成功 → 界面从「登录中」切换为「正在加载数据」
+      try {
+        await pullFromCloudOnce(true);
+      } catch {
+        /* 登录不因云同步失败而失败 */
+      }
 
       return { success: true };
-    } catch (error) {
-      console.error("登录错误:", error);
-      return { success: false, message: "本地认证失败" };
     } finally {
       isLoading.value = false;
+      isSyncing.value = false;
     }
   };
 
-  // 注册 - 移除API调用，使用本地注册
-  const register = async (userInfo) => {
+  // 注册（注册成功后不自动登录，需回登录页登录）
+  const register = async (userInfo = {}) => {
+    isLoading.value = true;
     try {
-      isLoading.value = true;
-
-      // 检查用户名是否已存在（简单的本地检查）
-      const existingUsers = JSON.parse(
-        localStorage.getItem("registeredUsers") || "[]",
-      );
-      const userExists = existingUsers.some(
-        (u) => u.username === userInfo.username,
-      );
-
-      if (userExists) {
-        return { success: false, message: "用户名已存在" };
+      const res = await authApi.register(userInfo.username, userInfo.password, userInfo.inviteCode);
+      if (!res.ok) {
+        return { success: false, message: res.message, code: res.error };
       }
-
-      // 保存新用户信息到本地
-      const newUser = {
-        ...userInfo,
-        id: "user_" + Date.now(),
-        createdAt: new Date().toISOString(),
-      };
-
-      existingUsers.push(newUser);
-      localStorage.setItem("registeredUsers", JSON.stringify(existingUsers));
-
       return { success: true, message: "注册成功，请登录" };
-    } catch (error) {
-      console.error("注册错误:", error);
-      return { success: false, message: "本地注册失败" };
     } finally {
       isLoading.value = false;
     }
   };
 
   // 登出
-  const logout = () => {
-    user.value = null;
-    token.value = null;
-
-    // 清除本地存储
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("gameRoles");
-
-    // 清除token管理器中的数据
-    localTokenStore.clearUserToken();
-    localTokenStore.clearAllGameTokens();
+  const logout = async () => {
+    const oldToken = token.value;
+    if (oldToken) {
+      // ★ 登出 = 账号边界：趁 token 还有效，把「改了没推上去」的数据先补推上自己的云端，
+      //   然后清掉本地业务键。数据本体在各自账号的云端，重新登录会拉回来。
+      //   （整个会话都离线期间的改动无从补推，登出即丢 —— 已知取舍，见 accountBoundaryCleanup）
+      await accountBoundaryCleanup();
+    }
+    clear();
+    // token 无状态，服务端只是形式上的通知，失败也无所谓
+    if (oldToken) authApi.logout(oldToken).catch(() => {});
   };
 
-  // 获取用户信息 - 移除API调用，使用本地数据
+  // 拉取/校验当前用户信息
   const fetchUserInfo = async () => {
-    try {
-      if (!token.value) return false;
-
-      // 从本地存储获取用户信息
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        try {
-          user.value = JSON.parse(savedUser);
-          return true;
-        } catch (error) {
-          console.error("解析用户信息失败:", error);
-          logout();
-          return false;
-        }
-      } else {
-        logout();
-        return false;
-      }
-    } catch (error) {
-      console.error("获取用户信息失败:", error);
-      logout();
+    if (!token.value) {
+      clear();
       return false;
     }
+
+    const res = await authApi.me(token.value);
+
+    if (res.ok) {
+      user.value = res.user;
+      persist();
+      return true;
+    }
+
+    // 只有服务端明确判定失效（401）才登出；
+    // 网络异常 / 服务不可用不应把用户踢下线
+    if (res.status === 401) {
+      // token 已被服务端判定失效：没推上去的改动再也推不出去了，
+      // 但仍要走账号边界清理 —— 否则残留数据会串进下个登录的账号
+      await accountBoundaryCleanup();
+      clear();
+      return false;
+    }
+    return !!user.value;
   };
 
-  // 初始化认证状态 - 移除API验证，使用本地验证
+  // 修改密码
+  const changePassword = async (oldPassword, newPassword) => {
+    if (!token.value) return { success: false, message: "未登录" };
+
+    isLoading.value = true;
+    try {
+      const res = await authApi.changePassword(token.value, oldPassword, newPassword);
+      if (!res.ok) return { success: false, message: res.message, code: res.error };
+      return { success: true, message: "密码修改成功" };
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  // 初始化认证状态：先用本地缓存即时恢复，再后台向服务端校验
   const initAuth = async () => {
-    const savedUser = localStorage.getItem("user");
-    if (token.value && savedUser) {
-      try {
-        user.value = JSON.parse(savedUser);
-        // 初始化token管理器
-        localTokenStore.initTokenManager();
-      } catch (error) {
-        console.error("初始化认证失败:", error);
-        logout();
+    if (!isInitialized.value) {
+      isInitialized.value = true;
+
+      // 后台校验，避免阻塞路由跳转
+      if (token.value && user.value) {
+        fetchUserInfo().catch(() => {});
+        // 已登录 → 把云端数据拉回本地（幂等；失败下次还有机会）
+        void pullFromCloudOnce();
       }
     }
+    return isAuthenticated.value;
   };
 
   return {
@@ -151,6 +178,7 @@ export const useAuthStore = defineStore("auth", () => {
     user,
     token,
     isLoading,
+    isSyncing,
 
     // 计算属性
     isAuthenticated,
@@ -161,6 +189,7 @@ export const useAuthStore = defineStore("auth", () => {
     register,
     logout,
     fetchUserInfo,
+    changePassword,
     initAuth,
   };
 });

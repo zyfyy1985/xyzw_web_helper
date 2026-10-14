@@ -28,7 +28,6 @@
         v-model:visible="showImportForm"
         width="52rem"
         :footer="false"
-        :default-visible="!tokenStore.hasTokens"
       >
         <template #title>
           <h2>
@@ -47,6 +46,7 @@
           >
             <n-radio-button value="localRestore"> 本地恢复 </n-radio-button>
             <n-radio-button value="cloudRestore"> 云端恢复 </n-radio-button>
+            <n-radio-button value="wxQrcode"> 微信扫码获取 </n-radio-button>
           </n-radio-group>
         </div>
         <div class="card-body">
@@ -152,7 +152,7 @@
             <n-button
               v-if="!showImportForm"
               type="primary"
-              @click="showImportForm = true"
+              @click="openAddToken"
             >
               <template #icon>
                 <n-icon>
@@ -653,7 +653,7 @@ import LocalRestoreForm from "./localRestore.vue";
 import WxQrcodeForm from "./wxqrcode.vue";
 import MobileTokenForm from "./mobile.vue";
 
-import { useTokenStore, selectedTokenId } from "@/stores/tokenStore";
+import { useTokenStore, selectedTokenId, MAX_GAME_TOKENS } from "@/stores/tokenStore";
 import {
   Add,
   Copy,
@@ -688,6 +688,7 @@ import {
   getRoleBinFileName,
 } from "@/utils/binFile";
 import { $emit } from "@/stores/events/index.ts";
+import { waitFirstPull } from "@/utils/localStorageCloudSync";
 import useIndexedDB from "@/hooks/useIndexedDB";
 import lz4 from "lz4js";
 const { getArrayBuffer, storeArrayBuffer, deleteArrayBuffer, clearAll } =
@@ -872,10 +873,25 @@ const bulkOptions = [
 ];
 
 /**
+ * ★ Token 数量上限：达到 MAX_GAME_TOKENS 后不允许再打开「添加」弹窗
+ * （url / bin / singlebin / manual / 扫码等所有导入方式都在这个弹窗里，拦入口即拦全部）。
+ * 「重新获取Token」的换绑流程不走这里（那是替换不是新增）。
+ */
+const openAddToken = () => {
+  if (tokenStore.gameTokens.length >= MAX_GAME_TOKENS) {
+    message.warning(
+      `最多只能有 ${MAX_GAME_TOKENS} 个 Token，如需更换请先删除现有的`,
+    );
+    return;
+  }
+  showImportForm.value = true;
+};
+
+/**
  * 手动打开Token管理卡片
  */
 const openshowImportForm = () => {
-  showImportForm.value = true;
+  openAddToken();
 };
 
 // 刷新Token
@@ -1830,8 +1846,14 @@ onMounted(async () => {
   // 处理URL参数
   await handleUrlParams();
 
-  // 如果没有token且没有URL参数，显示导入表单
-  if (!tokenStore.hasTokens && !props.token && !props.api) {
+  // ★「没有Token」的判断必须晚于云端首次对账 —— 无痕模式 / 新设备上，
+  //   登录后本地数据要等 pullFromCloudOnce 异步灌进来（登录路径已同步等待，
+  //   但 F5 刷新走的是 initAuth 的异步拉取）；不等就会误判成「没有任何Token」
+  //   而提前弹「添加游戏Token」（真机踩过）。
+  //   waitFirstPull：对账在途就等它落地（成功失败都算）；30s 仍未落地就不自动弹
+  //   （空态里有「打开Token管理」按钮兜底），绝不凭「本地是空的」抢跑。
+  const cloudReady = await waitFirstPull();
+  if (cloudReady && !tokenStore.hasTokens && !props.token && !props.api) {
     showImportForm.value = true;
   }
 });

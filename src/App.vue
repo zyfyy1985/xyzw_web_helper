@@ -257,4 +257,35 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
+
+/* ===== 干掉浏览器自动填充的浅蓝底 =====
+   Chrome / Edge 的 input:-webkit-autofill 会强制把背景刷成 #e8f0fe（淡蓝），
+   它的优先级高于普通 background，只能用**不透明内阴影**盖掉；
+   同时要固定 -webkit-text-fill-color（文字色也被 autofill 接管了）。
+   源码里没有任何这类规则 —— 之前看到的浅蓝底就是它。 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #333333 !important;
+  caret-color: #333333;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active,
+html[data-theme="dark"] input:-webkit-autofill,
+html[data-theme="dark"] input:-webkit-autofill:hover,
+html[data-theme="dark"] input:-webkit-autofill:focus,
+html[data-theme="dark"] input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1a202c inset !important;
+  box-shadow: 0 0 0 1000px #1a202c inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+}
+
 </style>

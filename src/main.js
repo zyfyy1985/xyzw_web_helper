@@ -1,3 +1,7 @@
+// ⚠️ 必须放在最前：它会在 import 时接管 localStorage 的写方法，
+//    必须早于任何业务模块（stores 里的 useLocalStorage 初始化写入）。
+import "@/utils/localStorageCloudSync";
+
 import "@arco-design/web-vue/dist/arco.css";
 import "virtual:uno.css";
 import "./assets/styles/global.scss";

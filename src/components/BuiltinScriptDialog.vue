@@ -87,13 +87,16 @@ watch(
   () => props.show,
   async (v) => {
     if (!v) return;
-    checkedIds.value = getEnabledFeatures(scriptList.value.map((f) => f.id));
+    checkedIds.value = getEnabledFeatures(
+      scriptList.value.map((f) => f.id),
+      selectedTokenId.value
+    );
     const list = await fetchFeatureScripts(selectedTokenId.value);
     scriptList.value = list;
     const ids = list.map((f) => f.id);
     // 勾选过但已不在清单里的脚本（如 tokenid 失效后受限脚本被剔除）→ 取消勾选
-    pruneEnabledFeatures(ids);
-    checkedIds.value = getEnabledFeatures(ids);
+    pruneEnabledFeatures(ids, selectedTokenId.value);
+    checkedIds.value = getEnabledFeatures(ids, selectedTokenId.value);
   },
   { immediate: true }
 );
@@ -106,7 +109,7 @@ const toggle = (id) => {
 
 // 启动：写入勾选记录，再由父页面执行原有的打开游戏逻辑
 const onStart = () => {
-  setEnabledFeatures([...checkedIds.value]);
+  setEnabledFeatures([...checkedIds.value], selectedTokenId.value);
   emit("update:show", false);
   emit("start", [...checkedIds.value]);
 };

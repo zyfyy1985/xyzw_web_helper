@@ -146,6 +146,7 @@ import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage, useDialog } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
+import { passwordRules as buildPasswordRules } from "@/utils/passwordPolicy";
 
 const router = useRouter();
 const message = useMessage();
@@ -184,7 +185,7 @@ const passwordRules = {
   ],
   newPassword: [
     { required: true, message: "请输入新密码", trigger: "blur" },
-    { min: 6, message: "密码长度不能少于6位", trigger: "blur" },
+    ...buildPasswordRules("blur"),
   ],
   confirmPassword: [
     { required: true, message: "请确认新密码", trigger: "blur" },
@@ -224,8 +225,17 @@ const changePassword = async () => {
   try {
     await passwordFormRef.value.validate();
 
-    // 这里应该调用API修改密码
-    message.success("密码修改成功");
+    const result = await authStore.changePassword(
+      passwordForm.currentPassword,
+      passwordForm.newPassword,
+    );
+
+    if (!result.success) {
+      message.error(result.message || "密码修改失败");
+      return;
+    }
+
+    message.success(result.message || "密码修改成功");
 
     // 清空表单
     Object.keys(passwordForm).forEach((key) => {

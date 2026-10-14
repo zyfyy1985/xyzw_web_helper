@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import * as autoRoutes from "vue-router/auto-routes";
 import { useTokenStore } from '@/stores/tokenStore'
+import { useAuthStore } from '@/stores/auth'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
 
 const generatedRoutes = autoRoutes.routes ?? [];
@@ -12,7 +13,8 @@ const my_routes = [
     component: () => import('@/views/Home.vue'),
     meta: {
       title: '首页',
-      requiresToken: false
+      requiresToken: false,
+      requiresAuth: false
     }
   },
   {
@@ -134,15 +136,26 @@ const my_routes = [
       requiresToken: true
     }
   },
-  // 兼容旧路由，重定向到新的token管理页面
+  // 登录 / 注册（公开页面）
   {
     path: '/login',
-    redirect: '/tokens'
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: {
+      title: '登录',
+      requiresAuth: false
+    }
   },
   {
     path: '/register',
-    redirect: '/tokens'
+    name: 'Register',
+    component: () => import('@/views/Register.vue'),
+    meta: {
+      title: '注册',
+      requiresAuth: false
+    }
   },
+  // 兼容旧路由，重定向到新的token管理页面
   {
     path: '/game-roles',
     redirect: '/tokens'
@@ -154,7 +167,8 @@ const my_routes = [
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue'),
     meta: {
-      title: '页面不存在'
+      title: '页面不存在',
+      requiresAuth: false
     }
   }
 ]
@@ -175,19 +189,39 @@ const router = createRouter({
 autoRoutes.handleHotUpdate?.(router);
 
 // 导航守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const tokenStore = useTokenStore()
+  const authStore = useAuthStore()
 
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - XYZW 游戏管理系统` : 'XYZW 游戏管理系统'
-  if(to.name==="LegionWar"&&!isNowInLegionWarTime()){
-  // if(to.name==="LegionWar"&&isNowInLegionWarTime()){
+
+  // 恢复登录态（首次从本地缓存即时恢复，并后台向账号服务校验）
+  await authStore.initAuth()
+
+  // 登录门槛：除显式声明 requiresAuth:false 的页面外，一律要求登录
+  if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
+    next({
+      path: '/login',
+      query: to.fullPath && to.fullPath !== '/' ? { redirect: to.fullPath } : {}
+    })
+    return
+  }
+
+  // 已登录时不再停留在登录 / 注册页
+  if ((to.name === 'Login' || to.name === 'Register') && authStore.isAuthenticated) {
+    next('/admin/dashboard')
+    return
+  }
+
+  if (to.name === "LegionWar" && !isNowInLegionWarTime()) {
+    // if(to.name==="LegionWar"&&isNowInLegionWarTime()){
     next('/admin/dashboard');
     return;
   }
   // 检查是否需要Token
   // if (to.meta.requiresToken  && tokenStore.getWebSocketStatus(tokenStore.selectedToken.id)=="disconnected") {
-    if (to.meta.requiresToken  && !tokenStore.hasTokens) {
+  if (to.meta.requiresToken && !tokenStore.hasTokens) {
     next('/tokens')
   } else if (to.path === '/' && tokenStore.hasTokens) {
     // 首页重定向逻辑

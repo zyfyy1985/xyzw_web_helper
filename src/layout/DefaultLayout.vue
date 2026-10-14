@@ -137,16 +137,6 @@
           <span>Token管理</span>
         </router-link>
         <router-link
-          to="/admin/daily-tasks"
-          class="drawer-item"
-          @click="isMobileMenuOpen = false"
-        >
-          <n-icon>
-            <Settings />
-          </n-icon>
-          <span>任务管理</span>
-        </router-link>
-        <router-link
           to="/admin/batch-daily-tasks"
           class="drawer-item"
           @click="isMobileMenuOpen = false"
@@ -224,8 +214,10 @@ import { useRouter } from 'vue-router'
 import { useMessage } from 'naive-ui'
 import { ref } from 'vue'
 import { isNowInLegionWarTime } from '@/utils/clubBattleUtils'
+import { useAuthStore } from '@/stores/auth'
 
 const tokenStore = useTokenStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const message = useMessage();
 
@@ -233,7 +225,7 @@ const isMobileMenuOpen = ref(false);
 
 const userMenuOptions = [
   {
-    label: "清除所有Token并退出",
+    label: "退出登录",
     key: "logout",
   },
 ];
@@ -241,10 +233,19 @@ const userMenuOptions = [
 // 方法
 const handleUserAction = async (key) => {
   switch (key) {
+    case "profile":
+      router.push("/admin/profile");
+      break;
     case "logout":
+      await authStore.logout();
+      message.success("已退出登录");
+      router.push("/login");
+      break;
+    case "logout-clear":
       await tokenStore.clearAllTokens();
-      message.success("已清除所有Token");
-      router.push("/tokens");
+      await authStore.logout();
+      message.success("已清除所有Token并退出");
+      router.push("/login");
       break;
   }
 };
