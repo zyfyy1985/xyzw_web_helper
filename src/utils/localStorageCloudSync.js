@@ -424,6 +424,23 @@ let pulledOnce = false;
 let firstPullPromise = null;
 
 /**
+ * 最近一次**真正跑过**的对账结果。
+ *   - `null`（还没跑过） | `{ ok:false, reason:"list_failed" }`（跑了但拉不到）
+ *   | `{ ok:true, wrote, pushed, binsIn, binsOut, ... }`（成功，含「云端确实没有数据」）
+ *
+ * ★ 为什么需要它：`waitFirstPull()` 只能回答「对账落地了没有」——**成功和失败都算落地**。
+ *   而 UI 必须能区分这两种情况：登录后本地区是空的，可能是「新账号/无痕模式，数据在路上」，
+ *   也可能就是「**数据根本没拿到**」。前者该弹「添加Token」，后者弹了等于骗人 ——
+ *   `/tokens` 是**顶层路由**（没有抽屉菜单），用户既重试不了也退不出去，只能卡在空页上（真机踩过）。
+ */
+let lastPullResult = null;
+
+/** 取最近一次对账结果（见 lastPullResult 的说明）。未跑过返回 null。 */
+export function getLastPullResult() {
+  return lastPullResult;
+}
+
+/**
  * 从云端把数据拉回本地，并把本地独有的键推上去。
  * 幂等：同一会话默认只跑一次；未登录时不消费这次机会（下次还能跑）。
  *
@@ -442,7 +459,13 @@ export async function pullFromCloudOnce(force = false) {
   if (!token) return { pulled: false, reason: "not_logged_in" };
 
   pulledOnce = true;
-  firstPullPromise = doFirstPull();
+  firstPullPromise = doFirstPull().then((r) => {
+    // 记录「最近一次对账结果」给 UI 用（成功 / 失败都能区分，见 getLastPullResult）。
+    // 早退分支（未登录 / already）**不写**它 —— 那两种不算「跑过一次对账」，
+    // 免得把上一次的真实结果（比如失败）冲掉，让 UI 误以为一切正常。
+    lastPullResult = { ok: !!r && r.pulled === true, ...(r || {}) };
+    return r;
+  });
   return firstPullPromise;
 }
 
