@@ -135,6 +135,13 @@ function buildUpstreamHeaders(proxy, request) {
     // 没配 Host 的代理：不要把本站域名的 Host 透传给上游
     headers.delete("Host");
   }
+  // ⚠️ 关键：不要向上游要求压缩。
+  // EdgeOne 的边缘函数 fetch 会把上游的压缩 body **自动解压**，却**保留** Content-Encoding 头；
+  // 若原样转发给浏览器，就变成「明文 body + gzip 头」⇒ 浏览器二次解压失败 ⇒
+  // 微信二维码页的 HTML 取不到 ⇒ 前端解析不出 img.auth_qrcode（页面报「二维码获取失败」）。
+  // （同一条 200 响应：带 Accept-Encoding 时是 Content-Encoding: gzip + 5377 字节明文；
+  //   不带时是干净的 Content-Length: 5377。CF 侧解压后会自己剥掉这个头，所以只有 EdgeOne 中招。）
+  headers.delete("Accept-Encoding");
   return headers;
 }
 
@@ -178,6 +185,11 @@ export function onRequest(context) {
   return fetch(targetUrl.toString(), init).then(
     function (upstream) {
       const headers = new Headers(upstream.headers);
+      // 兜底：万一上游仍返回了压缩内容（运行时已解压 body），这几个头必须剥掉，
+      // 否则浏览器会拿明文去按 gzip/br 解压，直接失败。
+      headers.delete("Content-Encoding");
+      headers.delete("Content-Length");
+      headers.delete("Transfer-Encoding");
       Object.keys(CORS_HEADERS).forEach(function (key) {
         headers.set(key, CORS_HEADERS[key]);
       });
