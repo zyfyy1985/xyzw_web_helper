@@ -27,7 +27,9 @@
  */
 
 /** 后端根地址（明文常量；首尾空白与末尾斜杠会被剥掉，所以这里写脏一点也不会拼出 `//api`） */
-export const SERVER_BASE = "https://xyzw-server.pages.dev".trim().replace(/\/+$/, "");
+export const SERVER_BASE = "https://www.kofs.kdns.fr"
+  .trim()
+  .replace(/\/+$/, "");
 
 /** 拼后端接口地址：`api("/api/scripts")` */
 export const api = (path) => SERVER_BASE + path;
