@@ -8,12 +8,15 @@
  * ⇒ 地址只在下面写一次，三个接口全部由它派生。换域名只改这一行。
  *
  * ## 地址写死在这里（明文常量）
- *   https://xyzw-server.pages.dev
- *   ★ 只有这个可用：它是 **Cloudflare** 部署，KV 已绑定（`?action=ping` → `kv:true`）。
- *     另一份同代码的 **EdgeOne** 部署 https://www.kofs.kdns.fr 不能用：
- *       - `/api/auth` 能连但 `kv:false` ⇒ 注册 / 登录 / 云同步一律 **503 `kv_unavailable`**
- *       - `/api/state` **根本没部署**（实测 404 + HTML）
- *       - 只有 `/api/scripts` 能用（它不依赖 KV）
+ *   https://www.kofs.kdns.fr   ← **EdgeOne** 部署，2026-10-15 实测比另一份更好用
+ *   ★ 这份 KV 已绑定（`?action=ping` → `kv:true`）：
+ *       - `/api/auth` 注册 / 登录 / 改密 ✅
+ *       - `/api/state` 云同步 ✅（未带 token 时按预期回 401）
+ *       - `/api/scripts` 脚本清单 ✅（不依赖 KV）
+ *       - `/api/hortor*`、`/api/weixin*` 4 条**第三方反向代理** ✅（见后端 `shared/proxy.js`）
+ *   ⚠️ 另一份同代码的 **Cloudflare** 部署 https://xyzw-server.pages.dev
+ *      当日实测**连不上**（curl 无响应，HTTP 000），故不作为主地址。
+ *   ⚠️ 历史注释一度写成「只有 pages.dev 可用、kofs 的 kv:false」—— 已过时，别照着改。
  *
  * ## 为什么不用环境变量（曾经的 `VITE_AUTH_BASE`，已废弃）
  *   ① 这个地址不是秘密，没有藏起来的必要；
@@ -21,9 +24,14 @@
  *      而漏了的后果是「变量为空 ⇒ 退化成同源 ⇒ 所有 `/api/*` 全部 404、登录直接不可用」，
  *      属于自找的故障点。写死在源码里 ⇒ 前端零配置，构建环境怎么变都不会错。
  *
- * ## 不需要代理
+ * ## 不需要前端做代理
  *   后端 CORS 是 `Access-Control-Allow-Origin: *`（并带 `Authorization` 与 OPTIONS 预检），
  *   浏览器**跨域直连**即可。
+ *
+ *   ★ TokenImport 的 4 条第三方代理也**一律走这个 base**（`api("/api/hortor")` 这样拼）：
+ *     反向代理统一由后端（`E:\xyzw_server` 的 `shared/proxy.js` + 双平台 catch-all 入口）承担，
+ *     前端只负责拼绝对地址 ⇒ **部署在任何静态平台上都能用**
+ *     （帽子云 / GitHub Pages / Azure SWA 这些没有边缘函数的平台不需要做任何额外配置）。
  */
 
 /** 后端根地址（明文常量；首尾空白与末尾斜杠会被剥掉，所以这里写脏一点也不会拼出 `//api`） */

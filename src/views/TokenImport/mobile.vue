@@ -115,14 +115,15 @@ import {
   getRoleBinFileName,
 } from "@/utils/binFile";
 import { useTokenStore, MAX_GAME_TOKENS } from "@/stores/tokenStore";
+import { api } from "@/utils/endpoints";
 
 const emit = defineEmits(["cancel", "ok"]);
 const message = useMessage();
 const tokenStore = useTokenStore();
 const { storeArrayBuffer } = useIndexedDB();
 
-const HORTOR_PROXY_PREFIX = "/api/hortor";
-const HORTOR_UCENTER_PROXY_PREFIX = "/api/hortor-ucenter";
+const HORTOR_PROXY_PREFIX = api("/api/hortor"); // 反代由后端（xyzw_server）提供
+const HORTOR_UCENTER_PROXY_PREFIX = api("/api/hortor-ucenter"); // 反代由后端（xyzw_server）提供
 const GAME_ID = "xyzwapp";
 const PACKAGE_NAME = "com.hortor.games.xyzw";
 const SIGN_PRINT = "E6:F7:FE:A9:EC:8E:24:D0:4F:2A:32:50:28:78:E1:C5:5E:70:81:13";

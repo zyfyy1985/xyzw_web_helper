@@ -107,6 +107,7 @@ import { Scan, Refresh, Close, CloudUpload } from "@vicons/ionicons5";
 import { NCheckbox, NIcon, useMessage, NButton, NForm, NFormItem, NInput } from "naive-ui";
 import { getTokenId, transformToken, getServerList } from "@/utils/token";
 import useIndexedDB from "@/hooks/useIndexedDB";
+import { api } from "@/utils/endpoints";
 import { g_utils } from "@/utils/bonProtocol";
 import {
   buildRoleBin,
@@ -280,7 +281,7 @@ const generateQRCode = async () => {
 const tryGetWeixinQR = async () => {
   try {
     const qrPageUrl =
-      "/api/weixin/connect/app/qrconnect" +
+      api("/api/weixin/connect/app/qrconnect") +
       "?appid=wxfb0d5667e5cb1c44" +
       "&bundleid=com.hortor.games.xyzw" +
       "&scope=snsapi_base,snsapi_userinfo,snsapi_friend,snsapi_message" +
@@ -363,7 +364,7 @@ const checkScanStatus = async () => {
 
     // 使用微信官方推荐的扫码状态轮询路径
     const url =
-      "/api/weixin/connect/l/qrconnect?uuid=" +
+      api("/api/weixin/connect/l/qrconnect?uuid=") +
       qrcodeUUID.value +
       "&f=url&_=" +
       Date.now();
@@ -489,7 +490,7 @@ const getEncryptedData = async (code) => {
   } catch (err) { }
 
   const loginUrl =
-    "/api/hortor/comb-login-server/api/v1/login" +
+    api("/api/hortor/comb-login-server/api/v1/login") +
     "?gameId=xyzwapp" +
     "&timestamp=" +
     Date.now() +
