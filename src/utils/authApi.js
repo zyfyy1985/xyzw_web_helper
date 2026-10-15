@@ -4,7 +4,7 @@
  *
  * 端点只有一个：`<BASE>/api/auth`，用 POST body 的 `action` 或 GET 的 `?action=` 区分操作。
  *   POST {action:"register"|"login"|"logout"|"password"}
- *        register 需带 inviteCode（一次性邀请码，格式 XYZW-XXXX-XXXX）
+ *        register 需带 inviteCode（一次性邀请码，格式 XYZW-XXXX-XXXX-XXXX-XXXX，16 位正文）
  *   GET  ?action=me|ping
  *
  * 地址不在这里定 —— 统一由 `./endpoints` 派生（明文常量写死在那里，换域名只改那一处）。

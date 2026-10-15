@@ -82,7 +82,7 @@
               <n-input
                 v-model:value="registerForm.inviteCode"
                 placeholder="邀请码"
-                :maxlength="14"
+                :maxlength="32"
                 :input-props="{ autocomplete: 'off' }"
                 @keydown.enter="handleRegister"
               >
@@ -157,7 +157,8 @@ const registerForm = reactive({
 
 // 邀请码归一化：与后端 shared/auth.js 的 normalizeInviteCode 完全一致
 // （去空格/横线/下划线 → 转大写 → 剥掉 XYZW 前缀），保证前后端判定同源
-const INVITE_BODY_RE = /^[A-HJ-NP-Z2-9]{8}$/;
+// ⚠️ 正文位数必须与后端 INVITE_BODY_LEN 保持一致：2026-10-15 由 8 位加长为 16 位
+const INVITE_BODY_RE = /^[A-HJ-NP-Z2-9]{16}$/;
 const normalizeInviteCode = (value) => {
   let s = String(value == null ? "" : value)
     .toUpperCase()
@@ -189,7 +190,7 @@ const registerRules = {
     },
     {
       validator: (_rule, value) => INVITE_BODY_RE.test(normalizeInviteCode(value)),
-      message: "邀请码格式不正确（8 位字母数字，如 3F7K-9QMD）",
+      message: "邀请码格式不正确（16 位字母数字，如 3F7K-9QMD-2XTV-8HBW）",
       trigger: ["input", "blur"],
     },
   ],
