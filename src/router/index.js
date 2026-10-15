@@ -111,7 +111,10 @@ const my_routes = [
         component: () => import('@/views/BatchDailyTasks.vue'),
         meta: {
           title: '批量日常',
-          requiresToken: true
+          requiresToken: true,
+          // KOFA 定时任务（Apify Actor）无登录访问：任务列表/游戏Token均在
+          // 访问者本地存储，陌生人打开只有空壳界面，无数据可拿
+          requiresAuth: false
         }
       },
       {
