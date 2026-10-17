@@ -46,7 +46,7 @@
           >
             <n-radio-button value="wxQrcode"> 微信扫码获取 </n-radio-button>
             <n-radio-button value="mobile"> 手机号验证码 </n-radio-button>
-            <n-radio-button value="singlebin"> BIN单角色获取 </n-radio-button>
+            <n-radio-button value="bin"> BIN多角色获取 </n-radio-button>
 
           </n-radio-group>
         </div>
