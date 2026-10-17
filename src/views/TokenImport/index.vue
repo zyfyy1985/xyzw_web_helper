@@ -44,9 +44,10 @@
             class="import-method-tabs"
             size="small"
           >
-            <n-radio-button value="localRestore"> 本地恢复 </n-radio-button>
-            <n-radio-button value="cloudRestore"> 云端恢复 </n-radio-button>
             <n-radio-button value="wxQrcode"> 微信扫码获取 </n-radio-button>
+            <n-radio-button value="mobile"> 手机号验证码 </n-radio-button>
+            <n-radio-button value="singlebin"> BIN单角色获取 </n-radio-button>
+
           </n-radio-group>
         </div>
         <div class="card-body">
