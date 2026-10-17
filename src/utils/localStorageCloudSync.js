@@ -10,6 +10,8 @@
  *      - `this === localStorage` 才处理（`sessionStorage` 共用同一个原型，必须放过）
  *      - 命中白名单 → `cloudSet(key, 解析后的值)`（cloudSet 自带 700ms 按 key 防抖合并）
  *      - `suppress` 计数挡住「云端写回本地」引发的回环
+ *      - 白名单有两类：整键（`gameTokens` / `scheduledTasks` …）与**按 Token 分片**的前缀键
+ *        （`daily-settings:<tokenId>`）；分片键在「本地 → 云端」时还要过归属判断（见 ④）
  *   ② 监听 `storage` 事件 → 覆盖**其他标签页**造成的改动
  *   ③ `online` 事件 → `flushDirty()`：网络恢复时立刻把没推上去的键补推（见 ⑤）
  *   ④ `pullFromCloudOnce()`：首次登录 / 刷新时做一次双向对账
@@ -18,6 +20,7 @@
  *        （旧实现是 list 1 次 + 逐个 get N 次，N 次串行 = 登录卡顿的主因；见 cloudState 的注释）
  *      - 云端有、本地没有 → 写进本地
  *      - 本地有、云端没有 → 推上去（首次上云迁移、备份恢复后的补推）
+ *        · 分片键（`daily-settings:<tokenId>`）**只推本账号 `gameTokens` 里有的 token**，其余留本地
  *      - 云端是**空数组**而本地非空 → 不覆盖，改为把本地回推（防「凭空清空」）
  *      - 仍然带着未推送标记的键 → **不覆盖**（本地更新，云端是旧的）
  *      - 服务端体积预算挤掉值（`omitted` / `truncated`）→ 那些键退化成单键 `cloudGetEx` 兜底
@@ -54,8 +57,22 @@ const SYNC_KEYS = [
   "selectedTokenId",
   "selectedRoleInfo",
 ];
+/**
+ * 按 Token 分片的键前缀：键名 = 前缀 + `token.id`，每个 Token 一条（`daily-settings:<tokenId>`）。
+ *
+ * ★ 必须和 `gameTokens` 一样进白名单，否则两件事都会坏：
+ *   ① **换设备就丢**：每日任务设置只活在写它的那台机器的 localStorage 里，云端根本没有这些键，
+ *      换设备 / 清缓存后设置全部回默认；
+ *   ② **换账号会串号**：账号边界清理（`clearLocalBusinessKeys`）只清白名单内的键，没进白名单的
+ *      残留会留在本地，下个账号首次对账时被当成「本地独有数据」推给别人的云端 ——
+ *      和 bin 串号是同一条路径（收口见 `ownedTokenKeys`）。
+ * ⚠️ 前缀必须带冒号：完整形状是「`daily-settings:` + tokenId」，写成不带冒号的 `daily-settings`
+ *    会把将来任何同名前缀的键一起吸进来。
+ * ⚠️ 这些键是**每个 Token 一份**的，所以推送前还要过归属判断（见 B 段），别只靠白名单。
+ */
+const TOKEN_SCOPED_PREFIXES = ["daily-settings:"];
 /** 前缀匹配的键 */
-const SYNC_PREFIXES = ["saved_lineups_"];
+const SYNC_PREFIXES = ["saved_lineups_", ...TOKEN_SCOPED_PREFIXES];
 
 /** 明确排除（防止以后放宽白名单时误伤；也会挡住前缀误匹配） */
 const BLOCK_KEYS = [
@@ -72,7 +89,20 @@ export function isSyncableKey(key) {
   if (!key) return false;
   if (BLOCK_KEYS.includes(key)) return false;
   if (BLOCK_PREFIXES.some((p) => key.startsWith(p))) return false;
+  // 分片键的完整形状是「前缀 + tokenId」：只有前缀没有 id 的半截键不认
+  if (isTokenScopedKey(key)) return !!tokenScopedId(key);
   return SYNC_KEYS.includes(key) || SYNC_PREFIXES.some((p) => key.startsWith(p));
+}
+
+/** 是否「按 Token 分片」的键（`daily-settings:<tokenId>`）—— 这类键推送前要过归属判断 */
+function isTokenScopedKey(key) {
+  return !!key && TOKEN_SCOPED_PREFIXES.some((p) => key.startsWith(p));
+}
+
+/** 取分片键里的 tokenId（不是分片键返回 null；键里没有 id 的部分返回空串） */
+function tokenScopedId(key) {
+  const p = TOKEN_SCOPED_PREFIXES.find((x) => key.startsWith(x));
+  return p ? key.slice(p.length) : null;
 }
 
 // ==================== 内部状态 ====================
@@ -178,20 +208,23 @@ function localSyncableKeys() {
 }
 
 /**
- * 当前账号「合法拥有」的 bin 键（= 账号数据 `gameTokens` 里每个 token 的 `id` 与 `name`）。
+ * 当前账号「合法拥有」的 Token 键集合（= 账号数据 `gameTokens` 里每个 token 的 `id` 与 `name`）。
  *
- * ★ 为什么必须有它：IndexedDB 在本地是**全账号共享**的（bin 按 tokenId 存），而 bin 的补推规则
- *   是「本地有、当前账号云端没有 → 推上去」。换账号登录时，**上一个账号遗留的 bin 不在新账号的
- *   云端键列表里** ⇒ 会被当成「本地独有数据」整批迁进新账号的云端（真机现象：B 的云端里出现
- *   一整套 A 的 bin）。这里按归属收口：匹配不上的本地 bin **一律不推**。
+ * 两类数据要靠它收口：
+ *   · IndexedDB 里的 bin（逻辑键 = tokenId 或 token.name）；
+ *   · localStorage 里按 Token 分片的键：`daily-settings:<tokenId>`。
+ *
+ * ★ 为什么必须有它：这些数据在本地是**全账号共享**的，而补推规则是「本地有、当前账号云端没有
+ *   → 推上去」。换账号登录时，**上一个账号遗留的数据不在新账号的云端键列表里** ⇒ 会被当成
+ *   「本地独有数据」整批迁进新账号的云端（真机现象：B 的云端里出现一整套 A 的 bin）。
+ *   这里按归属收口：匹配不上的**一律不推**。
  *
  * 判据为什么可信：`gameTokens` 是账号数据（白名单内、登录首拉 A 段刚按云端写过），它天然代表
- *   「本账号应该有哪些 token」；bin 的逻辑键历史上可能是 `tokenId`，也可能是 `token.name`，两个都比。
- * 匹配不上的 bin **只留在本地、绝不删除** —— 它可能是别的账号的，也可能是超过 700KB 从没上过云的
- *   （那种情况下本地就是唯一副本，删了就真丢了）。
- * 解析失败 ⇒ 返回空集合 ⇒ 本轮不推任何 bin（宁可不推，也不串号）。
+ *   「本账号应该有哪些 token」。
+ * 匹配不上的**只留在本地、绝不删除** —— 它可能是别的账号的，也可能是本地唯一副本。
+ * 解析失败 ⇒ 返回空集合 ⇒ 本轮什么分片数据都不推（宁可不推，也不串号）。
  */
-function ownedBinKeys() {
+function ownedTokenKeys() {
   const out = new Set();
   try {
     const list = JSON.parse(localStorage.getItem("gameTokens") || "[]");
@@ -268,7 +301,7 @@ async function waitDbReady(db, timeoutMs = 5000) {
  *
  * ⚠️ 早期版本这里没有归属判断，注释还写着「推上去也只是无害孤儿」—— **那个判断是错的**：
  *    换账号后登录，上一个账号遗留的本地 bin 不在新账号的云端键列表里，会被整批迁进新账号云端，
- *    而它们是**可读的**（新账号能读到），于是变成真实的跨账号数据泄漏。现在只推 ownedBinKeys()
+ *    而它们是**可读的**（新账号能读到），于是变成真实的跨账号数据泄漏。现在只推 ownedTokenKeys()
  *    里有的（= 本账号 gameTokens 的 token），其余一律留在本地。
  *
  * @param {string[]|null} cloudBinKeys 云端已有的 bin 逻辑键。**由调用方从批量响应里取好传进来** ——
@@ -279,9 +312,9 @@ async function pushLocalOnlyBins(db, cloudBinKeys) {
   if (!cloudBinKeys) return 0;
 
   const inCloud = new Set(cloudBinKeys);
-  // ★ 只推「本账号自己拥有」的 bin —— 见 ownedBinKeys() 的说明。
+  // ★ 只推「本账号自己拥有」的 bin —— 见 ownedTokenKeys() 的说明。
   //   不加这道门 = 换账号时把上个账号的 bin 整批迁进新账号云端（串号）。
-  const owned = ownedBinKeys();
+  const owned = ownedTokenKeys();
   let pushed = 0;
   let foreign = 0;
 
@@ -575,14 +608,32 @@ async function doFirstPull() {
   }
 
   // B. 本地 → 云端（云端还没有的键 = 首次上云迁移）
+  //    ★ 按 Token 分片的键（`daily-settings:<tokenId>`）要先过**归属判断**：
+  //      换账号后上个账号遗留的这些键不在本账号的云端键列表里，会被「本地独有」规则整批
+  //      迁进别人的云端（和 bin 串号同一条路径，见 ownedTokenKeys 的说明）。
+  //      匹配不上的**留在本地、不推也不删** —— 删了就真没了（可能是别的账号的、也可能
+  //      是本账号某个已被删掉的 token 仅存的一份设置）。
+  //      ⚠️ 判据要用「本账号的 gameTokens」，而它在上面 A 段已经按云端写过，所以这里拿到的是
+  //         **本账号**的 token 列表，顺序不能颠倒。
   let pushed = 0;
+  let foreign = 0;
+  const owned = ownedTokenKeys();
   const cloudSetKeys = new Set(targets);
   for (const key of localSyncableKeys()) {
     if (cloudSetKeys.has(key)) continue;
+    if (isTokenScopedKey(key) && !owned.has(tokenScopedId(key))) {
+      foreign++; // 不属于本账号：留着，不推
+      continue;
+    }
     const raw = safeGet(key);
     if (raw === null) continue;
     notify(key, raw);
     pushed++;
+  }
+  if (foreign) {
+    console.info(
+      `[cloudSync] 本地有 ${foreign} 个不属于当前账号的分片键（如 daily-settings:*），已跳过推送`,
+    );
   }
 
   // C. 空值保护跳过的键，回推本地的版本
@@ -647,6 +698,10 @@ export function pushAllLocalKeysToCloud() {
 /**
  * 清空本地所有「应同步」的业务键（账号边界清理用，见 accountBoundaryCleanup）。
  *
+ * 白名单里的**前缀键**（`daily-settings:<tokenId>`、`saved_lineups_*`）也在清理范围内 ——
+ * 它们同样是账号数据，不清的话换账号后仍留在本地，会被下次首拉的「本地独有 → 推上去」
+ * 带进别人的云端。
+ *
  * ⚠️ 必须在 suppress 里删 —— 否则删除本身会被当成「用户删数据」推上云端，
  *    把刚登出的那个账号的云端数据清空（灾难）。
  * ⚠️ 删除后还要**多按住一小段 suppress**：useLocalStorage 对 removal 的响应
@@ -655,7 +710,7 @@ export function pushAllLocalKeysToCloud() {
  *    （值是空默认，无害），不会被推、也不会留标记。
  * ⚠️ 只清 localStorage，**不动 IndexedDB 里的 bin**：bin 有可能超过云端单条上限（700KB）而从没上过云，
  *    本地就是唯一副本，删了就真丢。所以「bin 跨账号混在本地」这件事改用**按归属推送**收口
- *    （见 `ownedBinKeys` / `pushLocalOnlyBins`），而不是在这里删数据。
+ *    （见 `ownedTokenKeys` / `pushLocalOnlyBins`），而不是在这里删数据。
  *    但 bin 的**派生缓存**（`bin_data_*` / `current_bin_id` / `bin_file_list`）必须一起清掉 ——
  *    否则换账号后界面/游戏仍会读到上一个账号的 bin（它们是 IndexedDB 的投影，清了会自动重建）。
  * @returns {number} 清掉的键数（业务键 + bin 派生缓存）
