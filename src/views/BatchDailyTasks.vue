@@ -1700,51 +1700,156 @@
             />
           </div>
           <div class="setting-item">
-            <label class="setting-label">运行类型</label>
-            <n-radio-group
-              v-model:value="taskForm.runType"
-              @update:value="resetRunType"
-            >
-              <n-radio value="daily">每天固定时间</n-radio>
-              <n-radio value="cron">Cron表达式</n-radio>
-            </n-radio-group>
-          </div>
-          <div class="setting-item" v-if="taskForm.runType === 'daily'">
-            <label class="setting-label">运行时间</label>
-            <n-time-picker v-model:value="taskForm.runTime" format="HH:mm" />
-          </div>
-          <div class="setting-item" v-if="taskForm.runType === 'cron'">
-            <label class="setting-label">Cron表达式</label>
-            <n-input
-              v-model:value="taskForm.cronExpression"
-              placeholder="请输入Cron表达式"
-              @input="parseCronExpression"
-            />
+          <div class="setting-item">
+            <div class="schedule-header">
+              <label class="setting-label">运行时间</label>
+              <span class="schedule-summary">{{ scheduleSummary }}</span>
+            </div>
 
-            <!-- Cron表达式解析结果 -->
-            <div class="cron-parser" v-if="taskForm.cronExpression">
-              <div v-if="cronValidation.valid" class="cron-validation success">
-                <n-text type="success">✓ {{ cronValidation.message }}</n-text>
-              </div>
-              <div v-else class="cron-validation error">
-                <n-text type="error">✗ {{ cronValidation.message }}</n-text>
-              </div>
-
-              <!-- 未来执行时间 -->
-              <div
-                v-if="cronValidation.valid && cronNextRuns.length > 0"
-                class="cron-next-runs"
+            <div class="schedule-freqs">
+              <button
+                v-for="option in scheduleFreqOptions"
+                :key="option.value"
+                type="button"
+                class="schedule-freq"
+                :class="{ active: scheduleState.freq === option.value }"
+                @click="applyScheduleFreq(option.value)"
               >
-                <h4>未来5次执行时间：</h4>
-                <ul>
-                  <li v-for="(run, index) in cronNextRuns" :key="index">
-                    {{ run }}
-                  </li>
-                </ul>
+                {{ option.label }}
+              </button>
+            </div>
+
+            <div
+              v-if="scheduleState.freq === 'weekly'"
+              class="schedule-weekdays"
+            >
+              <button
+                v-for="day in weekdayOptions"
+                :key="day.value"
+                type="button"
+                class="schedule-weekday"
+                :class="{ active: scheduleState.weekdays.includes(day.value) }"
+                @click="toggleWeekday(day.value)"
+              >
+                周{{ day.label }}
+              </button>
+              <span class="schedule-links">
+                <button type="button" @click="applyWeekdayPreset('work')">
+                  工作日
+                </button>
+                <button type="button" @click="applyWeekdayPreset('weekend')">
+                  周末
+                </button>
+                <button type="button" @click="applyWeekdayPreset('all')">
+                  每天
+                </button>
+              </span>
+            </div>
+
+            <div v-if="showScheduleTimeRow" class="schedule-time-row">
+              <template v-if="scheduleState.freq === 'monthly'">
+                <span class="schedule-inline-label">每月</span>
+                <n-select
+                  v-model:value="scheduleState.dayOfMonth"
+                  :options="dayOfMonthOptions"
+                  size="small"
+                  style="width: 110px"
+                />
+              </template>
+              <n-select
+                v-model:value="scheduleState.hour"
+                :options="hourOptions"
+                size="small"
+                style="width: 82px"
+              />
+              <span class="schedule-colon">:</span>
+              <n-select
+                v-model:value="scheduleState.minute"
+                :options="minuteOptions"
+                size="small"
+                style="width: 82px"
+              />
+              <span class="schedule-links schedule-time-presets">
+                <span class="schedule-inline-label">常用</span>
+                <button
+                  v-for="preset in timePresets"
+                  :key="preset"
+                  type="button"
+                  :class="{ active: isPresetActive(preset) }"
+                  @click="applyTimePreset(preset)"
+                >
+                  {{ preset }}
+                </button>
+              </span>
+            </div>
+
+            <div v-if="scheduleState.freq === 'hourly'" class="schedule-hourly">
+              <div class="schedule-intervals">
+                <button
+                  v-for="interval in intervalOptions"
+                  :key="interval"
+                  type="button"
+                  :class="{ active: scheduleState.interval === interval }"
+                  @click="scheduleState.interval = interval"
+                >
+                  {{ interval }} 小时
+                </button>
+              </div>
+              <div class="schedule-time-row">
+                <span class="schedule-inline-label">在第</span>
+                <n-select
+                  v-model:value="scheduleState.minute"
+                  :options="minuteOptions"
+                  size="small"
+                  style="width: 82px"
+                />
+                <span class="schedule-inline-label">分执行（从 0 点起算）</span>
+              </div>
+            </div>
+
+            <div v-if="scheduleState.freq === 'custom'" class="schedule-custom">
+              <n-input
+                v-model:value="scheduleState.cronExpression"
+                placeholder="分 时 日 月 周，例如 0 8 * * 1-5"
+              />
+              <div class="schedule-links schedule-cron-samples">
+                <button
+                  v-for="sample in cronSamples"
+                  :key="sample.value"
+                  type="button"
+                  :class="{ active: scheduleNormalizedCron === sample.value }"
+                  @click="applyCronSample(sample.value)"
+                >
+                  {{ sample.value }} · {{ sample.label }}
+                </button>
+              </div>
+            </div>
+
+            <div v-if="scheduleError" class="schedule-error">
+              <n-text type="error">✗ {{ scheduleError }}</n-text>
+            </div>
+            <div v-else-if="schedulePreview.length" class="schedule-preview">
+              <div class="schedule-preview-main">
+                <span class="schedule-preview-tag">下次执行</span>
+                <span class="schedule-preview-time">{{
+                  schedulePreview[0].label
+                }}</span>
+                <span class="schedule-preview-rel"
+                  >· {{ schedulePreview[0].relative }}</span
+                >
+              </div>
+              <div class="schedule-preview-next">
+                <span class="schedule-preview-tag">之后</span>
+                <span
+                  v-for="(run, index) in schedulePreview.slice(1)"
+                  :key="index"
+                  class="schedule-preview-item"
+                >
+                  {{ run.short }}
+                </span>
               </div>
             </div>
           </div>
-          <div class="setting-item">
             <div
               style="
                 display: flex;
@@ -2744,12 +2849,26 @@ import {
   defaultHelperSettings,
   // Cron utilities
   validateCronField,
-  validateCronExpression,
   parseCronField,
-  calculateNextRuns,
   calculateNextExecutionTime,
   formatTimeDifference,
   matchesCronExpression,
+  // Schedule builder（运行时间编辑器 <-> 既有数据格式）
+  buildCronFromState,
+  buildTaskSchedule,
+  createScheduleState,
+  describeSchedule,
+  inferScheduleFromTask,
+  normalizeCron,
+  previewSchedule,
+  validateScheduleState,
+  SCHEDULE_CRON_SAMPLES,
+  SCHEDULE_DAY_OPTIONS,
+  SCHEDULE_HOUR_OPTIONS,
+  SCHEDULE_INTERVALS,
+  SCHEDULE_MINUTE_OPTIONS,
+  SCHEDULE_TIME_PRESETS,
+  SCHEDULE_WEEKDAYS,
   // Connection manager
   createConnectionManager,
   getActivityStatus,
@@ -3343,9 +3462,6 @@ const showTasksModal = ref(false); // Control the visibility of the tasks list m
 const editingTask = ref(null); // Currently editing task
 const taskForm = reactive({
   name: "", // Task name
-  runType: "daily", // 'daily' or 'cron'
-  runTime: null, // Daily run time (HH:mm format)
-  cronExpression: "", // Cron expression for complex scheduling
   selectedTokens: [], // Selected token IDs
   selectedTasks: [], // Selected task function names
   enabled: true, // Whether the task is enabled
@@ -3441,9 +3557,79 @@ const groupedAvailableTasks = computed(() => {
   return groups;
 });
 
-// Cron表达式解析相关变量
-const cronValidation = ref({ valid: true, message: "" });
-const cronNextRuns = ref([]);
+// 运行时间编辑器：只在内存里存在，落库仍由 buildTaskSchedule 产出旧格式
+const scheduleState = reactive(createScheduleState());
+
+const scheduleFreqOptions = [
+  { value: "daily", label: "每天" },
+  { value: "weekly", label: "每周" },
+  { value: "monthly", label: "每月" },
+  { value: "hourly", label: "每隔几小时" },
+  { value: "custom", label: "自定义" },
+];
+
+const WEEKDAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"];
+const weekdayOptions = SCHEDULE_WEEKDAYS.map((value) => ({
+  value,
+  label: WEEKDAY_NAMES[value],
+}));
+const hourOptions = SCHEDULE_HOUR_OPTIONS;
+const minuteOptions = SCHEDULE_MINUTE_OPTIONS;
+const dayOfMonthOptions = SCHEDULE_DAY_OPTIONS;
+const intervalOptions = SCHEDULE_INTERVALS;
+const timePresets = SCHEDULE_TIME_PRESETS;
+const cronSamples = SCHEDULE_CRON_SAMPLES;
+
+const pad2 = (value) => String(value).padStart(2, "0");
+
+const scheduleSummary = computed(() => describeSchedule(scheduleState));
+const scheduleCron = computed(() => buildCronFromState(scheduleState));
+const scheduleNormalizedCron = computed(() => normalizeCron(scheduleCron.value));
+const scheduleError = computed(() => validateScheduleState(scheduleState));
+const schedulePreview = computed(() =>
+  scheduleError.value ? [] : previewSchedule(scheduleCron.value, 5),
+);
+const showScheduleTimeRow = computed(() =>
+  ["daily", "weekly", "monthly"].includes(scheduleState.freq),
+);
+const currentTimeText = computed(
+  () => `${pad2(scheduleState.hour)}:${pad2(scheduleState.minute)}`,
+);
+
+const isPresetActive = (preset) => preset === currentTimeText.value;
+
+const applyScheduleFreq = (freq) => {
+  scheduleState.freq = freq;
+};
+
+const toggleWeekday = (day) => {
+  const index = scheduleState.weekdays.indexOf(day);
+  if (index > -1) {
+    scheduleState.weekdays.splice(index, 1);
+  } else {
+    scheduleState.weekdays.push(day);
+  }
+};
+
+const applyWeekdayPreset = (preset) => {
+  if (preset === "work") {
+    scheduleState.weekdays = [1, 2, 3, 4, 5];
+  } else if (preset === "weekend") {
+    scheduleState.weekdays = [0, 6];
+  } else {
+    scheduleState.weekdays = [1, 2, 3, 4, 5, 6, 0];
+  }
+};
+
+const applyTimePreset = (preset) => {
+  const [hour, minute] = preset.split(":").map(Number);
+  scheduleState.hour = hour;
+  scheduleState.minute = minute;
+};
+
+const applyCronSample = (expression) => {
+  scheduleState.cronExpression = expression;
+};
 
 
 // ======================
@@ -3514,13 +3700,11 @@ const openTaskModal = () => {
   editingTask.value = null;
   Object.assign(taskForm, {
     name: "",
-    runType: "daily",
-    runTime: undefined,
-    cronExpression: "",
     selectedTokens: [],
     selectedTasks: [],
     enabled: true,
   });
+  Object.assign(scheduleState, createScheduleState());
   taskScheduleSelectedGroupIds.value = [];
   showTaskModal.value = true;
 };
@@ -3528,58 +3712,18 @@ const openTaskModal = () => {
 // Edit existing task
 const editTask = (task) => {
   editingTask.value = task;
-  const taskData = { ...task };
-  if (
-    task.runType === "daily" &&
-    task.runTime &&
-    typeof task.runTime === "string"
-  ) {
-    const [hours, minutes] = task.runTime.split(":").map(Number);
-    const now = new Date();
-    taskData.runTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      hours,
-      minutes,
-    );
-  }
-  Object.assign(taskForm, taskData);
+  Object.assign(taskForm, {
+    name: task.name || "",
+    selectedTokens: [...(task.selectedTokens || [])],
+    selectedTasks: [...(task.selectedTasks || [])],
+    enabled: task.enabled !== false,
+  });
+  // 老数据反推：认不出的表达式落到「自定义」并原样回显
+  Object.assign(scheduleState, inferScheduleFromTask(task));
   taskScheduleSelectedGroupIds.value = [];
   showTaskModal.value = true;
 };
 
-// 注: validateCronExpression 已从 @/utils/batch 导入
-
-// Parse cron expression and calculate next execution times
-const parseCronExpression = (expression) => {
-  // Validate the expression first
-  const validation = validateCronExpression(expression);
-  cronValidation.value = validation;
-
-  if (!validation.valid) {
-    cronNextRuns.value = [];
-    return;
-  }
-
-  // Parse the expression and calculate next runs
-  const cronParts = expression.split(" ").filter(Boolean);
-  const [minuteField, hourField, dayOfMonthField, monthField, dayOfWeekField] =
-    cronParts;
-
-  // Calculate next 5 execution times
-  const nextRuns = calculateNextRuns(
-    minuteField,
-    hourField,
-    dayOfMonthField,
-    monthField,
-    dayOfWeekField,
-    5,
-  );
-  cronNextRuns.value = nextRuns;
-};
-
-// 注: calculateNextRuns 已从 @/utils/batch 导入
 
 // Save task (create or update)
 const saveTask = () => {
@@ -3588,23 +3732,11 @@ const saveTask = () => {
     return;
   }
 
-  if (taskForm.runType === "daily" && !taskForm.runTime) {
-    message.warning("请选择运行时间");
+  // 运行时间校验（每周至少一天 / 自定义 Cron 语法）
+  const scheduleErrorText = validateScheduleState(scheduleState);
+  if (scheduleErrorText) {
+    message.warning(scheduleErrorText);
     return;
-  }
-
-  if (taskForm.runType === "cron") {
-    if (!taskForm.cronExpression) {
-      message.warning("请输入Cron表达式");
-      return;
-    }
-
-    // Validate cron expression
-    const validation = validateCronExpression(taskForm.cronExpression);
-    if (!validation.valid) {
-      message.warning(validation.message);
-      return;
-    }
   }
 
   if (taskForm.selectedTokens.length === 0) {
@@ -3617,23 +3749,15 @@ const saveTask = () => {
     return;
   }
 
-  // Format runTime as string for storage
-  let formattedRunTime = null;
-  if (taskForm.runType === "daily" && taskForm.runTime) {
-    const time = new Date(taskForm.runTime);
-    formattedRunTime = time.toLocaleTimeString("zh-CN", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  // 落库字段仍只有 runType / runTime / cronExpression 三个
+  const schedule = buildTaskSchedule(scheduleState);
 
   const taskData = {
     id: editingTask.value?.id || "task_" + Date.now(),
     name: taskForm.name,
-    runType: taskForm.runType,
-    runTime: formattedRunTime,
-    cronExpression: taskForm.runType === "cron" ? taskForm.cronExpression : "",
+    runType: schedule.runType,
+    runTime: schedule.runTime,
+    cronExpression: schedule.cronExpression,
     selectedTokens: [...taskForm.selectedTokens],
     selectedTasks: [...taskForm.selectedTasks],
     enabled: taskForm.enabled,
@@ -3655,6 +3779,24 @@ const saveTask = () => {
   }
 
   saveScheduledTasks();
+
+  // 同一时间的任务会依次执行，这里只提示、不阻断
+  const conflictTask = scheduledTasks.value.find(
+    (task) =>
+      task.id !== taskData.id &&
+      ((task.runType === "daily" &&
+        taskData.runType === "daily" &&
+        task.runTime === taskData.runTime) ||
+        (task.runType === "cron" &&
+          taskData.runType === "cron" &&
+          normalizeCron(task.cronExpression) ===
+            normalizeCron(taskData.cronExpression))),
+  );
+  if (conflictTask) {
+    message.warning(
+      `任务「${conflictTask.name}」的执行时间相同，两者会依次执行`,
+    );
+  }
 
   // Add log entry for task save
   addTaskSaveLog(taskData, isNew, addLog);
@@ -3695,14 +3837,7 @@ const toggleTaskEnabled = (taskId, enabled) => {
 
 // 注: addTaskSaveLog 已从 @/utils/batch 导入，调用时需传入 addLog
 
-// Reset run type related fields
-const resetRunType = () => {
-  if (taskForm.runType === "daily") {
-    taskForm.cronExpression = "";
-  } else {
-    taskForm.runTime = undefined;
-  }
-};
+// 注: 运行时间交互逻辑见 scheduleState 定义处
 
 // Select all tokens
 const selectAllTokens = () => {
@@ -4014,16 +4149,6 @@ watch(
   { deep: true },
 );
 
-// 修复TimePicker的"Invalid time value"错误：确保runTime的初始值不是null
-watch(
-  () => showTaskModal.value,
-  (isVisible) => {
-    if (isVisible && !taskForm.runTime) {
-      // 当模态框显示且runTime为null时，将其设置为undefined
-      taskForm.runTime = undefined;
-    }
-  },
-);
 
 // Task scheduler variables - moved to component level scope
 const intervalId = ref(null);
@@ -5889,50 +6014,212 @@ const stopBatch = () => {
   flex-wrap: nowrap;
 }
 
-/* Cron Parser Styles */
-.cron-parser {
-  margin-top: 12px;
-  padding: 12px;
-  background-color: var(--bg-tertiary);
+/* 定时任务 · 运行时间编辑器 */
+.schedule-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.schedule-summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: #18a058;
+  background: #e8f7ef;
+  border-radius: 5px;
+  padding: 1px 8px;
+}
+
+.schedule-freqs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: #f2f4f7;
   border-radius: 8px;
 }
 
-.cron-validation {
-  margin-bottom: 12px;
-  padding: 8px;
+.schedule-freq {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 6px 2px;
+  font-size: 13px;
+  color: #5c6670;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.schedule-freq.active {
+  background: #fff;
+  color: #18a058;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.schedule-weekdays,
+.schedule-intervals {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.schedule-weekday,
+.schedule-intervals button {
+  border: 1px solid #e0e3e8;
+  background: #fff;
+  color: #4b5563;
+  border-radius: 999px;
+  padding: 3px 11px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.schedule-weekday.active,
+.schedule-intervals button.active {
+  background: #e8f7ef;
+  border-color: #95d8b4;
+  color: #18a058;
+  font-weight: 600;
+}
+
+.schedule-links {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: 4px;
+}
+
+.schedule-links button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #18a058;
+  border-radius: 999px;
+  padding: 2px 5px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.schedule-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.schedule-time-presets {
+  margin-left: 6px;
+}
+
+.schedule-time-presets button {
+  border-color: #e0e3e8;
+  background: #fff;
+  color: #4b5563;
+  padding: 3px 10px;
+}
+
+.schedule-time-presets button.active {
+  background: #e8f7ef;
+  border-color: #95d8b4;
+  color: #18a058;
+  font-weight: 600;
+}
+
+.schedule-colon {
+  color: #5c6670;
+  font-weight: 600;
+}
+
+.schedule-inline-label {
+  font-size: 12px;
+  color: #86909c;
+}
+
+.schedule-hourly,
+.schedule-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-cron-samples button {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11.5px;
+}
+
+.schedule-error {
+  padding: 8px 10px;
+  background: rgba(208, 48, 80, 0.08);
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+
+.schedule-preview {
+  padding: 10px 12px;
+  background: #fafbfd;
+  border: 1px solid #e9edf2;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.schedule-preview-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-preview-tag {
+  font-size: 11.5px;
+  color: #86909c;
+  background: #eef1f5;
   border-radius: 4px;
+  padding: 1px 6px;
 }
 
-.cron-validation.success {
-  background-color: rgba(24, 160, 88, 0.12);
-}
-
-.cron-validation.error {
-  background-color: rgba(235, 87, 87, 0.12);
-}
-
-.cron-next-runs h4 {
-  margin: 0 0 8px 0;
+.schedule-preview-time {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #1677ff;
 }
 
-.cron-next-runs ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.schedule-preview-rel {
+  font-size: 12px;
+  color: #5c6670;
 }
 
-.cron-next-runs li {
-  padding: 6px 0;
-  font-size: 13px;
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+.schedule-preview-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7581;
 }
 
-.cron-next-runs li:last-child {
-  border-bottom: none;
+/* 深色主题下避免浅底刺眼（文字已被全局强制为白色） */
+:global(html.dark) .schedule-freqs,
+:global(html.dark) .schedule-preview {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:global(html.dark) .schedule-freq.active,
+:global(html.dark) .schedule-weekday,
+:global(html.dark) .schedule-intervals button,
+:global(html.dark) .schedule-time-presets button {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .log-card :deep(.n-card__content) {

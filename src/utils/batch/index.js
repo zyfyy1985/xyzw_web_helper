@@ -4,6 +4,9 @@ export * from './constants.js';
 // Cron utilities
 export * from './cronUtils.js';
 
+// Schedule builder (运行时间编辑器 <-> 数据格式)
+export * from './scheduleBuilder.js';
+
 // Connection manager
 export * from './connectionManager.js';
 
