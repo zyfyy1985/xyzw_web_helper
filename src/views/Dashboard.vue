@@ -276,13 +276,13 @@ const quickActions = ref([
   //   description: "测试WebSocket连接和游戏命令",
   //   action: "websocket-test",
   // },
-  {
-    id: 6,
-    icon: markRaw(Download),
-    title: "导出配置",
-    description: "导出所有配置到JSON文件",
-    action: "export-state",
-  },
+  // {
+  //   id: 6,
+  //   icon: markRaw(Download),
+  //   title: "导出配置",
+  //   description: "导出所有配置到JSON文件",
+  //   action: "export-state",
+  // },
 ]);
 
 const handleExportState = async () => {
