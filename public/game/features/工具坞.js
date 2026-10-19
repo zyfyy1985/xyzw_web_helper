@@ -1,7 +1,7 @@
 // @name         工具坞
-// @version      1.0.1
-// @description  把各功能脚本的入口收进右上角一个蓝色圆钮（白字「辅」）：点开弹出四行
-//               带文字的菜单（账号切换 / 云阵容 / 蟠桃辅助 / 盐场辅助），屏幕只留 1 个图标。
+// @version      1.0.3
+// @description  把各功能脚本的入口收进右上角一个翡翠青圆钮（白色魔法棒图标）：点开弹出菜单
+//               （账号切换 / 云阵容 / 蟠桃辅助 / 盐场辅助），屏幕只留 1 个图标。
 //
 // ── 为什么需要它 ───────────────────────────────────────────────────────
 //   各功能脚本各自往屏幕右上角钉一个悬浮入口（圆的、胶囊的都有），形态尺寸颜色
@@ -34,13 +34,13 @@
 
   if (window.__XYZW_DOCK__) return; // 已安装（iframe 重载后重新注入属正常）
 
-  var VERSION = '1.0.1';
+  var VERSION = '1.0.3';
   var DOCK_ID = 'xyzw-dock';
   var MENU_ID = 'xyzw-dock-menu';
   var STYLE_ID = 'xyzw-dock-style';
   var POS_KEY = 'xyzw_dock_pos';
 
-  var SIZE = 40; // 圆钮直径
+  var SIZE = 38; // 圆钮直径
   var MARGIN = 8; // 距屏幕边缘
 
   // 已注册项：{ id, name, char, color, order, open, enabled }
@@ -65,15 +65,31 @@
     });
   }
 
+  // ── 按钮图标（魔法棒 = 辅助 / 强化）──────────────────────────────────
+  // 用内联 SVG 而不是汉字「辅」：38px 里塞一个汉字既挤又糊，矢量图标在任何
+  // DPI 下都清晰。坐标按 40×40 设计稿、以原点为中心绘制，靠 CSS 撑满按钮，
+  // 所以改 SIZE 只影响按钮直径，不用重算图标。
+  var ICON_SVG =
+    '<svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">' +
+    '<g transform="translate(20,20)">' +
+    '<line x1="-2.2" y1="-2.2" x2="9" y2="9" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="M-7.6,-14 L-5.7,-9.5 L-1.2,-7.6 L-5.7,-5.7 L-7.6,-1.2 L-9.5,-5.7 L-14,-7.6 L-9.5,-9.5 Z" fill="#ffffff"/>' +
+    '<circle cx="9.4" cy="-6.4" r="1.5" fill="#ffffff"/>' +
+    '<circle cx="-5.4" cy="9.4" r="1.3" fill="#ffffff"/>' +
+    '</g></svg>';
+
   // ── 样式（单引号，禁双引号 —— 与项目 UI_CSS 约定一致）─────────────────
   var CSS = [
     '#' + DOCK_ID + '{position:fixed;z-index:2147483600;width:' + SIZE + 'px;height:' + SIZE + 'px;',
-    'box-sizing:border-box;padding:0;border:2px solid #ffffff;border-radius:50%;',
-    'background:#378add;color:#ffffff;cursor:pointer;',
+    'box-sizing:border-box;padding:0;border:0;border-radius:50%;',
+    'background:#12886b;color:#ffffff;cursor:pointer;',
     'display:flex;align-items:center;justify-content:center;',
-    "font:15px/1 -apple-system,'Segoe UI','Microsoft YaHei',sans-serif;font-weight:600;",
-    'box-shadow:0 4px 16px rgba(0,0,0,.28);user-select:none;-webkit-user-select:none;',
+    // 翡翠青是暖棕游戏画面上唯一的冷色块（色相分离最彻底）；2px 内描边 + 深色外晕
+    // 负责把边缘从杂乱的沙色背景里"抠"出来，光靠底色对比在明暗交界处会糊掉。
+    'box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.45);',
+    'user-select:none;-webkit-user-select:none;',
     'touch-action:none;-webkit-touch-callout:none;}',
+    '#' + DOCK_ID + ' svg{display:block;width:100%;height:100%;}',
     '#' + DOCK_ID + '.dragging{cursor:grabbing;opacity:.9;}',
     '#' + DOCK_ID + '[hidden]{display:none;}',
     // 菜单
@@ -278,7 +294,7 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', '打开功能菜单');
     btn.setAttribute('title', '功能入口（点击展开 · 可拖动）');
-    btn.appendChild(el('span', null, '辅'));
+    btn.innerHTML = ICON_SVG;
     document.body.appendChild(btn);
     installDrag();
     applyPos();
