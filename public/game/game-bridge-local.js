@@ -85,6 +85,7 @@
     '盐场辅助.js',
     '云阵容.js',
     '蟠桃辅助.js',
+    '盐场辅助Pro.js',
   ];
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
   // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）
