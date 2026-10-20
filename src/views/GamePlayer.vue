@@ -1,7 +1,5 @@
 <template>
   <div class="game-player">
-    <button class="back-btn" @click="goBack">← 返回</button>
-
     <div class="iframe-wrapper">
       <iframe
         :src="gameSrc"
@@ -15,9 +13,7 @@
 <script setup>
 import { computed, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const route = useRoute()
 
 // 账号切换.js 的「启动」会以 /game?bin_id=<id> 开新标签页；
@@ -38,10 +34,6 @@ onUnmounted(() => {
     /* 浮层不存在时忽略 */
   }
 })
-
-function goBack() {
-  router.push('/admin/dashboard')
-}
 </script>
 
 <style scoped>
@@ -65,28 +57,5 @@ function goBack() {
   height: 100%;
   border: none;
   display: block;
-}
-
-.back-btn {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.back-btn:hover {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.back-btn:active {
-  background: rgba(0, 0, 0, 0.8);
 }
 </style>

@@ -85,7 +85,7 @@
     'background:#12886b;color:#ffffff;cursor:pointer;',
     'display:flex;align-items:center;justify-content:center;',
     // 翡翠青是暖棕游戏画面上唯一的冷色块（色相分离最彻底）；2px 内描边 + 深色外晕
-    // 负责把边缘从杂乱的沙色背景里"抠"出来，光靠底色对比在明暗交界处会糊掉。
+    // 负责把边缘从杂乱的沙色背景里抠出来，光靠底色对比在明暗交界处会糊掉。
     'box-shadow:0 3px 10px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.45);',
     'user-select:none;-webkit-user-select:none;',
     'touch-action:none;-webkit-touch-callout:none;}',
