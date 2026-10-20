@@ -139,15 +139,19 @@ export function createTasksCampChallenge(deps) {
           type: "info",
         });
 
+        // 只打「当日」比赛日的对手：oppoMap 的 key 是星期几（0=周日），
+        // 往日对手的 club_gettargetteam / club_attack 一律返回 200020
+        // （见 components/Club/CampChallenge.vue 的「仅当前比赛日可查」）。
         const oppoMap = res?.club?.oppoMap || {};
-        const opponents = Object.entries(oppoMap).sort(
-          ([a], [b]) => Number(a) - Number(b),
-        );
+        const todayDayKey = String(new Date().getDay());
+        const opponents = Object.entries(oppoMap)
+          .filter(([dayKey]) => dayKey === todayDayKey)
+          .sort(([a], [b]) => Number(a) - Number(b));
 
         if (opponents.length === 0) {
           addLog({
             time: new Date().toLocaleTimeString(),
-            message: `${token.name} 没有可挑战的目标`,
+            message: `${token.name} 今日无营地挑战对手（非比赛日或未匹配），跳过`,
             type: "warning",
           });
           tokenStatus.value[tokenId] = "completed";
@@ -457,8 +461,34 @@ export function createTasksCampChallenge(deps) {
           15000,
         );
 
+        // 只领「已达成且未领取」的：siege.taskProgress 中 1/2/3 为三个区域（>=1 可领）、
+        // 4 为挑战次数（>=3 可领）；siege.taskClaimedMap 出现的 key 即已领取。
+        // 硬扫 1..4 会让未达成的 confId 直接吃 200020。
+        const siegeInfo = roleInfoResult?.siege || {};
+        const taskProgress = siegeInfo.taskProgress || {};
+        const taskClaimedMap = siegeInfo.taskClaimedMap || {};
+        const pickProgress = (confId) =>
+          Number(taskProgress[confId] ?? taskProgress[String(confId)] ?? 0);
+        const isTaskClaimed = (confId) =>
+          taskClaimedMap[confId] != null || taskClaimedMap[String(confId)] != null;
+        const claimableTaskIds = [1, 2, 3, 4].filter(
+          (confId) =>
+            !isTaskClaimed(confId) &&
+            (confId === 4 ? pickProgress(confId) >= 3 : pickProgress(confId) >= 1),
+        );
+
+        if (claimableTaskIds.length === 0) {
+          addLog({
+            time: new Date().toLocaleTimeString(),
+            message: `${token.name} 无可领取的营地任务奖励`,
+            type: "info",
+          });
+          tokenStatus.value[tokenId] = "completed";
+          return;
+        }
+
         let claimedCount = 0;
-        for (const confId of [1, 2, 3, 4]) {
+        for (const confId of claimableTaskIds) {
           if (shouldStop.value) break;
           try {
             await tokenStore.sendMessageWithPromise(
