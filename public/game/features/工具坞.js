@@ -1,5 +1,5 @@
 // @name         工具坞
-// @version      1.0.3
+// @version      1.0.6
 // @description  把各功能脚本的入口收进右上角一个翡翠青圆钮（白色魔法棒图标）：点开弹出菜单
 //               （账号切换 / 云阵容 / 蟠桃辅助 / 盐场辅助），屏幕只留 1 个图标。
 //
@@ -26,6 +26,7 @@
 //
 // ── 交互 ───────────────────────────────────────────────────────────────
 //   · 点圆钮 → 展开 / 收起菜单；点菜单项 → 调该功能 open() 并收起菜单
+//   · 双击圆钮 → 游戏窗口最大化 / 还原（游戏 iframe 内部全屏，与进游戏自动最大化同路径）
 //   · 点菜单/圆钮以外区域 → 收起；Esc → 收起
 //   · 菜单项右侧小点：有 enabled 的功能，开=绿点，关=灰点（无 enabled 不显示点）
 //   · 圆钮可拖动，位置存 localStorage('xyzw_dock_pos')，多账号共用
@@ -34,7 +35,7 @@
 
   if (window.__XYZW_DOCK__) return; // 已安装（iframe 重载后重新注入属正常）
 
-  var VERSION = '1.0.3';
+  var VERSION = '1.0.6';
   var DOCK_ID = 'xyzw-dock';
   var MENU_ID = 'xyzw-dock-menu';
   var STYLE_ID = 'xyzw-dock-style';
@@ -138,6 +139,72 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
+  // ── 游戏窗口最大化（双击圆钮 / api.toggleFullscreen）──────────────────
+  //   全屏请求必须发在【自己所在的游戏 iframe 文档】上（对 document.documentElement），
+  //   也就是和「进游戏自动最大化」走同一条路径 —— 游戏页面自带 viewport-fit=cover +
+  //   安全区处理，浏览器按它的 viewport 做沉浸式全屏，状态栏区域会被游戏画面盖住。
+  //   ⚠️ 不能全屏宿主侧的 iframe 元素 / documentElement（v1.0.4 / v1.0.5 都踩过）：
+  //      · 全屏 iframe 元素 → 按父文档 viewport 处理，父页面没有 viewport-fit=cover，
+  //        顶部留一条状态栏高度的黑边（真机截图确认）；
+  //      · 全屏宿主 documentElement → 只是整页全屏，宿主 SPA 顶栏还占着屏。
+  //   还原要先判断全屏元素到底在哪份文档（游戏文档 / 宿主文档），命中哪份退哪份。
+  function hostWin() {
+    try {
+      if (window.parent && window.parent !== window && window.parent.document) return window.parent;
+    } catch (e) {}
+    return window;
+  }
+  /** 当前生效的全屏所在文档；无全屏返回 null */
+  function fsActiveDoc() {
+    // ① 自己所在文档（= 游戏 iframe 内部元素全屏，进图自动最大化就是这条）
+    if (document.fullscreenElement || document.webkitFullscreenElement) return document;
+    // ② 宿主文档（父页面直接全屏了 iframe 元素 / documentElement）
+    var hd = hostWin().document;
+    if (hd !== document && (hd.fullscreenElement || hd.webkitFullscreenElement)) return hd;
+    return null;
+  }
+  /** iframe 拿不到 fullscreen 权限时的兜底：全屏宿主侧的游戏 iframe 元素 */
+  function fallbackHostFullscreen() {
+    var hd = hostWin().document;
+    if (hd === document) return;
+    var target = null;
+    try {
+      target = hd.querySelector('iframe.game-iframe') || hd.querySelector('iframe');
+    } catch (e) {}
+    target = target || hd.documentElement;
+    var rq = target.requestFullscreen || target.webkitRequestFullscreen;
+    if (!rq) return;
+    try {
+      var q = rq.call(target);
+      if (q && q['catch']) q['catch'](function () {});
+    } catch (e) {}
+  }
+  function toggleFullscreen() {
+    var active = fsActiveDoc();
+    if (active) {
+      var ex = active.exitFullscreen || active.webkitExitFullscreen;
+      if (ex) {
+        try {
+          var p = ex.call(active);
+          if (p && p['catch']) p['catch'](function () {});
+        } catch (e) {}
+      }
+      return;
+    }
+    var el = document.documentElement;
+    var rq = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!rq) {
+      fallbackHostFullscreen();
+      return;
+    }
+    try {
+      var q = rq.call(el);
+      if (q && q['catch']) q['catch'](fallbackHostFullscreen);
+    } catch (e) {
+      fallbackHostFullscreen();
+    }
+  }
+
   // ── 位置 ─────────────────────────────────────────────────────────────
   function loadPos() {
     try {
@@ -229,6 +296,16 @@
 
   // ── 拖动（拖完吞掉 click，避免误展开）────────────────────────────────
   var dragged = false;
+  // 单击要等一个 dblclick 判定期再执行：否则双击会先「展开菜单 → 收起菜单」闪一下，
+  // 再执行最大化。200ms 内的第二次点击 → 取消单击、交给 dblclick。
+  var CLICK_DELAY = 200;
+  var clickTimer = null;
+  function cancelClickTimer() {
+    if (clickTimer) {
+      window.clearTimeout(clickTimer);
+      clickTimer = null;
+    }
+  }
   function installDrag() {
     var start = null;
     var origin = null;
@@ -280,7 +357,22 @@
         dragged = false;
         return;
       }
-      setOpen(!openFlag);
+      // 第二次点击（双击的第二次）由 dblclick 接管，这里只取消待执行的单击
+      if (clickTimer) {
+        cancelClickTimer();
+        return;
+      }
+      clickTimer = window.setTimeout(function () {
+        clickTimer = null;
+        setOpen(!openFlag);
+      }, CLICK_DELAY);
+    });
+    btn.addEventListener('dblclick', function (ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      // 第二次 click 已在上面取消了待执行单击，这里只需收菜单 + 切全屏
+      setOpen(false);
+      toggleFullscreen();
     });
   }
 
@@ -292,8 +384,8 @@
     btn = el('button');
     btn.id = DOCK_ID;
     btn.type = 'button';
-    btn.setAttribute('aria-label', '打开功能菜单');
-    btn.setAttribute('title', '功能入口（点击展开 · 可拖动）');
+    btn.setAttribute('aria-label', '功能入口：单击展开菜单，双击最大化游戏');
+    btn.setAttribute('title', '单击展开菜单 · 双击最大化游戏 · 可拖动');
     btn.innerHTML = ICON_SVG;
     document.body.appendChild(btn);
     installDrag();
@@ -386,6 +478,8 @@
     toggle: function () {
       setOpen(!openFlag);
     },
+    /** 游戏窗口最大化 / 还原（双击圆钮走的就是这里） */
+    toggleFullscreen: toggleFullscreen,
     close: function () {
       setOpen(false);
     },

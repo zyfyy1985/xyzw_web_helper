@@ -1,5 +1,5 @@
 // @name         账号切换
-// @version      1.1.1
+// @version      1.1.3
 // @description  游戏内账号切换登录器：白色浮层面板，显示当前登录账号与启动列表，
 //               支持切换（当前窗口换号并重载游戏）/ 刷新（重开当前账号游戏）/
 //               启动（新标签页打开该账号）/ 删除（仅移除 bin_file_list 条目与 bin_data 缓存，
@@ -26,7 +26,7 @@
 // ── 按钮 / 交互 ─────────────────────────────────────────────────────────
 //   −  面板最小化为悬浮小球（仅头像大小，状态存 localStorage 'xyzw_acct_switch_min'），
 //      点击标题栏任意空白处也可最小化
-//   ▢  整个游戏窗口 requestFullscreen（对 documentElement，全页保持可见）
+//   游戏窗口最大化不在这里了：改为双击「工具坞」圆钮切换全屏 / 还原（见 工具坞.js）
 //   切换  改写 current_bin_id → 带 bin_id 重载游戏 iframe（不弹"切换中"提示）；
 //         目标缺 bin_data 时提示先去控制台打开一次
 //   刷新（仅当前账号行）= 按本窗口账号重载游戏 iframe，凭据不变
@@ -35,7 +35,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.1.2';
+  var VERSION = '1.1.3';
   var MIN_KEY = 'xyzw_acct_switch_min';
   var PANEL_ID = 'acctSwitchPanel';
   var PILL_ID = 'acctSwitchPill';
@@ -470,13 +470,6 @@
       doc.addEventListener('pointercancel', onUp);
       doc.addEventListener('touchmove', onTouchMove, { passive: false });
     },
-    fullscreen: function () {
-      if (doc.fullscreenElement) {
-        if (doc.exitFullscreen) doc.exitFullscreen();
-      } else if (doc.documentElement.requestFullscreen) {
-        doc.documentElement.requestFullscreen();
-      }
-    },
 
     // 离开游戏页时由宿主（GamePlayer onUnmounted）调用：清掉挂在 body 上的浮层，
     // 否则返回 dashboard 后悬浮球/面板会残留
@@ -576,7 +569,6 @@
         '<span class="as-title" title="点击最小化面板" onclick="__ACCT_SWITCH__.minimize()">账号切换</span>' +
         '<span class="as-count" id="acctSwitchCount"></span>' +
         '<button class="as-win" title="面板最小化" onclick="__ACCT_SWITCH__.minimize()">−</button>' +
-        '<button class="as-win" title="游戏窗口最大化" onclick="__ACCT_SWITCH__.fullscreen()">▢</button>' +
       '</div>' +
       '<div class="as-cur" id="acctSwitchCur"></div>' +
       '<div class="as-hint">切换=当前窗口换号并重载游戏 · 启动=新标签页打开</div>' +
