@@ -75,9 +75,11 @@
   // 本清单 = featureScripts.js 的 FEATURE_SCRIPTS + 「工具坞.js」+ 受限脚本。
   // ⚠️「工具坞.js」不在前端勾选清单里（它是入口容器，由本文件强制前置注入，见下方
   //    loadSelectedFeatures），但写在这里才能通过 known[id] 校验、不被当脏数据剔除。
+  // ⚠️ ALWAYS_FEATURES 里的默认加载脚本同样必须写在这里，理由同上。
   var BUILTIN_FEATURES = [
     '工具坞.js',
     '模拟战斗.js',
+    '竞技助手.js',
     '盐场视距.js',
     '自动蟠桃.js',
     '长按连点.js',
@@ -91,6 +93,9 @@
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
   // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）
   var DEFAULT_FEATURES = ['账号切换.js'];
+  // 默认加载脚本：不受勾选控制，无论记录里有没有都注入。
+  // 与前端 src/utils/featureScripts.js 的 ALWAYS_FEATURES 必须保持一致（`always: true`）。
+  var ALWAYS_FEATURES = ['竞技助手.js'];
   var featurePromises = {};
 
   /** 读取当前 token 的勾选记录；缺失 / 损坏 / 旧扁平格式时返回默认项（仅「账号切换」） */
@@ -178,7 +183,12 @@
     // 「工具坞」是各功能入口的统一容器，必须最先加载，
     // 其余脚本才能在启动时向它注册入口。用户没勾它也强制前置注入。
     var DOCK = '工具坞.js';
-    var ordered = enabled.indexOf(DOCK) === -1 ? [DOCK].concat(enabled) : enabled;
+    var head = [];
+    if (enabled.indexOf(DOCK) === -1) head.push(DOCK);
+    ALWAYS_FEATURES.forEach(function (id) {
+      if (enabled.indexOf(id) === -1) head.push(id);
+    });
+    var ordered = head.length ? head.concat(enabled) : enabled;
     console.log(
       '[GameBridge] 加载内置脚本 (' + ordered.length + '): ' + ordered.join(', ')
     );
