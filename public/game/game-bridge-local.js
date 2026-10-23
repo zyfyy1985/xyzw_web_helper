@@ -184,10 +184,10 @@
     // 其余脚本才能在启动时向它注册入口。用户没勾它也强制前置注入。
     var DOCK = '工具坞.js';
     var head = [];
-    // if (enabled.indexOf(DOCK) === -1) head.push(DOCK);
-    // ALWAYS_FEATURES.forEach(function (id) {
-    //   if (enabled.indexOf(id) === -1) head.push(id);
-    // });
+      if (enabled.indexOf(DOCK) === -1) head.push(DOCK);
+      ALWAYS_FEATURES.forEach(function (id) {
+        if (enabled.indexOf(id) === -1) head.push(id);
+      });
     var ordered = head.length ? head.concat(enabled) : enabled;
     console.log(
       '[GameBridge] 加载内置脚本 (' + ordered.length + '): ' + ordered.join(', ')
