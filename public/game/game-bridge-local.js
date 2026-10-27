@@ -75,10 +75,11 @@
   // 本清单 = featureScripts.js 的 FEATURE_SCRIPTS + 「工具坞.js」+ 受限脚本。
   // ⚠️「工具坞.js」不在前端勾选清单里（它是入口容器，由本文件强制前置注入，见下方
   //    loadSelectedFeatures），但写在这里才能通过 known[id] 校验、不被当脏数据剔除。
-  // ⚠️ ALWAYS_FEATURES 里的默认加载脚本同样必须写在这里，理由同上。
+  // ⚠️ 由用户勾选、但不在前端 FEATURE_SCRIPTS 离线兜底清单里的脚本（如「竞技助手.js」）
+  //    同样必须写在这里 —— 否则 known[id] 校验会把它当脏数据剔掉，用户勾了也不会加载。
   var BUILTIN_FEATURES = [
     '工具坞.js',
-    '模拟战斗.js',
+    '战斗模拟.js',
     '竞技助手.js',
     '盐场视距.js',
     '自动蟠桃.js',
@@ -93,9 +94,9 @@
   var FEATURE_STORAGE_KEY = 'h5_enabled_features';
   // 用户未做过选择时的默认开启项（与前端 src/utils/featureScripts.js 保持一致）
   var DEFAULT_FEATURES = ['账号切换.js'];
-  // 默认加载脚本：不受勾选控制，无论记录里有没有都注入。
-  // 与前端 src/utils/featureScripts.js 的 ALWAYS_FEATURES 必须保持一致（`always: true`）。
-  var ALWAYS_FEATURES = ['竞技助手.js'];
+  // 默认加载脚本：不受勾选控制，无论记录里有没有都注入（loadSelectedFeatures 会补进 head）。
+  // 目前为空 —— 「竞技助手.js」已改为普通可勾选脚本（清单真源 = 线上 /api/scripts 的 SCRIPTS）。
+  var ALWAYS_FEATURES = [];
   var featurePromises = {};
 
   /** 读取当前 token 的勾选记录；缺失 / 损坏 / 旧扁平格式时返回默认项（仅「账号切换」） */

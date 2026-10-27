@@ -8,10 +8,11 @@ import { api } from "./endpoints";
 
 export const FEATURE_SCRIPTS = [
   {
-    id: "模拟战斗.js",
-    name: "模拟战斗",
-    description: "",
-    version: "",
+    id: "战斗模拟.js",
+    name: "战斗模拟",
+    description:
+      "PVE 七个面板（咸将塔/俱乐部Boss/灯神/十殿/怪异塔/星级挑战/幽冥试炼）加「开始模拟 / 检测概率」：用游戏原生无渲染引擎本地跑战斗，换 randomSeed 做蒙特卡洛，统计胜率、平均回合与 0~3 星分布；",
+    version: "1.1.0",
   },
   {
     id: "自动蟠桃.js",
