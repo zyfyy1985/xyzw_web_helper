@@ -50,6 +50,10 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
+  /* iOS standalone（添加到主屏幕）模式：状态栏/home 横条会叠在画面上，
+     用安全区把画面从刘海和横条底下挪出来。非 iOS / 普通 Safari 下 env() 全是 0，无影响。 */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .game-iframe {

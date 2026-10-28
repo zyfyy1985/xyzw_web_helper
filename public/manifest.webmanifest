@@ -1,0 +1,19 @@
+{
+  "name": "咸鱼助手",
+  "short_name": "咸鱼助手",
+  "description": "咸鱼之王 Token 管理与游戏辅助",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eff1f3",
+  "theme_color": "#0040b0",
+  "icons": [
+    {
+      "src": "/1733492491706148.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

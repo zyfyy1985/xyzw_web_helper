@@ -2,7 +2,22 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover：配合下面 apple meta，在 iPhone「添加到主屏幕」的 standalone 模式下
+         页面直接铺到刘海/home 横条底下，不留白边；普通 Safari 不受影响 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- iOS「添加到主屏幕」全屏三件套：
+         capable   → 从图标打开时进入 standalone（无地址栏/工具栏，iPhone 没有网页全屏 API，这是唯一全屏途径）
+         black-translucent → 状态栏透明覆盖在页面上，画面顶到屏幕最顶
+         title/icon → 主屏图标的名字与图 -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="咸鱼助手" />
+    <link rel="apple-touch-icon" href="/1733492491706148.png" />
+    <!-- Web App Manifest：iOS 16.4+ 对带 manifest 的主屏 web app 按一等公民处理。
+         只有 apple meta 的旧式主屏 app，页内导航（点按钮跳路由）可能被 iOS 移交 Safari
+         ⇒ 表现成「点任何功能都退出全屏」。manifest 的 display:standalone + scope 是正规解。
+         ★ manifest 是「添加到主屏幕」那一刻读取的，改完必须删图标重加。 -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <title>XYZW 游戏管理系统</title>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <style>
