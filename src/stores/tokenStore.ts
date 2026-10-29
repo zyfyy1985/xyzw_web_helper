@@ -79,7 +79,7 @@ export const gameTokens = useLocalStorage<TokenData[]>("gameTokens", []);
 export const hasTokens = computed(() => gameTokens.value.length > 0);
 // ★ Token 数量上限（自用约定）：最多保留 1 个。添加入口（TokenImport 页）统一拦截，
 // addToken 内再硬兜底；restore（importTokens 整体替换）不受影响。
-export const MAX_GAME_TOKENS = 2;
+export const MAX_GAME_TOKENS = 3;
 export const selectedTokenId = useLocalStorage("selectedTokenId", "");
 export const selectedToken = computed(() => {
   return gameTokens.value?.find((token) => token.id === selectedTokenId.value);
