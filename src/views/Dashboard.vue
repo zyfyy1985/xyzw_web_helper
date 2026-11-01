@@ -120,6 +120,7 @@ import {
   GameController,
 } from "@vicons/ionicons5";
 import useIndexedDB from "@/hooks/useIndexedDB";
+import { openGameWindow, navigateGameWindow } from "@/utils/gameWindow";
 import lz4 from "lz4js";
 
 const router = useRouter();
@@ -193,8 +194,13 @@ const openGame = async () => {
     message.warning("请先选择一个Token");
     return;
   }
+  /* ★★ 必须先开窗、再 await：`await` 之后再 window.open 会被弹窗拦截器拦掉。
+     PC 上开指定大小的独立窗口（怪兽脚本那种），窄屏返回 null ⇒ 退回页内跳转。
+     key 传 bin_id：不同账号各开一个窗口，同一个账号再点只聚焦。 */
+  const win = openGameWindow(null, { key: token.id });
   const binData = await getArrayBuffer(token.id);
   if (!binData) {
+    if (win) win.close();
     message.error("未找到该Token的BIN数据");
     return;
   }
@@ -218,7 +224,10 @@ const openGame = async () => {
     });
     localStorage.setItem("bin_file_list", JSON.stringify(binList));
   }
-  router.push("/game");
+  /* ★ 带上 bin_id：多账号可能同时开着几个窗口，靠 URL 自证身份，别只依赖全局 current_bin_id */
+  const href = router.resolve({ path: "/game", query: { bin_id: token.id } }).href;
+  if (win) navigateGameWindow(win, href);
+  else router.push("/game");
 };
 
 // 响应式数据
