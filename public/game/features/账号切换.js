@@ -1,8 +1,8 @@
 // @name         账号切换
-// @version      1.1.3
+// @version      1.1.5
 // @description  游戏内账号切换登录器：白色浮层面板，显示当前登录账号与启动列表，
 //               支持切换（当前窗口换号并重载游戏）/ 刷新（重开当前账号游戏）/
-//               启动（新标签页打开该账号）/ 删除（仅移除 bin_file_list 条目与 bin_data 缓存，
+//               启动（PC 上开一个 480×940 的独立小窗口，窄屏退回新标签页）/ 删除（仅移除 bin_file_list 条目与 bin_data 缓存，
 //               不动 IndexedDB 与 Token 库；游戏中的账号不可删除）。
 //
 // ── 数据来源 ───────────────────────────────────────────────────────────
@@ -30,12 +30,13 @@
 //   切换  改写 current_bin_id → 带 bin_id 重载游戏 iframe（不弹"切换中"提示）；
 //         目标缺 bin_data 时提示先去控制台打开一次
 //   刷新（仅当前账号行）= 按本窗口账号重载游戏 iframe，凭据不变
-//   启动  新标签页打开 /game?bin_id=<id>，不写 current_bin_id、不影响本窗口
+//   启动  PC：开 480×940 独立小窗口 /game?bin_id=<id>（窗口名带账号 id，各账号互不挤占）；
+//         窄屏 / 被拦截：退回新标签页。不写 current_bin_id、不影响本窗口
 //   删除  二次确认后从 bin_file_list 移除该条目并删 bin_data_<id>；本窗口账号行禁用
 (function () {
   'use strict';
 
-  var VERSION = '1.1.3';
+  var VERSION = '1.1.5';
   var MIN_KEY = 'xyzw_acct_switch_min';
   var PANEL_ID = 'acctSwitchPanel';
   var PILL_ID = 'acctSwitchPill';
@@ -66,6 +67,82 @@
   var host = twin || window;
   var doc = host.document;
   var hostDoc = doc; // 宿主文档固定引用（全屏时 doc 会切到 iframe 文档）
+
+  // ── 「启动」用的独立小窗口 ───────────────────────────────────────────
+  /* 与 app 的「打开游戏」同一套规则（src/utils/gameWindow.js）：
+       · 窗口名必须带账号 id —— 名字固定的话，第二个账号会「开在第一个窗口里」；
+       · 断点 760 —— 窄屏（真手机）根本不理尺寸参数，直接开新标签页；
+       · 属性串里必须有 popup=yes，Chromium 才会给一个没有标签栏的弹窗。 */
+  var GAME_WIN_W = 480;
+  var GAME_WIN_H = 940;
+
+  /* ★ 别用 innerWidth 判断「是不是手机」：游戏本身就跑在小窗里（480 宽），
+     那样会把自己当手机 ⇒ 启动只会开新标签页。改成认设备。 */
+  function isPhoneDevice() {
+    try {
+      var ua = navigator.userAgent || '';
+      if (/Android|iPhone|iPod|Windows Phone|HarmonyOS|Mobile/i.test(ua)) return true;
+      /* iPadOS 13+ 的 UA 伪装成桌面 Mac：靠触点数认 */
+      if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return true;
+    } catch (e) {
+      /* 拿不到 UA 就当桌面，宁可开小窗也不要退化成标签页 */
+    }
+    return false;
+  }
+
+  function openAccountWindow(url, binId) {
+    if (!host || typeof host.open !== 'function') return null;
+    var blank = function () {
+      try {
+        host.open(url, '_blank');
+      } catch (e) {
+        /* 被拦截就算了 */
+      }
+      return 'tab';
+    };
+    if (isPhoneDevice()) return blank(); // 手机：尺寸参数本来就不生效，直接新标签页
+
+    var name = 'xyzw_game_' + String(binId == null ? '' : binId).replace(/[^\w-]/g, '').slice(0, 40);
+    var scr = host.screen || {};
+    var sw = scr.availWidth || scr.width || GAME_WIN_W;
+    var sh = scr.availHeight || scr.height || GAME_WIN_H;
+    var px = typeof host.screenLeft === 'number' ? host.screenLeft : (host.screenX || 0);
+    var py = typeof host.screenTop === 'number' ? host.screenTop : (host.screenY || 0);
+    var ow = host.outerWidth || GAME_WIN_W;
+    var oh = host.outerHeight || GAME_WIN_H;
+    var clamp = function (v, max) {
+      return Math.max(0, Math.min(Math.round(v), Math.max(0, max)));
+    };
+    var features =
+      'popup=yes,width=' + GAME_WIN_W + ',height=' + GAME_WIN_H +
+      ',left=' + clamp(px + (ow - GAME_WIN_W) / 2, sw - GAME_WIN_W) +
+      ',top=' + clamp(py + (oh - GAME_WIN_H) / 2, sh - GAME_WIN_H) +
+      ',menubar=no,toolbar=no,status=no,location=yes,resizable=yes,scrollbars=yes';
+
+    var win = null;
+    try {
+      win = host.open(url, name, features);
+    } catch (e) {
+      win = null;
+    }
+    if (!win) return blank(); // 被弹窗拦截器拦了：退回新标签页，别让按钮点了没动静
+
+    /* 同名窗口已存在时 window.open 会复用并导航，但尺寸参数不生效 ⇒ 补一刀 resizeTo */
+    try {
+      var offSize =
+        (win.outerWidth && win.outerWidth !== GAME_WIN_W) ||
+        (win.outerHeight && win.outerHeight !== GAME_WIN_H);
+      if (offSize) win.resizeTo(GAME_WIN_W, GAME_WIN_H);
+    } catch (e) {
+      /* 跨域 / 被忽略，无副作用 */
+    }
+    try {
+      win.focus();
+    } catch (e) {
+      /* 同上 */
+    }
+    return 'window';
+  }
 
   // ── 工具 ─────────────────────────────────────────────────────────────
   function esc(s) {
@@ -394,8 +471,8 @@
         return;
       }
       var url = host.location.origin + '/game?bin_id=' + encodeURIComponent(item.id);
-      host.open(url, '_blank');
-      toast('已在新标签页启动「' + item.name + '」');
+      var mode = openAccountWindow(url, item.id);
+      toast((mode === 'window' ? '已在小窗口启动「' : '已在新标签页启动「') + item.name + '」');
     },
 
     removeAt: function (idx) {
@@ -571,7 +648,7 @@
         '<button class="as-win" title="面板最小化" onclick="__ACCT_SWITCH__.minimize()">−</button>' +
       '</div>' +
       '<div class="as-cur" id="acctSwitchCur"></div>' +
-      '<div class="as-hint">切换=当前窗口换号并重载游戏 · 启动=新标签页打开</div>' +
+      '<div class="as-hint">切换=当前窗口换号并重载游戏 · 启动=电脑上开小窗口（手机为新标签页）</div>' +
       '<div class="as-list" id="acctSwitchList"></div>' +
       '<div id="acctSwitchMsg"></div>';
     doc.body.appendChild(panel);
