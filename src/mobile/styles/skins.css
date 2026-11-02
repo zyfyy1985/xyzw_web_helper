@@ -1,0 +1,359 @@
+/* ============================================================
+ * 主题换肤（skin）—— 与深浅色（theme）正交的第二层
+ *
+ * 【为什么是独立属性】
+ * 深浅色由 html[data-theme="dark"] 驱动（main.js 的 applyTheme）。皮肤若挤进同一个属性，
+ * 切皮肤就等于把暗色关掉。所以皮肤单独挂 html[data-skin="<id>"]，
+ * 组合选择器 html[data-theme="dark"][data-skin="x"] 描述「暗色下的某套皮肤」。
+ *
+ * 【只覆盖「行动色族」】
+ * --m-primary / deep / soft / on-primary / --m-hero / --m-ink-* / --m-band-blue /
+ * --m-blue* / --m-navy / --m-ava-*。
+ * 中性色（--m-bg / --m-canvas / --m-text* / --m-border）与语义色（green/red/amber）
+ * 一律不动 —— 红绿黄承载数据语义（涨跌、胜负、告警），换肤不许改语义。
+ *
+ * 【默认皮肤】
+ * 2026-11-02 起默认「海盐蓝」（ocean）。原来是「经典蓝」——它等于 :root 原值、
+ * 一行覆盖规则都没有，作为皮肤是空壳（色卡上还会显示得跟别的套一样），已移除；
+ * 老用户 localStorage 里的 "blue" 由 skin.js 的 isValid 判非法，自动落到默认。
+ * :root 本身仍是那套经典蓝，用作「skin.js 还没跑起来」那一瞬间的兜底。
+ *
+ * 【亮色 primary 为什么不压深（不给白字凑 4.5:1）】
+ * 试过按 AA 反算压深：暖阳橙 #E07B2A 要压到 #b26221 才达标，放到首页身份牌上整块发土，
+ * 完全不「暖阳」。背单词那边本身就是 primary + onPrimary=White 的用法，这里保持一致：
+ * 保色相与鲜艳度，需要更强对比只改一条 --m-primary 即可，不必动结构。
+ *
+ * 配色来源：背单词 app/src/main/java/com/example/vocab/ui/theme/ThemePalette.kt
+ * ============================================================ */
+
+/* 色卡预览用的「每套皮肤一对色」：定义在 :root，与当前选中哪套无关，
+   免得「我的」页在 JS 里另存一份十六进制（两份值迟早会漂）。 */
+:root {
+  --sk-rouge-1: #B02A4A;      --sk-rouge-2: #F0A6BD;
+  --sk-amber-1: #B3801F;    --sk-amber-2: #8A5B2A;
+  --sk-graphite-1: #45525C;--sk-graphite-2: #8FA3B0;
+  --sk-mint-1: #0E9F8A;      --sk-mint-2: #E8890C;
+  --sk-petrol-1: #0F5F66;    --sk-petrol-2: #7FD4DA;
+  --sk-ocean-1: #2E7DD1;    --sk-ocean-2: #0FA3A3;
+  --sk-ultramarine-1: #2E3A9E; --sk-ultramarine-2: #9AA3FF;
+  --sk-lavender-1: #7C6CF0;--sk-lavender-2: #B85C9E;
+  --sk-mulberry-1: #8E2F6E;  --sk-mulberry-2: #EFA0D0;
+}
+
+/* ---------- 胭脂（rouge）---------- */
+/* 红色系唯一一套。色相 346°，而语义红 --m-red(#b42318) 是 4° —— 隔了约 19° 且更偏紫，
+   同屏出现时不会把「主按钮」看成「危险操作」。再深的酒红就只剩明度差，容易误读。
+   亮色 primary 配白字对比 6.4:1（其余皮肤都在 7 以上，这套偏低但仍过 AA）。 */
+html[data-skin="rouge"] {
+  --m-primary: #B02A4A;
+  --m-primary-deep: #8C1F3A;
+  --m-primary-soft: #FBE7EC;
+  --m-on-primary: #ffffff;
+  --m-navy: #5C1030;
+  --m-hero: #B02A4A;
+  --m-ink-bg: #B02A4A;
+  --m-ink-chip-fg: #8C1F3A;
+  --m-band-blue: #FBE7EC;
+  --m-blue: #B02A4A;
+  --m-blue-soft: #FBE7EC;
+  --m-ava-1: #5C1030;
+  --m-ava-2: #7A1A38;
+  --m-ava-3: #B02A4A;
+  --m-ava-4: #961F3F;
+  --m-ava-5: #3F0A20;
+}
+html[data-theme="dark"][data-skin="rouge"] {
+  --m-primary: #F58CA8;
+  --m-primary-deep: #DE7692;
+  --m-primary-soft: #2A121C;
+  --m-on-primary: #4A0E22;
+  --m-navy: #2C0E1C;
+  --m-hero: #2C0E1C;
+  --m-ink-bg: #2C0E1C;
+  --m-ink-chip-fg: #2C0E1C;
+  --m-band-blue: #2A121C;
+  --m-blue: #F58CA8;
+  --m-blue-soft: #2A121C;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 薄荷青（mint）---------- */
+html[data-skin="mint"] {
+  --m-primary: #0E9F8A;
+  --m-primary-deep: #0b7c6c;
+  --m-primary-soft: #C9F3E7;
+  --m-on-primary: #ffffff;
+  --m-navy: #075348;
+  --m-hero: #0E9F8A;
+  --m-ink-bg: #0E9F8A;
+  --m-ink-chip-fg: #0b7c6c;
+  --m-band-blue: #C9F3E7;
+  --m-blue: #0E9F8A;
+  --m-blue-soft: #C9F3E7;
+  --m-ava-1: #06483e;
+  --m-ava-2: #0a7263;
+  --m-ava-3: #0E9F8A;
+  --m-ava-4: #0c6761;
+  --m-ava-5: #053830;
+}
+html[data-theme="dark"][data-skin="mint"] {
+  --m-primary: #8FE3CE;
+  --m-primary-deep: #7bc3b1;
+  --m-primary-soft: #0c2830;
+  --m-on-primary: #0B3B32;
+  --m-navy: #0c3035;
+  --m-hero: #0c3035;
+  --m-ink-bg: #0c3035;
+  --m-ink-chip-fg: #0c3035;
+  --m-band-blue: #0c2830;
+  --m-blue: #8FE3CE;
+  --m-blue-soft: #0c2830;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 海盐蓝（ocean）---------- */
+html[data-skin="ocean"] {
+  --m-primary: #2E7DD1;
+  --m-primary-deep: #2462a3;
+  --m-primary-soft: #D6E9FF;
+  --m-on-primary: #ffffff;
+  --m-navy: #18416d;
+  --m-hero: #2E7DD1;
+  --m-ink-bg: #2E7DD1;
+  --m-ink-chip-fg: #2462a3;
+  --m-band-blue: #D6E9FF;
+  --m-blue: #2E7DD1;
+  --m-blue-soft: #D6E9FF;
+  --m-ava-1: #15385e;
+  --m-ava-2: #215a96;
+  --m-ava-3: #2E7DD1;
+  --m-ava-4: #20528b;
+  --m-ava-5: #102c49;
+}
+html[data-theme="dark"][data-skin="ocean"] {
+  --m-primary: #9CC9FF;
+  --m-primary-deep: #86addb;
+  --m-primary-soft: #102846;
+  --m-on-primary: #0B3A66;
+  --m-navy: #122f52;
+  --m-hero: #122f52;
+  --m-ink-bg: #122f52;
+  --m-ink-chip-fg: #122f52;
+  --m-band-blue: #102846;
+  --m-blue: #9CC9FF;
+  --m-blue-soft: #102846;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 薰衣草紫（lavender）---------- */
+html[data-skin="lavender"] {
+  --m-primary: #7C6CF0;
+  --m-primary-deep: #6154bb;
+  --m-primary-soft: #E7E1FE;
+  --m-on-primary: #ffffff;
+  --m-navy: #40387d;
+  --m-hero: #7C6CF0;
+  --m-ink-bg: #7C6CF0;
+  --m-ink-chip-fg: #6154bb;
+  --m-band-blue: #E7E1FE;
+  --m-blue: #7C6CF0;
+  --m-blue-soft: #E7E1FE;
+  --m-ava-1: #38316c;
+  --m-ava-2: #594ead;
+  --m-ava-3: #7C6CF0;
+  --m-ava-4: #4e489e;
+  --m-ava-5: #2b2654;
+}
+html[data-theme="dark"][data-skin="lavender"] {
+  --m-primary: #C6BBFF;
+  --m-primary-deep: #aaa1db;
+  --m-primary-soft: #202148;
+  --m-on-primary: #2E2157;
+  --m-navy: #272654;
+  --m-hero: #272654;
+  --m-ink-bg: #272654;
+  --m-ink-chip-fg: #272654;
+  --m-band-blue: #202148;
+  --m-blue: #C6BBFF;
+  --m-blue-soft: #202148;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 石墨灰（graphite）---------- */
+html[data-skin="graphite"] {
+  --m-primary: #45525C;
+  --m-primary-deep: #364048;
+  --m-primary-soft: #DCE4EA;
+  --m-on-primary: #ffffff;
+  --m-navy: #242b30;
+  --m-hero: #45525C;
+  --m-ink-bg: #45525C;
+  --m-ink-chip-fg: #364048;
+  --m-band-blue: #DCE4EA;
+  --m-blue: #45525C;
+  --m-blue-soft: #DCE4EA;
+  --m-ava-1: #1f2529;
+  --m-ava-2: #323b42;
+  --m-ava-3: #45525C;
+  --m-ava-4: #2d3845;
+  --m-ava-5: #181d20;
+}
+html[data-theme="dark"][data-skin="graphite"] {
+  --m-primary: #BCC8D4;
+  --m-primary-deep: #a2acb6;
+  --m-primary-soft: #1d2839;
+  --m-on-primary: #101820;
+  --m-navy: #242f40;
+  --m-hero: #242f40;
+  --m-ink-bg: #242f40;
+  --m-ink-chip-fg: #242f40;
+  --m-band-blue: #1d2839;
+  --m-blue: #BCC8D4;
+  --m-blue-soft: #1d2839;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 琥珀金（amber）---------- */
+html[data-skin="amber"] {
+  --m-primary: #B3801F;
+  --m-primary-deep: #8c6418;
+  --m-primary-soft: #FBEBC7;
+  --m-on-primary: #ffffff;
+  --m-navy: #5d4310;
+  --m-hero: #B3801F;
+  --m-ink-bg: #B3801F;
+  --m-ink-chip-fg: #8c6418;
+  --m-band-blue: #FBEBC7;
+  --m-blue: #B3801F;
+  --m-blue-soft: #FBEBC7;
+  --m-ava-1: #513a0e;
+  --m-ava-2: #815c16;
+  --m-ava-3: #B3801F;
+  --m-ava-4: #6f5421;
+  --m-ava-5: #3f2d0b;
+}
+html[data-theme="dark"][data-skin="amber"] {
+  --m-primary: #E7BE72;
+  --m-primary-deep: #c7a362;
+  --m-primary-soft: #28241f;
+  --m-on-primary: #3A2605;
+  --m-navy: #322a1d;
+  --m-hero: #322a1d;
+  --m-ink-bg: #322a1d;
+  --m-ink-chip-fg: #322a1d;
+  --m-band-blue: #28241f;
+  --m-blue: #E7BE72;
+  --m-blue-soft: #28241f;
+  /* --m-ava-* 故意不覆盖：暗色头像仍是「深底 + 白字」，与换肤前一致。
+     html[data-skin] 与 html[data-theme] 特异性相同、本文件靠后 ⇒ 浅色块里的深底自然生效。 */
+}
+
+/* ---------- 群青（ultramarine）---------- */
+/* 蓝里压一缕紫：比海盐蓝( hue 210) 更深更冷(hue 233)，比薰衣草紫( hue 245 ) 更稳更暗，
+   三套蓝紫并排在色卡里也不会看成同一种。亮色白字对比 9.4:1。 */
+html[data-skin="ultramarine"] {
+  --m-primary: #2E3A9E;
+  --m-primary-deep: #232C7C;
+  --m-primary-soft: #E7E9F8;
+  --m-on-primary: #ffffff;
+  --m-navy: #1A1F5C;
+  --m-hero: #2E3A9E;
+  --m-ink-bg: #2E3A9E;
+  --m-ink-chip-fg: #232C7C;
+  --m-band-blue: #E7E9F8;
+  --m-blue: #2E3A9E;
+  --m-blue-soft: #E7E9F8;
+  --m-ava-1: #1A1F5C;
+  --m-ava-2: #232C7C;
+  --m-ava-3: #2E3A9E;
+  --m-ava-4: #272F72;
+  --m-ava-5: #151A4A;
+}
+html[data-theme="dark"][data-skin="ultramarine"] {
+  --m-primary: #9AA3FF;
+  --m-primary-deep: #7C86F0;
+  --m-primary-soft: #1A1B3A;
+  --m-on-primary: #161A4A;
+  --m-navy: #191E52;
+  --m-hero: #191E52;
+  --m-ink-bg: #191E52;
+  --m-ink-chip-fg: #191E52;
+  --m-band-blue: #1A1B3A;
+  --m-blue: #9AA3FF;
+  --m-blue-soft: #1A1B3A;
+}
+
+/* ---------- 莓紫（mulberry）---------- */
+/* 偏红的紫（hue 318）：薰衣草紫在 245、语义红在 4，它正好卡在两者之间但不与任一方混淆。
+   亮色白字对比 7.6:1。 */
+html[data-skin="mulberry"] {
+  --m-primary: #8E2F6E;
+  --m-primary-deep: #6E2055;
+  --m-primary-soft: #F7E6F0;
+  --m-on-primary: #ffffff;
+  --m-navy: #4E1240;
+  --m-hero: #8E2F6E;
+  --m-ink-bg: #8E2F6E;
+  --m-ink-chip-fg: #6E2055;
+  --m-band-blue: #F7E6F0;
+  --m-blue: #8E2F6E;
+  --m-blue-soft: #F7E6F0;
+  --m-ava-1: #4E1240;
+  --m-ava-2: #6E2055;
+  --m-ava-3: #8E2F6E;
+  --m-ava-4: #7A2660;
+  --m-ava-5: #3A0C2F;
+}
+html[data-theme="dark"][data-skin="mulberry"] {
+  --m-primary: #EFA0D0;
+  --m-primary-deep: #D682B7;
+  --m-primary-soft: #2A1224;
+  --m-on-primary: #3A0C2F;
+  --m-navy: #2A1224;
+  --m-hero: #2A1224;
+  --m-ink-bg: #2A1224;
+  --m-ink-chip-fg: #2A1224;
+  --m-band-blue: #2A1224;
+  --m-blue: #EFA0D0;
+  --m-blue-soft: #2A1224;
+}
+
+/* ---------- 深松（petrol）---------- */
+/* 很深的蓝绿（hue 186）：薄荷青在 174 且更亮，两者并排是「鲜青绿」对「沉青灰」；
+   hue 又离行动蓝(210)与语义绿(158)各有一段，夜里最不刺眼的一档。亮色白字对比 7.4:1。 */
+html[data-skin="petrol"] {
+  --m-primary: #0F5F66;
+  --m-primary-deep: #0A474D;
+  --m-primary-soft: #E3F1F2;
+  --m-on-primary: #ffffff;
+  --m-navy: #073A3E;
+  --m-hero: #0F5F66;
+  --m-ink-bg: #0F5F66;
+  --m-ink-chip-fg: #0A474D;
+  --m-band-blue: #E3F1F2;
+  --m-blue: #0F5F66;
+  --m-blue-soft: #E3F1F2;
+  --m-ava-1: #073A3E;
+  --m-ava-2: #0A474D;
+  --m-ava-3: #0F5F66;
+  --m-ava-4: #0C5257;
+  --m-ava-5: #052E31;
+}
+html[data-theme="dark"][data-skin="petrol"] {
+  --m-primary: #7FD4DA;
+  --m-primary-deep: #5FBDC4;
+  --m-primary-soft: #0C2529;
+  --m-on-primary: #062A2E;
+  --m-navy: #0E2E33;
+  --m-hero: #0E2E33;
+  --m-ink-bg: #0E2E33;
+  --m-ink-chip-fg: #0E2E33;
+  --m-band-blue: #0C2529;
+  --m-blue: #7FD4DA;
+  --m-blue-soft: #0C2529;
+}

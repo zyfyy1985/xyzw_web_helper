@@ -1,0 +1,4204 @@
+/* ============================================================
+ * 移动端 UI 设计语言 —— 依 src/mobile/DESIGN.md（SAP Analysis）重排
+ *
+ * 三条硬规则（取自 DESIGN.md 的 Do / Don't）：
+ *   1. 全站只有一个行动色 --m-primary；其余一律中性（ink 五级阶梯 + band 灰）。
+ *   2. 分隔靠「平带」——底色层次与全宽方角 band，不靠边框堆叠、不靠阴影。
+ *   3. 圆角封顶：控件 8px / 媒体与抽屉 12px / 内联小块 4px；整幅 region 一律 0；无药丸。
+ *
+ * 注意：--primary-color(#667eea) / --secondary-color(#764ba2) 属于桌面端主题
+ * （src/assets/styles/variables.scss），移动端不再引用，统一改用 --m-primary，
+ * 避免改动污染桌面端配色。
+ * ============================================================ */
+
+:root {
+  /* ---------- 表面 Surface ---------- */
+  /* 卡片按规范「无边框无阴影」，层次全靠底色差：页底取灰族里偏深的一档，
+     白卡才立得起来（#f5f6f7 与白卡的差在手机上几乎看不出来）。 */
+  --m-bg: #eff1f3;          /* chrome：应用框架底（一整个中性面） */
+  --m-canvas: #ffffff;      /* canvas：内容面 */
+  --m-card: #ffffff;        /* 卡片面（与 canvas 同值，靠底色差离开 chrome 底） */
+  --m-band: #eaecee;        /* band：最深中性带 */
+  --m-band-blue: #ebf8ff;   /* band-blue：高亮条 */
+  --m-band-lavender: #f7f4ff; /* band-lavender：更柔和的一档 */
+  --m-sky: #6bc0ff;
+
+  /* ---------- 文字（五级 ink 阶梯，色相随层级下沉） ---------- */
+  --m-text: #000000;        /* ink：各级标题，真黑 */
+  --m-text-lead: #3c3c3c;   /* ink-lead：导语 */
+  --m-text2: #223548;       /* ink-body：正文（slate，非灰） */
+  --m-text3: #475e75;       /* ink-meta：辅助 / 脚注，最安静的可用层 */
+  --m-text4: #545454;       /* ink-nav：导航灰（唯一纯中性灰，用来让 chrome 与内容分开） */
+
+  /* ---------- 线与边 ---------- */
+  --m-border: #d5dadd;      /* 结构性细线（表格行 / 卡内分隔） */
+  --m-hairline: #475e75;    /* 规范 hairline：outline button、强调分隔线 */
+
+  /* ---------- 行动色（唯一） ---------- */
+  --m-primary: #0057d2;
+  --m-primary-deep: #0040b0;
+  --m-primary-soft: #ebf8ff;
+  --m-on-primary: #ffffff;
+  /* ---------- 悬停 / 按压叠色 ----------
+     悬停不换色相、不位移，统一「在自身底色上叠一层墨色」：
+     白底 → 极浅灰、band 底 → 深一档、实心蓝 → 更深的蓝（不会被漂成灰）。
+     ★ 不能用蓝墨（rgba(0,87,210,…)）：叠在同一个 #0057d2 上算出来分毫不差，
+       实心蓝按钮等于没有反馈（第一版就是这么翻车的）。
+     ★ 8% 是 Material 的 hover 常量；14% 给按压，两档都只降明度、不动色相。 */
+  --m-veil: rgba(0, 0, 0, 0.08);
+  --m-veil-2: rgba(0, 0, 0, 0.14);
+  /* ★ Arco 组件到处写 rgb(var(--primary-N))，色阶必须是「R, G, B」三元组。
+     直接把 #hex 塞进 --primary-N 会让整条声明在 computed-value 阶段失效
+     ⇒ 悬停 / 按下 / focus 的背景变成 transparent，透出白卡（用户 11-01 报的「悬浮一片白」就是这个）。
+     所以三支主色各留一份三元组，--primary-1..9 全部指向它们。 */
+  --m-primary-rgb: 0, 87, 210;
+  --m-primary-deep-rgb: 0, 64, 176;
+  --m-primary-soft-rgb: 235, 248, 255;
+  /* 头像首字色：头像底色是「五档深色」（--m-ava-*），亮暗主题都不提亮，
+     所以字永远白 —— 单独一支变量，别跟着 --m-on-primary 在暗色下变成深色 */
+  --m-on-ava: #ffffff;
+  --m-navy: #022879;         /* DESIGN.md colors.navy：深蓝底 / 头像色板一档 */
+  /* hero band 专用：亮色跟行动蓝同色（首页只保留一支蓝，不再出现 deep/primary 两档）；暗色不能跟着 primary 提亮，
+     否则「深色主题里的身份卡」会变成一块浅蓝，破坏暗色氛围。 */
+  --m-hero: #0057d2;
+
+  /* ---------- 深色卡（首页身份牌） ----------
+     整张品牌蓝：底色承担「这是主卡」的角色，白底胶囊点出「本周活动」。
+     暗色主题下用同一支深蓝（--m-hero 档），才不会和普通卡片糊在一起。 */
+  --m-ink-bg: #0057d2;
+  --m-ink-line: rgba(255, 255, 255, 0.18);
+  --m-ink-t1: #ffffff;
+  --m-ink-t2: rgba(255, 255, 255, 0.72);
+  --m-ink-t3: rgba(255, 255, 255, 0.62);
+  --m-ink-chip-bg: #ffffff;
+  --m-ink-chip-fg: #0040b0;
+
+  /* ---------- 语义色（仅承载数据语义，不作装饰） ---------- */
+  --m-green: #067647;
+  --m-green-soft: #e7f4ee;
+  --m-red: #b42318;
+  --m-red-soft: #fdecea;
+  --m-amber: #b54708;
+  --m-amber-soft: #fcf1e3;
+  --m-blue: #0057d2;
+  --m-blue-soft: #ebf8ff;
+
+  /* ---------- 头像底色五档 ----------
+     不另起色相：同一支行动色的四个深度档，谁的名字长度 mod 4 落到哪档全凭长度。
+     抽成变量是为了让「主题换肤」能一起换（在此之前是 8 个文件里各写一遍十六进制）。 */
+  --m-ava-1: #022879;
+  --m-ava-2: #0040b0;
+  --m-ava-3: #0057d2;
+  --m-ava-4: #0d2c55;
+  --m-ava-5: #1b5299;
+
+  /* ---------- 深度：本体系无阴影，层次全部由平带承担 ---------- */
+  --m-shadow: none;
+
+  /* ---------- 圆角（DESIGN.md rounded 标尺） ---------- */
+  --m-r-sm: 4px;
+  --m-r-md: 8px;
+  --m-r-lg: 12px;
+
+  /* ---------- 间距（8px 基数） ---------- */
+  --m-sp-sm: 8px;
+  --m-sp-md: 12px;
+  --m-sp-lg: 16px;
+  --m-sp-xl: 20px;
+
+  --m-tabbar: #ffffff;
+}
+
+html[data-theme="dark"] {
+  /* 暗色锚在 navy(#022879) 上，保持同一套层级：底最深 → 卡片次之 → band 稍亮 */
+  --m-bg: #0a1223;
+  --m-canvas: #121c31;
+  --m-card: #121c31;
+  --m-band: #182238;
+  --m-band-blue: #10233a;
+  --m-band-lavender: #171c33;
+  --m-sky: #6bc0ff;
+
+  --m-text: #ffffff;
+  --m-text-lead: #dce6f2;
+  --m-text2: #c3d3e4;
+  --m-text3: #8ea6c0;
+  --m-text4: #9aa8b5;
+
+  --m-border: #24314a;
+  --m-hairline: #6b8aa8;
+
+  --m-primary: #6bc0ff;
+  --m-primary-deep: #4a9eff;
+  --m-primary-soft: #0f2740;
+  --m-on-primary: #04203f;
+  /* 暗色下反过来「提亮一档」：亮底提亮、深底提亮，方向与亮色相反但规则同一条 */
+  --m-veil: rgba(255, 255, 255, 0.12);
+  --m-veil-2: rgba(255, 255, 255, 0.20);
+  /* 三元组跟着暗色主色走（Arco 的 rgb(var(--primary-N)) 要用） */
+  --m-primary-rgb: 107, 192, 255;
+  --m-primary-deep-rgb: 74, 158, 255;
+  --m-primary-soft-rgb: 15, 39, 64;
+  --m-on-ava: #ffffff;       /* 见 :root 注释：头像底色不随暗色提亮，字保持白 */
+  --m-navy: #0d2c55;         /* 暗色下 navy 收到 ink-bg 的深蓝，别再摆 #022879 那种近黑 */
+
+  --m-green: #4ad18e;
+  --m-green-soft: rgba(74, 209, 142, 0.14);
+  --m-red: #ff8a80;
+  --m-red-soft: rgba(255, 138, 128, 0.14);
+  --m-amber: #ffb757;
+  --m-amber-soft: rgba(255, 183, 87, 0.14);
+  --m-blue: #6bc0ff;
+  --m-blue-soft: rgba(107, 192, 255, 0.14);
+
+  /* 暗色下头像仍是深底 —— 明度体系不跟着 theme 提亮（提亮后会变成一排发光色块）；
+     但底色深了，字必须是白的，不能继续吃 --m-on-primary(#04203f，深底深字等于看不见) */
+  --m-ava-1: #022879;
+  --m-ava-2: #0040b0;
+  --m-ava-3: #0057d2;
+  --m-ava-4: #0d2c55;
+  --m-ava-5: #1b5299;
+
+  /* 暗色下 hero band 保持深蓝，只比卡片略深一档，白字始终可读 */
+  --m-hero: #0d2c55;
+
+  /* 暗色下同色系取深一档的蓝（= --m-hero），与 #121c31 的普通卡片区分开 */
+  --m-ink-bg: #0d2c55;
+  --m-ink-line: rgba(255, 255, 255, 0.15);
+  --m-ink-t1: #ffffff;
+  --m-ink-t2: rgba(255, 255, 255, 0.72);
+  --m-ink-t3: rgba(255, 255, 255, 0.58);
+  --m-ink-chip-bg: #ffffff;
+  --m-ink-chip-fg: #0d2c55;
+
+  --m-shadow: none;
+  --m-tabbar: #121c31;
+}
+
+/* ---------- 手机壳 ---------- */
+.mobile-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--m-bg);
+  color: var(--m-text2);
+  font-family: inherit;
+  overflow: hidden;
+}
+
+/* ---------- 顶部状态/导航栏（chrome 条：canvas 白 + band 本色定界，无边框感） ----------
+ * iOS standalone（添加到主屏幕 + black-translucent）：状态栏透明叠在页面上，
+ * 必须让出刘海区，否则时间/电量盖住账号名；普通 Safari 里 env() 为 0，无影响。
+ *
+ * 版式（2026-10-29 重做，方案 C「头像即状态」）：
+ *   原来账号是灰胶囊、状态是绿胶囊、主题是灰方块 —— 三块圆角/高度/底色各不相同，
+ *   一排三个"药丸"互相打架。现在整条只留一块深蓝（头像），
+ *   连接状态缩成头像右下角一颗 10px 圆点，右侧只留主题图标。 */
+.m-appbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  padding-top: calc(9px + env(safe-area-inset-top));
+  background: var(--m-card);
+  border-bottom: 1px solid var(--m-band);
+  position: relative;
+  z-index: 20;
+}
+.m-appbar .m-acct {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--m-text);
+  font-family: inherit;
+  min-width: 0;
+  margin-right: auto;
+}
+.m-appbar .m-acct .m-ava {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--m-r-sm);
+  background: var(--m-primary);
+  color: var(--m-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+}
+/* 顶栏第二行的连接状态（方案 C，2026-11-02）：
+   绿=已连接 / 琥珀=连接中 / 红=未连接 —— 颜色 + 文字双编码，
+   原来那颗 6px 圆点只能靠颜色猜，且和「已连接」三个字重复，已移除。
+   注意暗色必须 !important：App.vue 里 html[data-theme=dark] span{color:#fff!important}
+   是 (0,1,2)+important，这里的 (0,3,0) 也压不过它（踩过一次）。 */
+.m-appbar .m-acct .m-ws-st { font-weight: 500; }
+.m-appbar .m-acct .m-ws-st.on { color: var(--m-green); }
+.m-appbar .m-acct .m-ws-st.busy { color: var(--m-amber); }
+.m-appbar .m-acct .m-ws-st.off { color: var(--m-red); }
+
+/* 右侧三态图标（方案 B）：同一个 32px 槽位 ——
+   已连接=绿链环 / 连接中=琥珀转圈（disabled）/ 未连接=灰断链 + 琥珀角点。
+   三种状态都点开抽屉，所以图标只表达状态、不表达动作，不会出现「同一个图标点下去结果不一样」。 */
+.m-appbar .m-iconbtn.on { color: var(--m-green); }
+.m-appbar .m-iconbtn.off { color: var(--m-text3); }
+.m-appbar .m-iconbtn.busy { color: var(--m-amber); cursor: default; }
+.m-appbar .m-iconbtn.busy:active { background: none; }
+/* 连接中的转圈：16px 环 + 只在顶部留一段琥珀弧，跟 17px 的链环差不多大，切换不跳尺寸 */
+.m-appbar .m-arc {
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--m-band);
+  border-top-color: var(--m-amber);
+  animation: m-spin 0.9s linear infinite;
+}
+/* 未连接时右上角的琥珀角点：图标本身是灰的，靠这颗点表达「这里需要你处理」 */
+.m-appbar .m-badot {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--m-amber);
+}
+@keyframes m-spin {
+  to { transform: rotate(360deg); }
+}
+
+html[data-theme="dark"] .m-appbar .m-acct .m-nm { color: var(--m-text) !important; }
+html[data-theme="dark"] .m-appbar .m-acct .m-sv { color: var(--m-text3) !important; }
+html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.on { color: var(--m-green) !important; }
+html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.busy { color: var(--m-amber) !important; }
+html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !important; }
+/* 左侧两行：名字在上、「服务器 · 连接状态」在下（方案 C）。
+   单行版把两者并排时，右侧状态块一占就得从名字里扣 30~60px，
+   长账号名直接被省略号砍成两三个字；分两行后名字独占一行，谁都不抢谁的宽度。 */
+.m-appbar .m-acct .m-acct-txt {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  text-align: left;
+}
+.m-appbar .m-acct .m-nm {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.m-appbar .m-acct .m-sv {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--m-text3);
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 无底图标按钮：点击区 32×32（够点），但不画一块灰方块 */
+.m-appbar .m-iconbtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--m-r-md);
+  border: none;
+  background: none;
+  color: var(--m-text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+  position: relative;
+}
+.m-appbar .m-iconbtn:active { background: var(--m-bg); }
+
+/* ---------- 滚动区 ---------- */
+.m-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.m-scroll::-webkit-scrollbar { display: none; }
+.m-page {
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* 面板根容器：已嵌在 .m-page 内，只保留纵向堆叠，不再叠加内边距
+   （否则与 .m-page 双重 16px，卡片比首页窄一圈） */
+.m-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- 底部 Tab（同属 chrome 条） ---------- */
+.m-tabbar {
+  flex: none;
+  display: flex;
+  background: var(--m-tabbar);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--m-band);
+  padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+  position: relative;
+  z-index: 20;
+}
+.m-tabbar button {
+  flex: 1;
+  border: none;
+  background: none;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--m-text4);
+  cursor: pointer;
+  padding: 4px 0;
+  border-radius: var(--m-r-md);
+  position: relative;
+}
+.m-tabbar button.on { color: var(--m-primary); font-weight: 500; }
+.m-tabbar button svg { width: 22px; height: 22px; }
+
+/* ---------- 卡片：canvas 白面，无边框、无阴影，只靠底色差立起来 ---------- */
+.m-card {
+  background: var(--m-card);
+  border: none;
+  border-radius: var(--m-r-md);
+  padding: 14px 16px;
+  box-shadow: none;
+}
+.m-card-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+/* 表头标题与操作控件统一 22px 行盒，保证文字/按钮真正平齐（不高不低） */
+.m-card-h .m-t { line-height: 22px; }
+.m-card-h .m-link { line-height: 22px; display: inline-flex; align-items: center; }
+.m-card-h .m-more { line-height: 22px; display: inline-flex; align-items: center; }
+.m-card-h .m-t {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--m-text);
+  flex: 1;
+  min-width: 0;
+}
+.m-card-h .m-more { font-size: 11.5px; font-weight: 400; color: var(--m-text3); }
+.m-link {
+  color: var(--m-primary);
+  font-size: 13px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.m-link.ok {
+  color: var(--m-green);
+  background: var(--m-green-soft);
+  padding: 3px 8px;
+  border-radius: var(--m-r-sm);
+  font-size: 11px;
+}
+.m-btn {
+  border: none;
+  border-radius: var(--m-r-md);
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.12s;
+}
+/* 按压反馈统一走文件末尾的全局 veil，这里不再单独降透明度（两套反馈叠起来比 Arco 那边深） */
+.m-btn[disabled] { opacity: 0.4; pointer-events: none; }
+.m-btn-p {
+  background: var(--m-primary);
+  color: var(--m-on-primary);
+  font-size: 14px;
+  padding: 12px 14px;
+  min-height: 44px;
+}
+/* ★ 暗色下实心主按钮的字色会被 App.vue 的 html[data-theme="dark"] *{color:#fff}（0,1,1）
+   压掉 —— 上面这条 .m-btn-p 只有 (0,1,0)。结果就是「浅蓝底 + 白字」，对比度不到 2:1
+   （暗色 --m-primary 是 #6bc0ff，--m-on-primary 是 #04203f，本来就该深字）。
+   双类 + !important 才能压过那条通配规则，别再逐个页面打补丁。 */
+html[data-theme="dark"] .m-btn.m-btn-p {
+  color: var(--m-on-primary) !important;
+}
+/* outline 按钮：canvas 底 + hairline 描边 + 深蓝字（规范 button-outline） */
+.m-btn-g {
+  background: var(--m-card);
+  color: var(--m-primary-deep);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid var(--m-hairline);
+}
+.m-btn-gr { background: var(--m-green-soft); color: var(--m-green); font-size: 13px; padding: 9px 12px; }
+.m-btn-block { width: 100%; }
+.m-hint { font-size: 11px; color: var(--m-text3); line-height: 1.6; }
+
+/* ---------- 分段控件：选中态用唯一行动蓝实填，不再是渐变药丸 ---------- */
+.m-seg {
+  display: flex;
+  gap: 4px;
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-r-md);
+  padding: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.m-seg::-webkit-scrollbar { display: none; }
+.m-seg button {
+  flex: 1 0 auto;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--m-text2);
+  padding: 8px 12px;
+  border-radius: var(--m-r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.m-seg button.on {
+  background: var(--m-primary);
+  color: var(--m-on-primary);
+  font-weight: 500;
+}
+
+/* ---------- 身份卡（实色 hero band，规范 hero-band = primary-deep）
+   底与字都用固定值：暗色下 hero 仍是深蓝 + 白字，不跟随 --m-on-primary 翻转 ---------- */
+.m-idc {
+  background: var(--m-hero);
+  border-radius: var(--m-r-lg);
+  padding: 16px;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+.m-idc .m-row1 { display: flex; gap: 12px; align-items: center; position: relative; z-index: 1; }
+.m-idc .m-ava {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--m-r-md);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  flex: none;
+}
+.m-idc .m-nm { font-size: 18px; font-weight: 500; line-height: 1.2; display: flex; align-items: center; gap: 6px; }
+.m-idc .m-rk {
+  font-size: 10.5px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  padding: 2px 7px;
+  border-radius: var(--m-r-sm);
+  font-weight: 500;
+}
+.m-idc .m-st { font-size: 12.5px; opacity: 0.85; margin-top: 3px; }
+.m-idc .m-res { display: flex; gap: 14px; margin-top: 12px; position: relative; z-index: 1; }
+.m-idc .m-res > div { font-size: 11.5px; opacity: 0.9; min-width: 0; }
+.m-idc .m-res b { display: block; font-size: 15px; font-weight: 700; margin-top: 1px; }
+
+/* ---------- 快捷操作格 ---------- */
+.m-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.m-qa {
+  background: var(--m-card);
+  border: none;
+  border-radius: var(--m-r-md);
+  padding: 12px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  box-shadow: none;
+  font-family: inherit;
+}
+.m-qa:active { background: var(--m-band); }
+.m-qa .m-ib {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--m-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--m-on-primary);
+}
+.m-qa .m-lb { font-size: 12px; font-weight: 400; line-height: 1.3; color: var(--m-text2); }
+.m-qa .m-gear {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: none;
+  background: var(--m-bg);
+  color: var(--m-text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.m-qa .m-gear svg { width: 13px; height: 13px; }
+
+/* ---------- 进度条（方头细条，取消药丸与渐变） ---------- */
+.m-pbar { height: 6px; border-radius: var(--m-r-sm); background: var(--m-band); overflow: hidden; }
+.m-pbar > i {
+  display: block;
+  height: 100%;
+  border-radius: var(--m-r-sm);
+  background: var(--m-primary);
+  transition: width 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.m-pbar-wrap { display: flex; align-items: center; gap: 10px; }
+.m-pbar-wrap .m-pbar { flex: 1; }
+.m-pbar-wrap .m-pct { font-size: 12.5px; font-weight: 700; color: var(--m-text2); min-width: 38px; text-align: right; }
+.m-csub { font-size: 12px; color: var(--m-text3); margin-bottom: 9px; line-height: 1.5; }
+
+/* ---------- 开关（控件圆角 8，不做药丸；旋钮 4） ---------- */
+.m-sw {
+  width: 42px;
+  height: 24px;
+  flex: none;
+  padding: 3px;
+  border: none;
+  border-radius: var(--m-r-md);
+  background: var(--m-band);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.m-sw > i {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-card);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+.m-sw.on { background: var(--m-primary); }
+.m-sw.on > i { transform: translateX(18px); background: var(--m-on-primary); }
+
+/* ---------- 子页页头（标题 + 副标题）：如 /mobile/schedule ----------
+ * 2026-10-29：按用户要求去掉了所有子页左上角的返回箭头 ——
+ * 底部 tabbar 一直在，回上一级直接点 tab 就行，那个悬浮方块反而占了一行高度。 */
+.m-pgbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* 子页没有 .m-appbar 顶栏，状态栏直接叠在内容上 ⇒ 同样让出刘海区（standalone 下生效） */
+  margin-top: env(safe-area-inset-top);
+}
+/* 只有按钮、没有标题的页头（如 /mobile/tokens 的「添加」）：靠右对齐 */
+.m-pgbar--right {
+  justify-content: flex-end;
+}
+.m-pgbar-t {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--m-text);
+}
+.m-pgbar-s {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--m-text3);
+  margin-top: 2px;
+}
+
+/* ---------- 列表行 ---------- */
+.m-trow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-trow:last-child { border-bottom: none; }
+.m-trow .m-ib {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--m-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  overflow: hidden;
+  color: var(--m-on-primary);
+}
+/* 头像 <img> 必须显式定性尺寸：只给容器 36px、不给 img 时图片按原图渲染（营地对战流水实拍过超大图） */
+.m-trow .m-ib img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--m-r-md); display: block; }
+/* 账号抽屉里的头像：统一一支行动色，与顶栏 .m-ava 同色。
+   原先按「名字长度 % 4」取 --m-ava-1..4 —— 那条规则没有含义，三字名（如「小小鱼」）
+   正好落到近黑的 ava-4，在一列蓝块里独一份，看着像 bug（Token 管理页早已统一，这里漏改）。
+   账号之间要区分靠右侧「当前」标签和名字，不靠头像底色。 */
+.m-trow .m-ib.m-ib--ava { background: var(--m-primary); }
+/* 图标尺寸 + 颜色：颜色必须显式给「底块的前景色」而不是让它继承 --
+   App.vue 有 html[data-theme="dark"] *{color:#fff}（(0,1,0)），比继承更强，暗色下 icon 一律被刷白；
+   而暗色里 --m-primary-deep 是浅色（图标底座），白图标压浅底只有 2:1 左右，看着发灰。
+   这里用 (0,2,1) 压过那次 * 命中。 */
+.m-trow .m-ib svg { width: 17px; height: 17px; color: var(--m-on-primary); }
+/* 带头像的图标块（.m-ib.m-mava）：底色是深色五档，字固定白。
+   两条规则特异性同为 (0,2,0)，靠「在后面」胜出 —— 别改成 .m-mava 单类，会被上面那条压掉。 */
+.m-ib.m-mava { color: var(--m-on-ava); }
+/* 名字 / 描述两行：必须显式 column —— 默认 row 会让「堂堂」和「击杀 23 · 复活 14」挤成一行 */
+.m-trow .m-body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.m-trow .m-nm {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--m-text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m-trow .m-ds { font-size: 11px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
+.m-trow .m-rt { flex: none; display: flex; align-items: center; gap: 6px; }
+.m-tag {
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 2px 7px;
+  border-radius: var(--m-r-sm);
+  white-space: nowrap;
+}
+.m-tag.done { color: var(--m-green); background: var(--m-green-soft); }
+.m-tag.wait { color: var(--m-amber); background: var(--m-amber-soft); }
+.m-tag.run { color: var(--m-blue); background: var(--m-blue-soft); }
+.m-tag.err { color: var(--m-red); background: var(--m-red-soft); }
+.m-tag.job { color: var(--m-primary); background: var(--m-primary-soft); }
+
+/* ---------- 日期选择触发钮（盐场 / 蟠桃共用，点了弹 DateCalendarSheet） ---------- */
+.m-dtag {
+  border: 1px solid var(--m-blue);
+  background: var(--m-blue-soft);
+  color: var(--m-blue);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--m-r-sm);
+  padding: 7px 16px;
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+/* ---------- KV 行 ---------- */
+.m-kv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--m-border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.m-kv:last-child { border-bottom: none; }
+.m-kv .m-k { color: var(--m-text3); flex: none; }
+.m-kv .m-v { font-weight: 500; color: var(--m-text2); text-align: right; min-width: 0; word-break: break-all; }
+
+/* ---------- 抽屉（Bottom Sheet）：ex-modal-card = rounded.lg ---------- */
+.m-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 18, 35, 0.45);
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.m-mask.on { opacity: 1; pointer-events: auto; }
+.m-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--m-card);
+  border-radius: var(--m-r-lg) var(--m-r-lg) 0 0;
+  z-index: 41;
+  transform: translateY(105%);
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
+  padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
+  max-height: 82%;
+  overflow-y: auto;
+}
+.m-sheet.on { transform: translateY(0); }
+.m-sheet .m-grab {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--m-border);
+  margin: 4px auto 12px;
+}
+.m-sheet h4 { margin: 0 0 2px; font-size: 18px; font-weight: 500; line-height: 1.2; color: var(--m-text); }
+.m-sheet .m-sh-sub { font-size: 12px; line-height: 1.5; color: var(--m-text3); margin-bottom: 12px; }
+
+/* ---------- 长文抽屉（隐私政策 / 用户协议） ----------
+ * 与普通抽屉的差别只有一条：标题、页脚固定，只有正文滚。
+ * 一份政策 11 章、三千字以上，跟着整抽屉滚的话滑到中段既看不见自己在读哪一份、
+ * 也够不到底部的关闭按钮。做法是把 .m-sheet 改成 flex 列 + overflow:hidden，
+ * 滚动下放给 .m-legal-body（flex:1 + min-height:0 —— 少了 min-height:0，flex 子项不肯
+ * 缩到内容高度以下，正文会把抽屉撑破、页脚被挤出屏幕）。
+ * ★ 类名是 .m-legal 而不是 .m-lg：本项目之外有人（工具类样式）定义了 `.m-lg { margin: 18px }`，
+ *   实测给一个空 div 挂上 m-lg 就带上 18px 上下外边距 ⇒ 抽屉整体被顶高 18px，
+ *   底部露出 18px 没被盖住的遮罩。以后加类名前先量一遍 computedStyle 再上。
+ */
+.m-sheet.m-legal {
+  display: flex;
+  flex-direction: column;
+  max-height: 88%;
+  overflow: hidden;
+  /* margin 显式归零：抽屉靠 bottom:0 贴底，任何外边距都会把它抬离底边 */
+  margin: 0;
+  padding: 8px 0 0;
+}
+.m-legal-hd {
+  flex: none;
+  padding: 0 16px 10px;
+  border-bottom: 1px solid var(--m-band);
+}
+.m-legal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 16px 14px;
+}
+.m-legal-ft {
+  flex: none;
+  padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--m-band);
+}
+
+/* 正文三档灰全部按 token 上色，并且**带祖先限定**：
+   App.vue 有 `html[data-theme="dark"] p/span/div/h5 { color:#fff !important }`（0,1,2），
+   !important 对 !important 时比的是特异性 —— 单类选择器 (0,1,0) 打不过它，实测暗色下
+   标题/正文/元信息全被刷成纯白、层级全丢。限定成 .m-sheet.m-legal（0,3,0）才压得住。
+   浅色主题下取值与基础规则一致，等于没写。 */
+.m-sheet.m-legal .m-legal-tt {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--m-text) !important;
+}
+.m-sheet.m-legal .m-legal-meta {
+  margin-top: 3px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--m-text3) !important;
+}
+.m-sheet.m-legal .m-legal-intro {
+  margin: 0 0 4px;
+  font-size: 13px;
+  line-height: 1.72;
+  color: var(--m-text2) !important;
+}
+.m-legal-sec { margin-top: 16px; }
+.m-sheet.m-legal .m-legal-h {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--m-text) !important;
+}
+.m-sheet.m-legal .m-legal-p {
+  margin: 0 0 7px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--m-text2) !important;
+}
+.m-legal-p:last-child { margin-bottom: 0; }
+.m-legal-ul {
+  margin: 0 0 7px;
+  padding: 0;
+  list-style: none;
+}
+.m-sheet.m-legal .m-legal-li {
+  position: relative;
+  margin-bottom: 7px;
+  padding-left: 13px;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--m-text2) !important;
+}
+.m-legal-li:last-child { margin-bottom: 0; }
+/* 条目圆点用 ::before 而不是 list-style:disc：disc 的位置随字号/字体漂，
+   暗色下还是个实心白点，比正文本身还显眼 */
+.m-legal-li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--m-text3);
+}
+/* 抽屉右上角关闭按钮 */
+/* 抽屉右上角的圆圈 ✕ 已全站去掉（用户 10-30 反馈）：三个抽屉（全部资产 / 成员信息 /
+   武将详情）都点遮罩即可关闭，多这一颗只是多一个圆形控件。类名一并删掉，别再复活。 */
+
+/* ---------- Toast（ex-toast：rounded.md，扁平深底） ---------- */
+.m-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(2, 22, 52, 0.92);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 10px 16px;
+  border-radius: var(--m-r-md);
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  max-width: 82%;
+  text-align: center;
+}
+.m-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- 空态（ex-empty-state-card：rounded.lg + 大留白） ---------- */
+.m-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--m-text3);
+}
+.m-empty .m-logo { font-size: 40px; margin-bottom: 12px; }
+.m-empty h3 { margin: 0 0 6px; font-size: 15px; font-weight: 500; color: var(--m-text); }
+.m-empty p { margin: 0 0 16px; font-size: 13px; line-height: 1.6; }
+
+/* ---------- 卡片操作区（刷新 / 导出图片） ---------- */
+.m-acts { display: flex; align-items: center; gap: 6px; flex: none; }
+.m-act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 22px;
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--m-text2);
+  background: var(--m-bg);
+  border: none;
+  border-radius: var(--m-r-sm);
+  padding: 0 8px;
+  cursor: pointer;
+  flex: none;
+  transition: opacity 0.12s;
+}
+.m-act:active { opacity: 0.65; }
+.m-act[disabled] { opacity: 0.4; pointer-events: none; }
+.m-act svg { width: 12px; height: 12px; flex: none; }
+.m-act-i {
+  color: var(--m-primary-deep);
+  background: var(--m-primary-soft);
+}
+
+/* ---------- 名次徽章（金 / 银 / 铜 / 靠后，规则照抄旧版战绩表）
+   配色改为「band 淡底 + ink 字」，不再用金属渐变（规范禁第二强调色与渐变装饰） ---------- */
+.m-medal {
+  min-width: 30px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: var(--m-r-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--m-text3);
+  background: var(--m-band);
+  border: none;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.m-medal.g1 { background: #fdf3d6; color: #7c4a03; }
+.m-medal.g2 { background: #eef1f5; color: #475e75; }
+.m-medal.g3 { background: #f7ebdf; color: #6b3f10; }
+.m-medal.low { background: var(--m-red-soft); color: var(--m-red); }
+html[data-theme="dark"] .m-medal.g1 { background: rgba(253, 243, 214, 0.16); color: #ffd77a; }
+html[data-theme="dark"] .m-medal.g2 { background: rgba(224, 232, 240, 0.14); color: #c9d6e5; }
+html[data-theme="dark"] .m-medal.g3 { background: rgba(215, 160, 100, 0.18); color: #e5b083; }
+
+/* ---------- 俱乐部概览：头部 / Boss 击杀 / 公告 ---------- */
+.m-card-h .m-body { flex: 1; min-width: 0; }
+/* tag 组在卡片头里必须可让步：营地日程 tag、逐鹿 5 个 tag 都会把右侧按钮挤到卡外
+   （.m-acts 是 flex:none，所以只能让 tag 侧 min-width:0 + 内部折行） */
+.m-card-h .m-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; flex: 1 1 auto; min-width: 0; }
+.m-clogo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--m-r-md);
+  flex: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--m-bg);
+  border: none;
+}
+.m-clogo img { width: 100%; height: 100%; object-fit: cover; }
+.m-clogo span { font-size: 16px; font-weight: 500; color: var(--m-primary); }
+.m-clogo-s { width: 22px; height: 22px; border-radius: var(--m-r-sm); }
+.m-clogo-s span { font-size: 10px; }
+
+/* ---------- 统计格（对齐旧版 n-statistic 四项：战力/红淬/当前Boss/Boss血量）
+   卡内分块 = band 灰块，无边框；这是「平带分层」而非「卡片套卡片」 ---------- */
+.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+/* 2 列网格里奇数个子项会留一个空格：让最后一项占满整行，横向排列，避免"瘸一条腿" */
+.m-stats > .m-stat:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.m-stats > .m-stat:last-child:nth-child(odd) .m-stat-k { margin-bottom: 0; }
+.m-stat {
+  background: var(--m-bg);
+  border: none;
+  border-radius: var(--m-r-md);
+  padding: 10px 12px;
+  min-width: 0;
+}
+.m-stat-k { display: block; font-size: 11px; line-height: 1.3; color: var(--m-text3); font-weight: 400; margin-bottom: 4px; }
+/* 明细行：主值放不下时（如「77.5% (100胜/123刀)」）把括号里的细节降级到第二行，避免被 ellipsis 吃掉 */
+.m-stat-d { display: block; font-size: 11px; line-height: 1.4; color: var(--m-text3); font-weight: 400; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-stat-v {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--m-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m-boss-sum { font-size: 13px; color: var(--m-text3); display: flex; align-items: baseline; gap: 4px; }
+.m-boss-sum b { font-size: 17px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
+.m-boss-miss { margin-left: 12px; }
+.m-boss-miss b { color: var(--m-red); }
+.m-boss-toggle {
+  margin-top: 10px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--m-primary);
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.m-boss-toggle i { font-style: normal; font-size: 10px; }
+.m-boss-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.m-boss-chip {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--m-red);
+  background: var(--m-red-soft);
+  border-radius: var(--m-r-sm);
+  padding: 3px 7px;
+  font-variant-numeric: tabular-nums;
+}
+.m-anno { margin: 0; font-size: 13px; line-height: 1.6; color: var(--m-text2); white-space: pre-wrap; word-break: break-all; }
+
+/* ---------- 成员行（宽松两行结构 + 实色阵容 chip） ---------- */
+.m-mrow { padding: 12px 0; align-items: flex-start; }
+.m-mrow .m-mava { width: 44px; height: 44px; border-radius: var(--m-r-md); }
+.m-mrow .m-mava img { width: 44px; height: 44px; border-radius: var(--m-r-md); object-fit: cover; }
+.m-lu {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--m-r-sm);
+  padding: 3px 8px;
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+
+/* ---------- 怪异塔 ---------- */
+.m-widx {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--m-r-sm);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--m-text3);
+  background: var(--m-bg);
+  border: none;
+  font-variant-numeric: tabular-nums;
+}
+/* 层数用行动蓝的淡带，不再引入紫色作第二强调色 */
+.m-floor {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--m-primary-deep);
+  background: var(--m-primary-soft);
+  border-radius: var(--m-r-sm);
+  padding: 4px 10px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-primary-soft); }
+
+/* ---------- 桌面窄化容器（PC 上居中显手机宽度） ---------- */
+@media (min-width: 760px) {
+  .mobile-shell {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 430px;
+    border-left: 1px solid var(--m-border);
+    border-right: 1px solid var(--m-border);
+  }
+}
+
+/* ---------- 简表（历史战绩 / 蟠桃战神榜 / 怪异塔共用）
+   表头 caption 400 + 行分隔 hairline，照 ex-data-table-cell ---------- */
+.m-thead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--m-border);
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--m-text3);
+  letter-spacing: 0;
+}
+.m-thead .m-th { flex: 1; min-width: 0; }
+.m-thead .m-th-r { text-align: right; }
+.m-thead .m-th-c { text-align: center; }
+/* 四列简表：序号 26px / 头像 40px / 内容自适应 / 末列 Natural */
+.m-thead-w .m-th:nth-child(1) { flex: 0 0 26px; }
+.m-thead-w .m-th:nth-child(2) { flex: 0 0 40px; }
+.m-thead-w .m-th:last-child { flex: none; }
+
+.m-hrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-hrow:last-child { border-bottom: none; }
+.m-hrow .m-htype {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--m-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.m-hrow .m-hdate {
+  flex: none;
+  font-size: 11.5px;
+  color: var(--m-text3);
+  font-variant-numeric: tabular-nums;
+}
+
+.m-wrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-wrow:last-child { border-bottom: none; }
+.m-wrow .m-body { flex: 1; min-width: 0; }
+.m-wrow .m-nm {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--m-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.m-wrow .m-ds { display: block; font-size: 11px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
+.m-wrow .m-ib,
+.m-wrow .m-mava {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--m-r-md);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--m-on-primary);
+}
+.m-wrow .m-ib img,
+.m-wrow .m-mava img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- 入口分组卡（玩法 / 工具共用） ----------
+   2026-11-02 改版：原来是 3 列宫格、一格一张白卡 + 42px 图标 + 两字名，
+   13 / 7 个入口平铺下来一片同款白块，用户反馈「太单调」。改为：
+   一组一张卡（卡头：组名 + N 项），组内两列磁贴（28px 图标 + 标题 + 一行副标题），
+   磁贴之间用 1px --m-band 连成网格；奇数项最后一项横跨两列，不留半个空格。
+   两页共用这一套，别再各自抄一份。 */
+.m-glist {
+  background: var(--m-card);
+  border-radius: var(--m-r-md);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.m-glist:last-child { margin-bottom: 0; }
+.m-glist-h {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 11px 14px 5px;
+}
+.m-glist-t { font-size: 13px; font-weight: 500; color: var(--m-text); line-height: 1.3; }
+.m-glist-n { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+
+.m-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.m-tile {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 12px; min-width: 0;
+  background: transparent; border: none; border-radius: 0;
+  font-family: inherit; text-align: left; cursor: pointer;
+  transition: background 0.12s;
+}
+/* 网格线只按序号画：第 2 行起一条横线，偶数列一条竖线。
+   横跨两列的宽格序号必为奇数，天然只吃到横线，不会多出一条竖线。 */
+.m-tile:nth-child(n + 3) { border-top: 1px solid var(--m-band); }
+.m-tile:nth-child(2n) { border-left: 1px solid var(--m-band); }
+.m-tile--wide { grid-column: span 2; }
+/* 悬停 / 按压不在本类里写：它是 <button>，全站统一那条 veil 规则已经覆盖
+   （自己再写 :active 会和 veil 叠两层底色）。 */
+.m-tile-ic {
+  width: 28px; height: 28px; flex: none; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  /* 淡蓝底 + 一层同色淡环：--m-primary-soft(#ebf8ff) 贴在白卡上几乎看不出来（实测对比度≈1.05），
+     加 16% 主色描边才立得住；不用阴影（规范禁），暗色下 --m-primary-soft 是深蓝底，同样成立 */
+  background: var(--m-primary-soft);
+  box-sizing: border-box;
+  border: 1px solid rgba(var(--m-primary-rgb), 0.16);
+  color: var(--m-primary);
+}
+.m-tile-tx { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.m-tile-nm {
+  font-size: 13px; font-weight: 500; color: var(--m-text2); line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.m-tile-sub {
+  /* 10.5 而不是 11：11 号下 11 个汉字是 121px，而 390 的磁贴只有 118px 可用，会被省略号切字。
+     副标题里的分隔用「·」（中点，约半个字宽）而不是「、」，12 个字的「爬塔·使用道具·合成道具」
+     也只要 115px，单行放得下 —— 换来所有磁贴等高、不会出现某一行被折行顶高。 */
+  font-size: 10.5px; color: var(--m-text3); line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ★ 暗色必须带祖先限定 **且加 !important**：
+   App.vue 里有 `html[data-theme="dark"] span,div,h2..{color:#fff !important}`（0,1,1 + !important），
+   上面这些单类规则是 (0,1,0)，实测标题/副标题/图标全被刷成 #fff，层级全丢。
+   不带 !important 的 (0,2,1) 也压不过它 —— 这里只能跟它硬碰，用同一把武器。 */
+html[data-theme="dark"] .m-glist-t { color: var(--m-text) !important; }
+html[data-theme="dark"] .m-glist-n { color: var(--m-text3) !important; }
+html[data-theme="dark"] .m-tile-nm { color: var(--m-text2) !important; }
+html[data-theme="dark"] .m-tile-sub { color: var(--m-text3) !important; }
+html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
+
+@media (max-width: 359px) {
+  .m-glist-h { padding: 10px 12px 4px; }
+  .m-tile { padding: 9px 10px; gap: 8px; }
+  .m-tile-ic { width: 26px; height: 26px; }
+  .m-tile-nm { font-size: 12.5px; }
+  .m-tile-sub { font-size: 10.5px; }
+}
+
+/* ---------- 信息卡片流（盐场/蟠桃/营地共用） ----------
+   照抄旧版移动端卡片视图：GameStatus.vue 盐场卡片段（salt-cards）+
+   CampChallenge member-cards + PeachBattleRecords/PeachInfo salt-cards。
+   网格变体：--1row 一行等宽平分 / --2 两列（默认）/ --4 四列。 */
+.m-scards { display: flex; flex-direction: column; gap: 10px; }
+/* 分组头（联盟组 / 敌我组） */
+.m-grprow {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: var(--m-r-sm);
+  background: var(--m-band); border: none;
+}
+.m-grprow:first-child { margin-top: 0; }
+.m-grp-t { font-size: 12px; font-weight: 500; color: var(--m-text2); }
+/* 卡片本体：band 灰底，描边取分组色（--tab-solid，未设置时不描边） */
+.m-scard {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--tab-solid, transparent);
+  border-radius: var(--m-r-md);
+  background: var(--m-bg);
+}
+/* 名字行：排名/头像/名字同行，附加元素靠右 */
+.m-scard-head {
+  display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: nowrap;
+}
+.m-scard-rank {
+  flex: none; min-width: 26px; height: 22px; padding: 0 6px; border-radius: var(--m-r-sm);
+  background: var(--m-card); color: var(--m-text3);
+  font-size: 12px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.m-scard-ava {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; border: none;
+}
+.m-scard-ava--ph {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: var(--m-on-primary);
+  background: var(--m-primary-deep);
+}
+.m-scard-name {
+  flex: 0 1 auto; min-width: 0; font-size: 14px; font-weight: 500; color: var(--m-text2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 名字 + ID 两行（长昵称不再把 ID / 职务挤成一小截）。
+   俱乐部成员、蟠桃敌方成员共用；此前只存在于 ClubPanel scoped 里。 */
+.m-mname { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.m-mname-t {
+  font-size: 13.5px; font-weight: 500; color: var(--m-text2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.m-mid {
+  font-size: 10.5px; color: var(--m-text3); line-height: 1.2;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+/* 整行字段（标签 + 值） */
+.m-scard-line {
+  display: flex; align-items: baseline; justify-content: flex-start; gap: 8px; min-width: 0;
+}
+.m-scard-line .m-scard-label { flex: none; white-space: nowrap; }
+.m-scard-line .m-scard-val { flex: 1 1 auto; min-width: 0; font-size: 12.5px; font-weight: 400; text-align: left; }
+/* 字段网格 */
+.m-scard-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px;
+}
+.m-scard-grid--1row {
+  grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+}
+.m-scard-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.m-scard-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.m-scard-label { font-size: 11px; line-height: 1.3; color: var(--m-text3); font-weight: 400; }
+.m-scard-val { font-size: 13px; font-weight: 500; color: var(--m-text2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+/* 数值配色（照抄 GameStatus ⑧ + CampChallenge 数值色）
+   语义色统一收敛到 --m-* 一套，不再散落 #ff4d4f / #10b981 / #6366f1 等自配色 */
+.m-scard-val.is-kill { color: var(--m-red); font-weight: 700; }
+.m-scard-val.is-death { color: var(--m-text3); }
+.m-scard-val.is-occupy { color: var(--m-amber); }
+.m-scard-val.is-revive { color: var(--m-green); }
+.m-scard-val.is-power { color: var(--m-amber); }
+.m-scard-val.is-red { color: var(--m-red); font-weight: 700; }
+.m-scard-val.is-score { color: var(--m-primary); font-weight: 700; }
+.m-scard-val.is-muted,
+.m-scard-val.is-zero { color: var(--m-text3); }
+.m-scard-val.is-win,
+.m-scard-val.is-gain { color: var(--m-green); }
+.m-scard-val.is-warn { color: var(--m-amber); }
+/* 底部操作行 */
+.m-scard-foot { display: flex; justify-content: flex-end; gap: 6px; }
+/* 逐日展开（本月战绩，照抄旧版 ⑩ salt-card__dates） */
+.m-scard-dates { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 8px; margin-top: 2px; border-top: 1px solid var(--m-border); }
+.m-scard-date-row { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.m-scard-date-label { flex: none; min-width: 44px; font-size: 11px; font-weight: 500; color: var(--m-text3); }
+.m-scard-date-val { flex: 1 1 auto; min-width: 0; font-size: 11.5px; color: var(--m-text2); overflow-wrap: anywhere; }
+/* 英雄/车头行 */
+.m-scard-heros { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.m-scard-hero {
+  display: flex; align-items: center; gap: 6px; min-width: 0;
+  padding: 6px; border: none; border-radius: var(--m-r-sm);
+  background: var(--m-card);
+}
+.m-scard-hava {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; border: none;
+}
+.m-scard-hava--ph {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: var(--m-on-primary);
+  background: var(--m-primary-deep);
+}
+.m-scard-hname {
+  flex: 1 1 auto; min-width: 0; font-size: 12px; font-weight: 500; color: var(--m-text2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.m-scard-beast {
+  flex: none; padding: 1px 5px; border-radius: var(--m-r-sm);
+  font-size: 10px; font-weight: 500; color: #ffffff;
+  background: var(--m-red); white-space: nowrap;
+}
+.m-scard-hmeta {
+  flex: none; display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--m-text3); white-space: nowrap;
+}
+.m-scard-lineup { padding: 0 4px; border-radius: var(--m-r-sm); font-style: normal; font-size: 10px; font-weight: 500; }
+.m-scard-hred { color: var(--m-red); font-weight: 700; }
+
+/* ---------- chip 行 / 右侧阵容位 / 数字输入 ---------- */
+.m-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-rtc { flex: none; display: flex; align-items: center; }
+.m-finput {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--m-hairline);
+  border-radius: var(--m-r-md);
+  background: var(--m-card);
+  color: var(--m-text2);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.m-finput:focus { outline: none; border-color: var(--m-primary); box-shadow: 0 0 0 2px var(--m-primary-soft); }
+
+/* ============================================================
+ * 登录 / 注册（/mobile/login、/mobile/register）
+ * 这两页不套 MobileLayout（没有顶栏和 tabbar），自己撑一个 .mobile-shell，
+ * 所以 PC 上同样是 430px 居中窄壳，与壳内页面视觉连续。
+ * 表单沿用 .m-card + .m-finput + .m-btn-p，不引入第二套输入控件外观。
+ * ============================================================ */
+.m-auth-main {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+}
+/* 用 auto 外边距居中，而不是给父级 justify-content:center ——
+   注册页在小屏上比视口高，flex 居中会让顶部内容滚不回来（负 free space 时 auto 边距归 0） */
+.m-auth-wrap {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-auth-head { text-align: center; padding: 4px 0 6px; }
+.m-auth-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--m-r-lg);
+  background: var(--m-primary-deep);
+  color: var(--m-on-primary);
+}
+.m-auth-mark svg { width: 30px; height: 30px; }
+.m-auth-title {
+  margin: 12px 0 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--m-text);
+}
+.m-auth-sub { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--m-text3); }
+
+.m-auth-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.m-auth-f { display: flex; flex-direction: column; gap: 5px; }
+.m-auth-lb { font-size: 11.5px; line-height: 1.4; color: var(--m-text3); }
+/* iOS 上 input 字号 < 16px 聚焦会把整页放大，登录/注册是纯输入页，统一抬到 16px */
+.m-auth .m-finput { font-size: 16px; padding: 11px 12px; min-height: 44px; }
+
+.m-auth-err { margin: 0; font-size: 12px; line-height: 1.5; color: var(--m-red); }
+.m-auth-ok {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: var(--m-r-md);
+  background: var(--m-green-soft);
+  color: var(--m-green);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.m-auth-alt {
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--m-text3);
+}
+.m-auth-alt .m-link { font-size: 12.5px; margin-left: 2px; }
+
+/* 同意条款：自绘复选框，避让 Naive checkbox 的内联配色（暗色下要单独压字色） */
+.m-auth-agree {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+.m-auth-agree > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.m-auth-box {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1px solid var(--m-hairline);
+  border-radius: var(--m-r-sm);
+  background: var(--m-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.m-auth-box svg { width: 12px; height: 12px; color: var(--m-on-primary); opacity: 0; }
+.m-auth-agree > input:checked + .m-auth-box {
+  background: var(--m-primary);
+  border-color: var(--m-primary);
+}
+.m-auth-agree > input:checked + .m-auth-box svg { opacity: 1; }
+.m-auth-agree > input:focus-visible + .m-auth-box {
+  box-shadow: inset 0 0 0 2px var(--m-primary-soft);
+}
+.m-auth-agree-t { font-size: 11.5px; line-height: 1.5; color: var(--m-text3); }
+/* 《用户协议》《隐私政策》两个词是能点开全文的按钮，但长相必须是「句子里的链接」：
+   没有内边距、没有底色、只有下划线。挂 .m-veil-off 退出全站悬停叠色 ——
+   叠色是给矩形控件用的，落在句子中间就是一块灰方块。 */
+.m-auth-doc {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--m-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  -webkit-appearance: none;
+}
+
+/* App.vue 的两条全局暗色规则会把这里的观感打平：
+     · `html[data-theme="dark"] span/p/div/label { color:#fff !important }` —— 覆盖一切文字色
+     · `html[data-theme="dark"] * { color:#fff }`                          —— 压掉 .m-btn-p 的 on-primary
+   登录/注册是纯文字页，层级全靠 ink 五档的颜色差；被压成同一片白就散了，
+   主按钮还会变成「白字压浅蓝」（对比度约 1.8:1）。这里逐条按 token 用 !important 拉回来。
+   只限 .m-auth；浅色主题下取值与基础规则完全一致，等于没改。
+   （全局同类按钮/文字也有这毛病，但那是全站观感问题，要改另算一笔。） */
+.m-auth.m-auth .m-auth-sub,
+.m-auth.m-auth .m-auth-lb,
+.m-auth.m-auth .m-auth-alt,
+.m-auth.m-auth .m-hint,
+.m-auth.m-auth .m-auth-agree-t { color: var(--m-text3) !important; }
+
+.m-auth.m-auth .m-auth-err { color: var(--m-red) !important; }
+.m-auth.m-auth .m-auth-ok { color: var(--m-green) !important; }
+.m-auth.m-auth .m-link { color: var(--m-primary) !important; }
+.m-auth.m-auth .m-auth-doc { color: var(--m-primary) !important; }
+.m-auth.m-auth .m-btn-p,
+.m-auth.m-auth .m-auth-mark,
+.m-auth.m-auth .m-auth-box svg { color: var(--m-on-primary) !important; }
+
+/* ============================================================
+ * 桌面组件托管（.m-desk）
+ * 移动端复用桌面组件时（工具 tab、玩法里的塔/活动/榜单等），外面套一层 .m-desk：
+ *   ① 把桌面自定义变量重映射到 --m-* token —— CSS 变量会继承，子树自动换色
+ *   ② 把 MyCard / .status-card 的桌面壳（投影、hover 抬升、药丸徽章）压平成移动端卡片
+ *   ③ Naive / Arco 控件尺寸与配色收口（只留一个行动蓝）
+ * 桌面端不会命中：桌面没有 .m-desk 容器。
+ * 选择器重复写 .m-desk.m-desk 抬特异性，压过组件自带的 scoped 样式
+ * （scoped 编译成 .status-card[data-v-x]，起始就是 0,2,0）。
+ * ============================================================ */
+.m-desk {
+  /* 表面 */
+  --bg-primary: var(--m-card);
+  --bg-secondary: var(--m-bg);
+  --bg-tertiary: var(--m-bg);
+  --bg-overlay: var(--m-card);
+
+  /* 文字（五级 ink） */
+  --text-primary: var(--m-text);
+  --text-secondary: var(--m-text2);
+  --text-tertiary: var(--m-text3);
+  --text-disabled: var(--m-text3);
+  --text-color: var(--m-text2);
+
+  /* 线 */
+  --border-light: var(--m-border);
+  --border-medium: var(--m-border);
+  --border-dark: var(--m-border);
+
+  /* 行动色 + 语义色 */
+  --primary-color: var(--m-primary);
+  --primary-color-hover: var(--m-primary-deep);
+  --primary-color-light: var(--m-primary-soft);
+  --secondary-color: var(--m-primary-deep);
+  --success-color: var(--m-green);
+  --warning-color: var(--m-amber);
+  --error-color: var(--m-red);
+  --info-color: var(--m-primary);
+
+  /* 圆角：规范只留 4 / 8 / 12；桌面的 full 药丸归到 4 */
+  --border-radius-small: var(--m-r-sm);
+  --border-radius-medium: var(--m-r-md);
+  --border-radius-large: var(--m-r-lg);
+  --border-radius-xl: var(--m-r-md);
+  --border-radius-full: var(--m-r-sm);
+
+  /* 深度：本体系无阴影 */
+  --shadow-light: none;
+  --shadow-medium: none;
+  --shadow-heavy: none;
+
+  /* 间距（8px 基数，比桌面收紧一档） */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 14px;
+  --spacing-xl: 16px;
+
+  /* 字号：桌面 md=16 在手机上过大，整体下移一档 */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 15px;
+  --font-size-xl: 17px;
+
+  /* 字重：规范阶梯 350/400/500/700，去掉 600 */
+  --font-weight-light: 350;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+
+  /* Arco 用自己的 --primary-1..9 色阶，不吃项目变量，单独对齐行动蓝 */
+  --primary-1: var(--m-primary-soft-rgb);
+  --primary-2: var(--m-primary-soft-rgb);
+  --primary-3: var(--m-primary-rgb);
+  --primary-4: var(--m-primary-rgb);
+  --primary-5: var(--m-primary-rgb);
+  --primary-6: var(--m-primary-rgb);
+  --primary-7: var(--m-primary-deep-rgb);
+  --primary-8: var(--m-primary-deep-rgb);
+  --primary-9: var(--m-primary-deep-rgb);
+
+  /* 兄弟卡片之间的纵向节奏 */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- 卡片壳：去边框去投影，圆角 8 ---------- */
+.m-desk.m-desk .status-card {
+  background: var(--m-card);
+  border-radius: var(--m-r-md);
+  padding: 14px 16px;
+  box-shadow: none;
+  min-height: 0;
+  transform: none;
+  transition: none;
+}
+/* 桌面有 hover 抬升，手机没有 hover，直接钉死 */
+.m-desk.m-desk .status-card:hover {
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------- 卡头：图标 + 标题 + 状态徽章 ---------- */
+.m-desk.m-desk .card-header {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+/* 两种写法都要接：MyCard 用 .status-title，塔 / 切磋那几个手写卡头用 .status-info */
+.m-desk.m-desk .card-header .status-title,
+.m-desk.m-desk .card-header .status-info {
+  min-width: 0;
+}
+.m-desk.m-desk .card-header .status-icon,
+.m-desk.m-desk .card-header .status-icon > img {
+  width: 26px;
+  height: 26px;
+}
+.m-desk.m-desk .card-header .status-title h3,
+.m-desk.m-desk .card-header .status-info h3 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--m-text);
+  margin: 0;
+}
+.m-desk.m-desk .card-header .status-title p,
+.m-desk.m-desk .card-header .status-info p {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--m-text3);
+  margin: 2px 0 0;
+}
+/* 状态徽章：药丸 → 4px 方块。
+ * MyCard 靠 --bg-color / --font-color 给徽章上色，但这两个变量只有传了 status-class 才赋值；
+ * 没传的（工具类卡片）读出来是空值，所以必须给兜底，不能写死。
+ * 颜色本身要留着：活动卡片的「每周任务 / 已完成 / 剩余 N 天」是数据语义，不能一律拍成灰块。 */
+.m-desk.m-desk .status-badge {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: var(--m-r-sm);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  background: var(--m-band);
+  color: var(--m-text3);
+}
+/* 传了 status-class 的卡片保留语义色（每周任务 / 已完成 / 能量）。
+ * 不能无条件写 background: var(--bg-color) —— --bg-color 同时是 App.vue 的全局表面色
+ * （亮色 #fff），没传 status-class 的徽章会变成「白底白卡」，只剩字浮着。
+ * 而 .weekly/.active/.energy/.completed 这几个类是 MyCard 自己挂在徽章上的，可以据此区分。 */
+.m-desk.m-desk .status-badge.weekly,
+.m-desk.m-desk .status-badge.active,
+.m-desk.m-desk .status-badge.energy,
+.m-desk.m-desk .status-badge.completed {
+  background: var(--bg-color);
+  color: var(--font-color);
+}
+.m-desk.m-desk .status-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--m-text4);
+}
+
+/* ---------- 卡身 / 卡底 ---------- */
+.m-desk.m-desk .card-content {
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--m-text2);
+}
+.m-desk.m-desk .card-content h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--m-text);
+}
+.m-desk.m-desk .card-action {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* 卡片内动作按钮：40 → 36 → 32px。
+   桌面卡片里的「一键补差 / 领取奖励 / 加钟 / 重启服务」是全宽实心块，40px 高 + 500 字重
+   在 390px 宽的卡里显得又厚又重（视觉上一整条蓝压着内容）。36 仍偏厚，再收一档到 32：
+   移动端正文 13px、这类按钮只是卡片的附属动作，不该有按钮的「体积感」。
+   32px 配合 12px 左右的内边距仍是好点的目标（高度不足部分由 gap 里的留白补偿）。 */
+.m-desk.m-desk .card-action > button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: var(--m-r-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---------- 横向排布的行：窄屏一律允许换行 ---------- */
+.m-desk.m-desk .toolbar,
+.m-desk.m-desk .team-selector {
+  flex-wrap: wrap;
+}
+
+/* ---------- 「label + 控件 + 状态」横排：改纵向堆叠 ----------
+ * 390px 下这些兄弟节点互相抢宽度，结果是 label 竖排成三行、控件塌成 0 宽（下拉框整个消失）。 */
+.m-desk.m-desk .settings {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.m-desk.m-desk .settings > .label,
+.m-desk.m-desk .setting-item > .label {
+  flex: none;
+  white-space: nowrap;
+}
+/* 行内「label + 控件」保持同一行，控件吃掉剩余宽度 */
+.m-desk.m-desk .setting-item {
+  width: 100%;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+.m-desk.m-desk .settings .n-select {
+  width: 100%;
+  min-width: 0;
+}
+.m-desk.m-desk .setting-item .n-input-number {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+
+/* ---------- Arco 按钮 ---------- */
+.m-desk .arco-btn {
+  border-radius: var(--m-r-md);
+  font-weight: 500;
+  font-size: 13px;
+}
+.m-desk .arco-btn-size-small {
+  height: 28px;
+  padding: 0 10px;
+}
+.m-desk .arco-btn-size-medium {
+  height: 32px;
+  padding: 0 12px;
+}
+.m-desk .arco-btn-primary {
+  background: var(--m-primary);
+  border-color: var(--m-primary);
+  color: var(--m-on-primary);
+}
+/* 悬停 / 按压：底色钉死在 --m-primary，加深交给文件末尾那条全局 veil。
+ * 原先是这里改成 --m-primary-deep，可 `.m-btn-p` / `.action-button.primary` / 页面
+ * `:deep()` 刷蓝的按钮都走不到这条 ⇒ 同为实心蓝，悬停深浅却不一样。
+ * 现在只有键盘聚焦（focus-visible）还保留一档深色，那是可访问性必需，不算悬停。 */
+.m-desk .arco-btn-primary:not(.arco-btn-disabled):hover {
+  background: var(--m-primary);
+  border-color: var(--m-primary);
+  color: var(--m-on-primary);
+}
+.m-desk .arco-btn-primary:not(.arco-btn-disabled):focus-visible {
+  background: var(--m-primary-deep);
+  border-color: var(--m-primary-deep);
+  color: var(--m-on-primary);
+}
+/* 桌面卡片自带的 secondary / outline 按钮：底色原本读 --bg-color（未定义 ⇒ transparent），
+   在手机上是「一颗看不见的按钮」，统一收成 band 灰块。
+   ★ 这里只给「静止态」兜底，不写 :hover —— 原先是 `.card-action > button:not(.arco-btn-primary):hover`
+     改成 --m-border，可它认不出页面自己刷成蓝色的 `.action-button.primary`（那不是 Arco 类名），
+     结果「领取奖励」一悬停就从蓝变灰、字色还被改成墨色。悬停统一交给文件末尾那条全局规则。 */
+.m-desk.m-desk .card-action > button:not(.arco-btn-primary):not(.arco-btn-disabled) {
+  background: var(--m-band);
+  color: var(--m-text);
+}
+/* 禁用态：Arco 默认读 --color-primary-light-3（= rgb(var(--primary-3))）。
+ * ★★ 必须写成 .m-desk.m-desk（0,4,0）：
+ *    Arco 自己的选择器是 `.arco-btn-primary[type="button"].arco-btn-disabled`（0,3,0），
+ *    单写 .m-desk .arco-btn-primary.arco-btn-disabled 也是 0,3,0 —— 打平只能靠加载顺序决胜，
+ *    arco.css 与本文件的先后会随引入顺序变，规则会静默失效。
+ *    另外 --primary-3 在本体系里映射到 --m-primary-rgb（三级色阶没有浅色档），
+ *    Arco 那条算出来的颜色和可用态一模一样，所以只能自己接管。 */
+.m-desk.m-desk .arco-btn.arco-btn-disabled,
+.m-desk.m-desk .arco-btn-primary.arco-btn-disabled {
+  background: var(--m-band);
+  border-color: transparent;
+  color: var(--m-text3);
+}
+
+/* ---------- Naive 卡片 ----------
+ * 桌面默认圆角 3px + 一层浅投影，放进本体系就是「和卡片不是一个模子」。
+ * 只收圆角与投影，不动内边距（各页自己按需收）。 */
+.m-desk .n-card {
+  border-radius: var(--m-r-md);
+  background: var(--m-card);
+  box-shadow: none;
+}
+
+/* ---------- Naive 按钮：success / info / primary 全部归到唯一行动蓝 ----------
+ * 页面里这些按钮表达的是「动作」，不是「成功 / 提示」状态；DESIGN.md 不允许第二强调色。
+ * warning / error 保留语义色：停止、删除要能一眼认出来。
+ * ★ 必须 !important：Naive 把 --n-color 写成**内联** style，普通声明再具体也赢不过内联。
+ * ★ 光改变量不够：App.vue 有一条 html[data-theme="dark"] .n-button { color:#fff !important }
+ *   压的是 color，暗色下行动蓝是浅蓝 + 白字看不清，得再显式写一次 color。 */
+.m-desk .n-button.n-button--primary-type,
+.m-desk .n-button.n-button--success-type,
+.m-desk .n-button.n-button--info-type {
+  --n-color: var(--m-primary) !important;
+  --n-color-hover: var(--m-primary-deep) !important;
+  --n-color-pressed: var(--m-primary-deep) !important;
+  --n-color-focus: var(--m-primary-deep) !important;
+  --n-border: 1px solid var(--m-primary) !important;
+  --n-border-hover: 1px solid var(--m-primary-deep) !important;
+  --n-border-pressed: 1px solid var(--m-primary-deep) !important;
+  --n-border-focus: 1px solid var(--m-primary-deep) !important;
+  --n-text-color: var(--m-on-primary) !important;
+  --n-text-color-hover: var(--m-on-primary) !important;
+  --n-text-color-pressed: var(--m-on-primary) !important;
+  --n-text-color-focus: var(--m-on-primary) !important;
+  color: var(--m-on-primary) !important;
+}
+.m-desk .n-button:not(.n-button--text-type) {
+  border-radius: var(--m-r-md);
+  font-weight: 500;
+  min-height: 34px;
+}
+.m-desk .n-button--tiny-type:not(.n-button--text-type) {
+  min-height: 30px;
+}
+
+/* ---------- Naive 禁用态：必须单独收口 ----------
+ * Naive 的 disabled 底色是从 type 色派生出来的（primary→淡绿、error→淡粉），
+ * 一行里三个按钮全禁用时页面会变成绿+粉，与「一个行动色」直接打架。
+ * 更麻烦的是上面那条 color:!important 会把禁用的字也压成白色 —— 浅底白字基本看不见。
+ * 用 .m-desk.m-desk 抬到 (0,4,0) 保证压过上面 3 个类的那两条。 */
+.m-desk.m-desk .n-button[disabled] {
+  --n-color: var(--m-band) !important;
+  --n-color-disabled: var(--m-band) !important;
+  --n-border: 1px solid transparent !important;
+  --n-border-disabled: 1px solid transparent !important;
+  --n-text-color: var(--m-text3) !important;
+  --n-text-color-disabled: var(--m-text3) !important;
+  color: var(--m-text3) !important;
+}
+body.m-mobile .n-button[disabled] {
+  --n-color: var(--m-band) !important;
+  --n-color-disabled: var(--m-band) !important;
+  --n-border: 1px solid transparent !important;
+  --n-border-disabled: 1px solid transparent !important;
+  --n-text-color: var(--m-text3) !important;
+  --n-text-color-disabled: var(--m-text3) !important;
+  color: var(--m-text3) !important;
+}
+
+/* ---------- Naive 开关 / 复选框：选中色也吃主题 primary（默认是绿）----------
+ * 这两个变量的值由 naive 自己的 CSS 规则写入（不是内联 style），
+ * 但为了不被后来注入的样式盖掉，仍然显式 !important。 */
+.m-desk .n-switch,
+body.m-mobile .n-switch {
+  --n-rail-color-active: var(--m-primary) !important;
+  --n-loading-color: var(--m-primary) !important;
+}
+.m-desk .n-checkbox,
+body.m-mobile .n-checkbox {
+  --n-color-checked: var(--m-primary) !important;
+  --n-border-checked: 1px solid var(--m-primary) !important;
+  --n-box-shadow-focus: inset 0 0 0 2px var(--m-primary-soft) !important;
+}
+/* Naive 表单控件尺寸交给 CSS 变量，别覆盖 --n-height（那是组件内部变量，改了高度会塌成 0） */
+.m-desk .n-select {
+  min-width: 0;
+}
+
+/* ============================================================
+ * 移动端弹窗层（body.m-mobile）
+ * 桌面组件里的 n-modal / a-modal 全部 teleport 到 body，.m-desk 的变量和 scoped 样式都够不到，
+ * 于是弹窗会以桌面尺寸（700 / 900px 宽、600px 高）盖在手机上。
+ * 靠 MobileLayout 在挂载时给 body 加 .m-mobile、卸载时摘掉来限域，桌面端永不命中。
+ * ============================================================ */
+/* 弹窗宽度的唯一基准是「手机壳」，不是浏览器视口。
+   PC 上壳被收成 430px 居中（见 .mobile-shell 的 ≥760px 规则），而 vw 是相对整个窗口、
+   组件内联的 width:90% 更是相对 body，所以桌面窗口里弹窗会横跨 1800px。
+   这里把壳宽提成变量，弹窗统一按它换算，组件内联宽度由 !important 压掉。 */
+body.m-mobile {
+  --m-shell-w: 100vw;
+  --m-modal-w: calc(var(--m-shell-w) - 24px); /* card：容器左右各 12px 内边距 */
+  --m-dialog-w: calc(var(--m-shell-w) - 40px); /* dialog：比 card 再窄一档，观感同原 88vw */
+}
+@media (min-width: 760px) {
+  body.m-mobile {
+    --m-shell-w: 430px; /* 必须与 .mobile-shell 的桌面宽度保持一致 */
+  }
+}
+
+body.m-mobile .n-modal-container {
+  padding: 12px;
+}
+/* 弹窗也要吃到同一套 token 重映射（body 子树里没有 .m-desk 容器） */
+body.m-mobile .n-card.n-modal,
+body.m-mobile .n-dialog,
+body.m-mobile .arco-modal {
+  --bg-primary: var(--m-card);
+  --bg-secondary: var(--m-bg);
+  --bg-tertiary: var(--m-bg);
+  --text-primary: var(--m-text);
+  --text-secondary: var(--m-text2);
+  --text-tertiary: var(--m-text3);
+  --border-light: var(--m-border);
+  --primary-color: var(--m-primary);
+  --primary-color-hover: var(--m-primary-deep);
+  --primary-color-light: var(--m-primary-soft);
+  --border-radius-small: var(--m-r-sm);
+  --border-radius-medium: var(--m-r-md);
+  --border-radius-large: var(--m-r-lg);
+  --border-radius-full: var(--m-r-sm);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 14px;
+  --spacing-xl: 16px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 15px;
+  --primary-1: var(--m-primary-soft-rgb);
+  --primary-2: var(--m-primary-soft-rgb);
+  --primary-3: var(--m-primary-rgb);
+  --primary-4: var(--m-primary-rgb);
+  --primary-5: var(--m-primary-rgb);
+  --primary-6: var(--m-primary-rgb);
+  --primary-7: var(--m-primary-deep-rgb);
+  --primary-8: var(--m-primary-deep-rgb);
+  --primary-9: var(--m-primary-deep-rgb);
+}
+
+/* Naive preset="card" */
+body.m-mobile .n-card.n-modal {
+  width: var(--m-modal-w) !important;
+  max-width: var(--m-modal-w) !important;
+  min-width: 0 !important;
+  border-radius: var(--m-r-lg) !important;
+  font-size: 13px;
+  line-height: 1.5;
+}
+body.m-mobile .n-card.n-modal > .n-card-header {
+  padding: 14px 14px 10px;
+}
+body.m-mobile .n-card.n-modal > .n-card-header .n-card-header__main {
+  font-size: 15px;
+  font-weight: 700;
+}
+body.m-mobile .n-card.n-modal > .n-card__content {
+  padding: 0 14px 14px;
+}
+body.m-mobile .n-card.n-modal > .n-card__footer {
+  padding: 0 14px 14px;
+}
+/* 桌面为 700px 弹窗写的双列设置栅格（n-grid :cols=2），在 406px 下会挤成「三字一行」，
+   压成单列；任务清单那种纯勾选的双列不动（它们不是 .settings-content 的直接子级）。 */
+body.m-mobile .n-card.n-modal .settings-content > .n-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  row-gap: 12px !important;
+}
+
+/* Naive preset="dialog" */
+body.m-mobile .n-dialog {
+  width: var(--m-dialog-w) !important;
+  max-width: var(--m-dialog-w) !important;
+  min-width: 0 !important;
+  border-radius: var(--m-r-lg) !important;
+}
+body.m-mobile .n-dialog .n-dialog__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+body.m-mobile .n-dialog .n-dialog__content {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 动作区：两个键同宽贴底。Naive 默认右对齐、宽度随文案走，手机上左边白占一大块，
+   危险键还只有拇指一半宽 —— 删除这种不可逆动作不该比「取消」更难按。 */
+body.m-mobile .n-dialog .n-dialog__action {
+  display: flex;
+  gap: 8px;
+}
+body.m-mobile .n-dialog .n-dialog__action > .n-button {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+}
+/* 危险动作：Naive 自带的 error 色跟站内 --m-red 不是一套，暗色下还会发闷。
+   统一走 token —— 亮色实心红 + 白字，暗色自动变成浅红底 + 深字（和主按钮同一套读法）。 */
+body.m-mobile .n-dialog .n-dialog__action .n-button--error-type {
+  --n-color: var(--m-red) !important;
+  --n-color-hover: var(--m-red) !important;
+  --n-color-pressed: var(--m-red) !important;
+  --n-color-focus: var(--m-red) !important;
+  --n-text-color: var(--m-on-primary) !important;
+  --n-text-color-hover: var(--m-on-primary) !important;
+  --n-text-color-pressed: var(--m-on-primary) !important;
+  --n-text-color-focus: var(--m-on-primary) !important;
+  --n-border: 1px solid var(--m-red) !important;
+  --n-border-hover: 1px solid var(--m-red) !important;
+  --n-border-pressed: 1px solid var(--m-red) !important;
+}
+/* ★ 文字实际挂在 .n-button__content 这个 span 上，App.vue 的
+   html[data-theme=dark] span{color:#fff!important} 会把上面那串 --n-text-color 全压掉
+   ⇒ 暗色下变成「浅红底 + 白字」（对比不到 2:1）。必须直接打到 span 上。 */
+body.m-mobile .n-dialog .n-dialog__action .n-button--error-type .n-button__content {
+  color: var(--m-on-primary) !important;
+}
+
+/* Arco 弹窗：桌面常写死 width 900 / height 600（<a-modal width="900px" height="600px">），
+   宽度按壳宽收口，高度交回容器滚动 */
+body.m-mobile .arco-modal {
+  width: var(--m-modal-w) !important;
+  max-width: var(--m-modal-w) !important;
+  height: auto !important;
+  max-height: 82vh;
+  border-radius: var(--m-r-lg);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 1.5;
+}
+body.m-mobile .arco-modal-wrapper {
+  padding: 12px;
+}
+/* Arco 默认 top:100px + margin auto，手机上会把弹窗顶到偏下，压成与 Naive 一致的 12px 间距 */
+body.m-mobile .arco-modal {
+  top: 0 !important;
+  margin: 0 auto !important;
+}
+
+/* 遮罩同样只盖住手机壳：PC 上把 1800px 的桌面窗口整片压黑，看起来像网页崩了。
+   壳是居中悬浮的，所以左边缘 = 50% - 壳宽/2。 */
+@media (min-width: 760px) {
+  body.m-mobile .n-modal-mask,
+  body.m-mobile .arco-modal-mask,
+  body.m-mobile .n-drawer-mask,
+  body.m-mobile .buy-energy-mask {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    width: var(--m-shell-w) !important;
+    margin-left: calc(var(--m-shell-w) / -2) !important;
+  }
+}
+body.m-mobile .arco-modal-header {
+  height: auto;
+  padding: 14px 16px 10px;
+}
+body.m-mobile .arco-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+body.m-mobile .arco-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+
+/* 手写遮罩弹窗（两塔的「购买小鱼干」）：自己 Teleport 到 body，不吃 .m-desk 的变量，
+   类名按 .buy-energy-mask 单独接一套 token，否则暗色下会弹出一块白底。 */
+body.m-mobile .buy-energy-mask {
+  --bg-primary: var(--m-card);
+  --bg-secondary: var(--m-bg);
+  --bg-tertiary: var(--m-bg);
+  --text-primary: var(--m-text);
+  --text-secondary: var(--m-text2);
+  --text-tertiary: var(--m-text3);
+  --border-color: var(--m-border);
+  --primary-color: var(--m-primary);
+  --success-color: var(--m-green);
+  --warning-color: var(--m-amber);
+  --error-color: var(--m-red);
+  --border-radius-small: var(--m-r-sm);
+  --border-radius-medium: var(--m-r-md);
+  --border-radius-large: var(--m-r-lg);
+}
+/* 弹窗里的动作按钮：桌面用橙红渐变强调「确认购买」，本体系只留一个行动色 */
+body.m-mobile .buy-energy-mask .btn-confirm {
+  background: var(--m-primary);
+  color: var(--m-on-primary);
+}
+body.m-mobile .buy-energy-mask .num-input:focus {
+  border-color: var(--m-primary);
+  box-shadow: inset 0 0 0 2px var(--m-primary-soft);
+}
+/* 弹窗里「快捷金额」按钮的悬停原本单独改成描边变蓝，与别处两条语言 ⇒ 由全局 veil 接管 */
+
+/* 弹窗里的按钮同样收口到唯一行动蓝 */
+body.m-mobile .n-button.n-button--primary-type,
+body.m-mobile .n-button.n-button--success-type,
+body.m-mobile .n-button.n-button--info-type {
+  --n-color: var(--m-primary) !important;
+  --n-color-hover: var(--m-primary-deep) !important;
+  --n-color-pressed: var(--m-primary-deep) !important;
+  --n-color-focus: var(--m-primary-deep) !important;
+  --n-border: 1px solid var(--m-primary) !important;
+  --n-border-hover: 1px solid var(--m-primary-deep) !important;
+  --n-border-pressed: 1px solid var(--m-primary-deep) !important;
+  --n-border-focus: 1px solid var(--m-primary-deep) !important;
+  --n-text-color: var(--m-on-primary) !important;
+  --n-text-color-hover: var(--m-on-primary) !important;
+  --n-text-color-pressed: var(--m-on-primary) !important;
+  --n-text-color-focus: var(--m-on-primary) !important;
+  color: var(--m-on-primary) !important;
+}
+body.m-mobile .n-button:not(.n-button--text-type) {
+  border-radius: var(--m-r-md);
+  font-weight: 500;
+  min-height: 34px;
+}
+
+
+/* ============================================================
+ * 批量任务 / 定时任务 面板（托管 fork/views/BatchDailyTasks.vue 的两页共用）
+ * 这两个页面是同一个组件（只靠 mode prop 控制显示哪几块），
+ * 所以窄屏修正必须放在全局而不是某个页面的 scoped —— 否则另一页会拿到桌面样式。
+ * 前缀用 .m-batch.m-batch（与原来的 scoped 特异性一致，压得住 Naive 的 .n-* 规则）。
+ * ============================================================ */
+
+/* ---------- 页面外壳：滚动交给外层 .m-scroll，别再来一个 100vh 滚动区 ---------- */.m-batch.m-batch .batch-daily-tasks {
+  padding: 0 !important; /* 组件在 ≤480 写了 padding:8px !important */
+  height: auto !important;
+  overflow: visible !important;
+}
+.m-batch.m-batch .main-layout {
+  flex-direction: column;
+  height: auto;
+  overflow: visible;
+  gap: 12px;
+}
+.m-batch.m-batch .left-column {
+  flex: none;
+  overflow: visible;
+  padding-right: 0;
+  width: 100%;
+}
+.m-batch.m-batch .right-column {
+  flex: none;
+  width: 100%;
+  height: auto;
+}
+
+/* ---------- 页头：三块竖排，别再把统计文字和按钮塞进同一条 flex ----------
+ * 桌面是「标题+统计+4 按钮」一行、「开始/停止/模板/设置」另一行；
+ * 390px 下统计文字被按钮挤成「共 6 个 / 定时任 / 务」三行，按钮还错行。
+ * 这里改成：统计两行 → 定时任务按钮 2×2 → 执行控制（主按钮整行 + 3 等分）。 */
+.m-batch.m-batch .page-header {
+  flex-direction: column;
+  align-items: stretch !important; /* 内联 align-items:center 会让子块收缩成内容宽（统计卡只有 240px） */
+  margin-bottom: 0;
+  gap: 10px;
+}
+.m-batch.m-batch .page-header-title-row {
+  flex-direction: column;
+  align-items: stretch !important;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+.m-batch.m-batch .page-header-title-row > h2 {
+  display: none;
+}
+/* 这两块是内联 background/border（#f8f9fa + 1px #e9ecef），只能 !important 压 */
+.m-batch.m-batch .page-header-info,
+.m-batch.m-batch .page-header-actions {
+  display: flex;
+  background: var(--m-card) !important;
+  border: none !important;
+  border-radius: var(--m-r-md) !important;
+  padding: 12px !important;
+  gap: 8px !important;
+  min-width: 0;
+}
+/* 统计条：两行文字 + 下方 2×2 按钮 */
+.m-batch.m-batch .page-header-info {
+  flex-direction: column;
+  align-items: stretch !important; /* 同上：不 stretch 会变成 240px 居中窄条 */
+  width: 100%;
+}
+.m-batch.m-batch .page-header-info > div {
+  min-width: 0;
+  font-size: 12.5px !important;
+  line-height: 1.5 !important;
+  white-space: normal;
+  word-break: break-word;
+}
+/* 账号列表下方的 4 个动作：一排 4 格、等宽 36px。
+ * 原来是 #f8f9fa 灰底 + 1px 边框的盒子（内联 style），既有盒子又有按钮边框，两层线很脏；
+ * 现在直接铺在页面上，分层交给白卡。按 design.md 只有一支蓝 —— 一键日常是唯一实心主按钮，
+ * 停止 / 任务模板 / 设置走中性按钮（停止原来是实心红，红色留给「删除」这种不可逆动作）。 */
+.m-batch.m-batch .batch-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.m-batch.m-batch .batch-actions > .n-button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 6px;
+  font-size: 12.5px;
+  border-radius: var(--m-r-md);
+}
+.m-batch.m-batch .batch-actions > .n-button .n-button__content {
+  white-space: nowrap;
+}
+
+/* 第一行「共 N 个定时任务」压成次要信息，第二行「即将执行」才是有效信息 */
+.m-batch.m-batch .page-header-info > div:nth-child(1) {
+  color: var(--m-text3) !important;
+}
+.m-batch.m-batch .page-header-info > div:nth-child(2) {
+  font-weight: 500 !important;
+}
+.m-batch.m-batch .page-header-info-buttons {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin-top: 2px;
+}
+.m-batch.m-batch .page-header-info-buttons > *,
+.m-batch.m-batch .page-header-info-buttons .n-upload,
+.m-batch.m-batch .page-header-info-buttons .n-button {
+  width: 100%;
+}
+/* 执行控制：2×2 —— 一键日常 / 停止 一行（开始与停止天然成对），任务模板 / 设置 一行。
+ * 之前让「一键日常」跨整行，禁用态会变成一条 38px 高的巨大灰带，
+ * 反而比蓝色「任务模板」更抢眼；2×2 里它靠加粗 + 字号区分主次就够。 */
+.m-batch.m-batch .page-header-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  padding: 8px !important;
+  gap: 6px !important;
+}
+.m-batch.m-batch .page-header-actions > .n-button:first-child {
+  grid-column: auto;
+  min-height: 38px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+}
+.m-batch.m-batch .page-header-actions > .n-button {
+  width: 100%;
+  padding: 0 6px;
+  font-size: 12.5px;
+  min-height: 34px;
+}
+/* 禁用态文字别淡到看不见（一键日常在没勾账号时就是禁用） */
+.m-batch.m-batch .page-header-actions > .n-button[disabled] {
+  color: var(--m-text3) !important;
+}
+/* 账号卡标题行右侧的分组管理按钮与计数已并入 TokenPicker 组件（.tk-head），
+ * 这里不再需要 .token-card-extra* 那几条收口规则。 */
+
+/* ---------- 内联写死的浅色 → token ----------
+ * 模板里有 60 多处 `style="... color: #86909c"` 这类硬编码，内联样式只有 !important 能压；
+ * 用属性包含选择器统一收口，比逐条加类名安全（也不动源组件）。
+ * 注意：分组颜色等由 JS 写入的 inline style 到了 DOM 里已是 rgb()，不会被这些规则误伤。 */
+.m-batch.m-batch [style*="#f8f9fa"],
+.m-batch.m-batch [style*="rgb(248, 249, 250)"],
+.m-batch.m-batch [style*="#f9f9f9"],
+.m-batch.m-batch [style*="rgb(249, 249, 249)"],
+.m-batch.m-batch [style*="#fafafa"],
+.m-batch.m-batch [style*="rgb(250, 250, 250)"],
+.m-batch.m-batch [style*="#f7f8fa"],
+.m-batch.m-batch [style*="rgb(247, 248, 250)"] {
+  background-color: var(--m-band) !important;
+}
+.m-batch.m-batch [style*="#e9ecef"],
+.m-batch.m-batch [style*="rgb(233, 236, 239)"],
+.m-batch.m-batch [style*="#e5e7eb"],
+.m-batch.m-batch [style*="rgb(229, 231, 235)"],
+.m-batch.m-batch [style*="solid #eee"],
+.m-batch.m-batch [style*="solid rgb(238, 238, 238)"],
+.m-batch.m-batch [style*="solid rgb(238, 238, 238)"],
+.m-batch.m-batch [style*="solid #ddd"],
+.m-batch.m-batch [style*="solid rgb(221, 221, 221)"] {
+  border-color: var(--m-border) !important;
+}
+.m-batch.m-batch [style*="#1d2129"],
+.m-batch.m-batch [style*="rgb(29, 33, 41)"],
+.m-batch.m-batch [style*="color: #333"],
+.m-batch.m-batch [style*="color: rgb(51, 51, 51)"] {
+  color: var(--m-text2) !important;
+}
+.m-batch.m-batch [style*="#86909c"],
+.m-batch.m-batch [style*="rgb(134, 144, 156)"],
+.m-batch.m-batch [style*="#6b7280"],
+.m-batch.m-batch [style*="rgb(107, 114, 128)"],
+.m-batch.m-batch [style*="#6c757d"],
+.m-batch.m-batch [style*="rgb(108, 117, 125)"],
+.m-batch.m-batch [style*="#495057"],
+.m-batch.m-batch [style*="rgb(73, 80, 87)"],
+.m-batch.m-batch [style*="#ccc"],
+.m-batch.m-batch [style*="rgb(204, 204, 204)"] {
+  color: var(--m-text3) !important;
+}
+.m-batch.m-batch [style*="#1677ff"],
+.m-batch.m-batch [style*="rgb(22, 119, 255)"] {
+  color: var(--m-primary) !important;
+}
+/* 收件人卡片上的紫渐变头像块 */
+.m-batch.m-batch [style*="#667eea"],
+.m-batch.m-batch [style*="rgb(102, 126, 234)"] {
+  background: var(--m-primary-deep) !important;
+}
+
+/* ---------- 卡片与列表 ---------- */
+.m-batch.m-batch .n-card {
+  margin-top: 0 !important;
+}
+.m-batch.m-batch .n-card:not(:first-child) {
+  margin-top: 12px !important; /* 组件里是内联 margin-top:16px */
+}
+.m-batch.m-batch .n-card-header {
+  padding: 14px 14px 0 !important;
+}
+.m-batch.m-batch .n-card-header__main {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--m-text);
+}
+.m-batch.m-batch .n-card__content {
+  padding: 12px 14px 14px !important;
+}
+.m-batch.m-batch .custom-card-header {
+  gap: 6px;
+}
+.m-batch.m-batch .card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--m-text);
+}
+/* 日志头部控件：组件在 ≤768 把它们改成竖排，四条控件的卡头能占掉半屏 ⇒ 改回横排换行 */
+.m-log-modal .log-header-controls {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+/* 功能分类 / 任务设置分组页签：一排 N 等分（格子边界当间隔，不换行、不横滑），
+ * 列数由 --tab-cols 控制：批量页 7 个功能分类、任务设置弹窗 5 个分组。
+ * ★ Naive 的滑动指示条（.n-tabs-bar）是按 tab 的 offsetLeft 绝对定位的，改宽度会错位，
+ *   所以藏掉它，选中态改用 tab 自己的内嵌底部描边。 */
+.m-batch.m-batch {
+  --tab-cols: 7;
+}
+.m-bset.m-bset {
+  --tab-cols: 5;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-nav {
+  width: 100%;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-wrapper {
+  display: grid !important;
+  grid-template-columns: repeat(var(--tab-cols, 7), minmax(0, 1fr));
+  /* 它的父级 .n-tabs-nav-scroll-content 是 flex，wrapper 是 flex item（flex:0 1 auto）
+   * ⇒ 宽度会收缩到内容宽（43×4=172），此时 1fr 退化成 max-content，4 列只占 2/3 宽。
+   * 之前没暴露是因为 .n-tabs-tab-pad 把内容撑到了 258 恰好占满。 */
+  width: 100% !important;
+  flex: 1 1 100% !important;
+  row-gap: 0;
+  flex-wrap: nowrap;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab {
+  justify-content: center;
+  padding: 7px 0 !important;
+  font-size: 13px !important;
+  color: var(--m-text3);
+  border-bottom: 1px solid var(--m-band);
+}
+/* ★ Naive 在每个页签前插了一个 36px 宽的 .n-tabs-tab-pad 作间隔（第一个没有），
+ * 390 宽时格子 79px 扣掉 36 只剩 43，刚好够「怪异塔」39px，所以一直没暴露；
+ * 320 宽格子只有 65px，扣完只剩 29px，「怪异塔」直接被裁成「怪异」。
+ * 改成网格后格子边界本身就是间隔，这个 pad 纯属多余 ⇒ 藏掉。 */
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab-pad {
+  display: none !important;
+}
+/* wrapper 是 `flex: 0 0 auto` 不撑满格子，一并收口，让 tab 拉满并居中 */
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab-wrapper > .n-tabs-tab {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-bar {
+  display: none !important;
+}
+/* Naive 在 wrapper 首尾各塞了一个 0 宽的 .n-tabs-scroll-padding 占位块，
+ * 进了 grid 就是一个空格子 —— 不藏掉第一行只剩 3 个 tab。 */
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-scroll-padding {
+  display: none !important;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab.n-tabs-tab--active {
+  font-weight: 500;
+  color: var(--m-primary);
+  box-shadow: inset 0 -2px 0 var(--m-primary);
+}
+/* 320 窄屏：7 格每格 38px，「怪异塔」在 13px 下要 39px ⇒ 降一档字号刚好放下 */
+@media (max-width: 360px) {
+  :is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab {
+    font-size: 12px !important;
+    padding: 7px 0 !important;
+  }
+}
+/* Naive 页签结构是 nav-scroll-wrapper > .v-x-scroll > .n-tabs-nav-scroll-content > .n-tabs-wrapper。
+ * 真正排 tab 的 flex 容器是 .n-tabs-wrapper（不是 scroll-content）。 */
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-nav-scroll-wrapper {
+  height: auto !important;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-nav-scroll-content {
+  scrollbar-width: none;
+}
+:is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-nav-scroll-content::-webkit-scrollbar {
+  display: none;
+}
+/* ---------- 功能按钮：按文字宽度流式排 ----------
+ * 一行一个太浪费纵向空间（12 个按钮要滚两屏）。改成 flex-wrap：
+ * 每个按钮宽度跟着文字走，一行排 2~3 个，长短不齐也没关系 ——
+ * 比固定 N 列网格好在长名（营地挑战(挑战宠物)）不会被压折行。 */
+.m-batch.m-batch .n-tab-pane .n-space {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start;
+  gap: 8px !important;
+  width: 100%;
+}
+/* 这一版 Naive 的 n-space 不套 .n-space-item，子节点是裸 div ⇒ 连带两层一起放开宽度 */
+.m-batch.m-batch .n-tab-pane .n-space > * {
+  width: auto !important;
+  min-width: 0;
+  max-width: 100%;
+}
+.m-batch.m-batch .n-tab-pane .n-space > * > .n-button,
+.m-batch.m-batch .n-tab-pane .n-space > * > .n-popselect {
+  width: auto !important;
+  max-width: 100%;
+}
+.m-batch.m-batch .n-tab-pane .n-space-item {
+  margin: 0 !important;
+  min-width: 0;
+}
+.m-batch.m-batch .n-tab-pane .n-button {
+  min-height: 30px;
+  padding: 0 10px !important;
+  font-size: 12.5px;
+}
+/* Naive 默认给面板 12px 上内边距，和 tab 底边叠一起会显出「空一截」 */
+.m-batch.m-batch .n-tab-pane {
+  padding-top: 8px !important;
+}
+/* 流式布局下按钮宽度=文字宽，文字必须居中单行（原来单列时是左对齐 + 允许折行） */
+.m-batch.m-batch .n-tab-pane .n-button__content {
+  width: auto;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  line-height: 1.35;
+}
+
+/* ---------- 执行日志：组件写死 #f5f5f5 浅底，暗色下白字压浅灰完全看不见 ----------
+ * ★ 两处都必须 !important + 打到内层 span：
+ *   1) `.log-container` 的 #f5f5f5 来自组件 scoped，特异性与我这条相同、注入顺序在后；
+ *   2) 日志正文是 `<span class="message">`，被 App.vue 的
+ *      `html[data-theme=dark] span{color:#fff!important}` 直接压成白色 ——
+ *      只改 .log-item 自身没用，实测 itemColor=#fff 就是这么来的。 */
+.m-log-modal .log-item {
+  font-size: 11.5px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.m-log-modal .log-item,
+.m-log-modal .log-item .message {
+  color: var(--m-text2) !important;
+}
+.m-log-modal .log-item .time {
+  color: var(--m-text3) !important;
+  margin-right: 6px;
+}
+/* 组件把正文写成 `.log-item.info { color:#333 }`，落在暗色 --m-band(#182238) 上等于看不见，
+ * 而绝大多数字段都是 type:"info" ⇒ 必须显式改回 token（只覆盖 error/success 不够）。 */
+.m-log-modal .log-item.warning,
+.m-log-modal .log-item.warning .message {
+  color: var(--m-amber) !important;
+}
+.m-log-modal .log-item.error,
+.m-log-modal .log-item.error .message {
+  color: var(--m-red) !important;
+}
+.m-log-modal .log-item.success,
+.m-log-modal .log-item.success .message {
+  color: var(--m-green) !important;
+}
+
+/* ---------- 定时任务页（/mobile/schedule）----------
+ * 2026-11-02 重做：用户要求「改成跟 Token 管理那样的卡片形式，不要列表形式」。
+ * 上一版是「一张白卡里 N 条 hairline 分隔的列表行」（卡套卡、三行信息挤在一起），
+ * 与账号页的卡片语言是两套。现在一张任务一张卡，结构逐条对齐 .m-tk-card：
+ *   ① .sched-bar  页头条（标题 + ＋）—— 与账号页「角色列表」那条同形制
+ *   ② .sched-card 首字图标块 + 名称 + 下次执行 / 右上开关
+ *   ③ .sched-info 浅底信息行：调度表达式 · 账号数 · 任务数（对应账号卡的备注行）
+ *   ④ .sched-act  底部两颗按钮：编辑（实心）/ 删除（描边红字）
+ * ★ 唯一行动色仍是 #0057d2；倒计时只有「5 分钟内」用 primary 提一下，不引入红/绿。
+ * ★ 删掉了 .schedule-list-card / .sched-row* 那一整套（n-card 外壳不再存在）。
+ */
+
+/* ① 页头条：左右内边距 16，与账号页一致（标题对齐卡片内容起点） */
+.m-schedule.m-batch .sched-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.m-schedule.m-batch .sched-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: var(--m-card);
+  border-radius: var(--m-r-lg);
+}
+.m-schedule.m-batch .sched-bar-t {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 22px;
+  color: var(--m-text);
+}
+/* 标题右侧「+」= 新增定时任务：与账号页那颗 30px 方形图标按钮同尺寸同底色 */
+.m-schedule.m-batch .sched-add-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-r-md);
+  background: var(--m-bg);
+  color: var(--m-text2) !important;
+  cursor: pointer;
+}
+.m-schedule.m-batch .sched-add-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ② 任务卡 */
+.m-schedule.m-batch .sched-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--m-card);
+  border-radius: var(--m-r-md);
+}
+.m-schedule.m-batch .sched-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+/* 首字块与账号卡的头像块同尺寸同色（--m-primary 38px），两页翻着看是同一套东西 */
+.m-schedule.m-batch .sched-ava {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--m-r-md);
+  background: var(--m-primary);
+  color: var(--m-on-primary) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+.m-schedule.m-batch .sched-id {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.m-schedule.m-batch .sched-nm {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--m-text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* 状态行：绿点 = 已启用（跟账号卡的连接状态点同一套写法），暂停时整体降一档灰 */
+.m-schedule.m-batch .sched-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--m-text3);
+}
+.m-schedule.m-batch .sched-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--m-green);
+}
+.m-schedule.m-batch .sched-sub em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--m-text2);
+  font-variant-numeric: tabular-nums;
+}
+/* 5 分钟内即将执行：只换色不加粗，不抢「编辑」主按钮的视觉位 */
+.m-schedule.m-batch .sched-sub em.is-near {
+  color: var(--m-primary);
+}
+.m-schedule.m-batch .sched-card.is-off .sched-nm,
+.m-schedule.m-batch .sched-card.is-off .sched-sub em {
+  color: var(--m-text3);
+}
+.m-schedule.m-batch .sched-card.is-off .sched-dot {
+  background: var(--m-text3);
+}
+/* 开关本体交给 Naive（--n-* 已由 .m-desk 重映射），只把它从名称行里压住不换行 */
+.m-schedule.m-batch .sched-sw {
+  flex: none;
+}
+
+/* ③ 信息行：浅底一条，装调度表达式与两个计数（对应账号卡的备注行） */
+.m-schedule.m-batch .sched-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  padding: 6px 8px;
+  background: var(--m-bg);
+  border-radius: var(--m-r-sm);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m-text3);
+}
+.m-schedule.m-batch .sched-cron {
+  font-weight: 500;
+  color: var(--m-text2);
+  font-variant-numeric: tabular-nums;
+}
+.m-schedule.m-batch .sched-sep {
+  color: var(--m-border);
+}
+
+/* ④ 动作：编辑占主位，删除走描边红字（点了还有一层确认框） */
+.m-schedule.m-batch .sched-act {
+  display: flex;
+  gap: 8px;
+}
+.m-schedule.m-batch .sched-act .m-btn {
+  flex: 1;
+  width: auto;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.m-schedule.m-batch .sched-act .sched-del {
+  color: var(--m-red) !important;
+}
+
+/* ⑤ 空态：一句话 + 一颗主按钮，别只留一行灰字 */
+.m-schedule.m-batch .sched-empty {
+  padding: 24px 16px 16px;
+  text-align: center;
+}
+.m-schedule.m-batch .sched-empty-t {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--m-text);
+}
+.m-schedule.m-batch .sched-empty-d {
+  margin: 4px 0 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--m-text3);
+}
+
+/* ---------- 新增/编辑定时任务：三步向导（.m-task-wizard）----------
+ * n-modal teleport 到 body ⇒ 容器上的 .m-batch / .m-schedule 都够不到，
+ * 这套选择器只能挂在弹窗自己的 class 上。
+ * 布局语言沿用 design.md：白卡、8px 圆角、无边框，分组靠 hairline、靠 band 底色的 chip；
+ * 蓝只留给「当前步骤」「已选 chip」「下一步/保存」。 */
+.m-task-wizard .tw-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 14px;
+}
+.m-task-wizard .tw-step {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--m-text3);
+  cursor: default;
+}
+.m-task-wizard .tw-step.is-done {
+  cursor: pointer;
+}
+.m-task-wizard .tw-step-idx {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-band);
+  color: var(--m-text3) !important;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.m-task-wizard .tw-step-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.m-task-wizard .tw-step.is-active {
+  color: var(--m-text) !important;
+  font-weight: 500;
+}
+.m-task-wizard .tw-step.is-active .tw-step-idx {
+  background: var(--m-primary);
+  color: var(--m-on-primary) !important;
+}
+.m-task-wizard .tw-step.is-done .tw-step-idx {
+  background: var(--m-primary-soft);
+  color: var(--m-primary-deep) !important;
+}
+
+/* 字段 */
+.m-task-wizard .tw-field {
+  margin-bottom: 14px;
+}
+.m-task-wizard .tw-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--m-text3) !important; /* 暗色 App.vue 有 label{color:#fff!important} */
+}
+/* 行内右侧带按钮时不能再用 baseline；边距挪到容器上 */
+.m-task-wizard .tw-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.m-task-wizard .tw-field-head .tw-label {
+  margin-bottom: 0;
+}
+.m-task-wizard .tw-count {
+  flex: none;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.m-task-wizard .tw-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.m-task-wizard .tw-tools-gap {
+  flex: 1 1 auto;
+}
+.m-task-wizard .tw-mini {
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--m-primary);
+  cursor: pointer;
+}
+.m-task-wizard .tw-mini-link {
+  color: var(--m-text3);
+}
+.m-task-wizard .tw-mini:active {
+  opacity: 0.6;
+}
+
+/* 第 2 步：分组页签 + 胶囊标签 */
+/* 分组页签：7~8 个页签要把整行平均分掉，不能挤在左边、右边空一截 */
+.m-task-wizard .tw-cats {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--m-band);
+}
+.m-task-wizard .tw-cat {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--m-text3);
+  cursor: pointer;
+}
+.m-task-wizard .tw-cat.active {
+  color: var(--m-primary);
+  border-bottom-color: var(--m-primary);
+  font-weight: 500;
+}
+.m-task-wizard .tw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+  max-height: 40vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-task-wizard .tw-chip {
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: var(--m-r-md);
+  background: var(--m-band);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--m-text2);
+  cursor: pointer;
+}
+.m-task-wizard .tw-chip.active {
+  background: var(--m-primary);
+  color: var(--m-on-primary);
+  font-weight: 500;
+}
+.m-task-wizard .tw-empty {
+  padding: 20px 0;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--m-text3);
+}
+
+/* 底部操作条：按规范「分区靠 band，不靠 border」⇒ 用 chrome 底色的通栏 footer，
+ * 左右下沉到弹窗边缘（content 的 padding 是 14px），下圆角与弹窗同值 12px。 */
+.m-task-wizard .tw-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 18px -14px -14px;
+  padding: 12px 14px;
+  background: var(--m-bg);
+  border-radius: 0 0 var(--m-r-lg) var(--m-r-lg);
+}
+.m-task-wizard .tw-actions > .n-button {
+  min-width: 84px;
+}
+/* 暗色下「分段控件」的反转：亮色是「灰槽 + 白块凸起」，直接沿用会变成
+ * 「深槽 + #121c31 块」——两者几乎是同一个色，选中态只剩字色能分辨。
+ * 这里改成「浅槽(band) + 更深的块(bg)」，靠明度差把选中项压下去。 */
+html[data-theme="dark"] .m-task-wizard .schedule-freqs {
+  background: var(--m-band);
+}
+html[data-theme="dark"] .m-task-wizard .schedule-freq.active {
+  background: var(--m-bg);
+}
+
+/* ---------- 暗色下 Naive 彩色按钮：白字压亮蓝，对比度只剩 ~1.9:1 ----------
+ * Naive 把字色内联成 #fff，而 --m-primary 在暗色下会提亮到 #6bc0ff
+ * （info 类型同理），白字压上去几乎读不出来。
+ * 统一换成 --m-on-primary（暗色 #04203f）；error 红底白字对比足够，不动。
+ * 特异性必须高于 App.vue 的 html[data-theme=dark] .n-button{color:#fff!important}（0,2,1），
+ * 又要限定在移动壳（body.m-mobile）内，免得把桌面暗色一起改了。
+ * ★ 文字实际渲染在 .n-button__content（一个 span）上，会被 App.vue 的
+ *   html[data-theme=dark] span{color:#fff!important} 直接命中 ——
+ *   只改 .n-button 本身没用（computed 是深色，像素仍是白字），必须下沉一层一起写。 */
+html[data-theme="dark"] body.m-mobile .n-button.n-button--primary-type:not(.n-button--disabled),
+html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type:not(.n-button--disabled),
+html[data-theme="dark"] body.m-mobile .n-button.n-button--primary-type:not(.n-button--disabled) .n-button__content,
+html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type:not(.n-button--disabled) .n-button__content {
+  color: var(--m-on-primary) !important;
+}
+/* 禁用态底是深灰 band，深蓝字会直接隐形 ⇒ 单独给灰字（span 也要一起写，否则仍是 App.vue 的白） */
+html[data-theme="dark"] body.m-mobile .n-button.n-button--primary-type.n-button--disabled,
+html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--disabled,
+html[data-theme="dark"] body.m-mobile .n-button.n-button--primary-type.n-button--disabled .n-button__content,
+html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--disabled .n-button__content {
+  color: var(--m-text3) !important;
+}
+
+/* ---------- 超窄屏（≤360px，iPhone SE / 老安卓）----------
+ * 账号列数降 1 的兜底已随 TokenPicker 组件走（组件自己的 media 查询里），
+ * 这里只剩统计块：3 个按钮在 320 下每格 ~85px，「新增定时任务」6 个字放不下
+ * 被截成「新增定时任」⇒ 改 2 列，主按钮跨满一行。 */
+@media (max-width: 360px) {
+  .m-batch.m-batch .page-header-info-buttons,
+  .m-schedule.m-batch .page-header-info-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .m-batch.m-batch .page-header-info-buttons > *:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- 执行日志弹窗（.m-log-modal）----------
+ * 日志原先在页面右栏常驻，现在改成 n-modal。n-modal teleport 到 body，
+ * 容器上的 .m-batch / .m-desk 都够不到 ⇒ 这套选择器只能挂 .m-log-modal 自己。
+ * 宽度由全局 .n-card.n-modal 那条壳宽规则统一收口，这里只管内容。 */
+.m-log-modal .log-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 2px 0 8px;
+}
+.m-log-modal .log-count {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--m-text3);
+}
+/* 弹窗里纵向空间比常驻卡片富余，日志区多给一点（52vh）。
+ * ★ 组件自带的 `.log-container{ flex:1; min-height:200px }` 会把日志区撑满整个弹窗下半屏
+ *   ——只有 3 条日志时下面是 200px 空白 —— 这里改成贴合内容，守住 120px 下限不显得太扁。 */
+.m-log-modal .log-container {
+  flex: none !important;
+  /* 组件 ≤768 的断点里写死了 height:300px / min-height:300px，只有 3 条日志时
+     下面就是 200 多像素空白 ⇒ 高度改回自适应，守住 120px 下限。 */
+  height: auto !important;
+  min-height: 120px !important;
+  max-height: 52vh;
+  margin-top: 8px;
+  padding: 8px 10px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* #f5f5f5 来自组件 scoped，同特异性 + 注入顺序在后 ⇒ 必须 !important */
+  background: var(--m-band) !important;
+  border-radius: var(--m-r-md);
+  font-family: monospace;
+}
+/* 组件在 ≤768 把这里改成竖排，两个按钮会上下叠在关闭键左边 ⇒ 强制横排 */
+.m-log-modal .log-header-controls {
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.m-log-modal .n-progress {
+  margin-bottom: 8px;
+}
+/* 卡片标题行右侧的「日志 (N)」小入口 —— 弹窗关掉后靠它再打开 */
+.m-batch.m-batch .log-entry-btn {
+  min-height: 24px;
+  font-size: 11.5px;
+  padding: 0 8px;
+}
+
+/* ---------- 任务模板管理弹窗（.m-tpl-modal）----------
+ * 原来「新增模板 / 应用模板 / 查看账号模板引用」+ 200px 搜索框硬挤一行，
+ * 第三个按钮被挤到第二行、搜索框孤零零吊在右边 ⇒ 搜索独占一行 + 按钮 2+1。 */
+.m-tpl-modal .tpl-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.m-tpl-modal .tpl-search {
+  width: 100%;
+}
+.m-tpl-modal .tpl-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.m-tpl-modal .tpl-actions > .n-button {
+  width: 100%;
+}
+/* 「查看账号模板引用」独占一行 —— 文案不缩也放得下 */
+.m-tpl-modal .tpl-actions > .n-button:nth-child(3) {
+  grid-column: 1 / -1;
+}
+/* 列表区高度跟着视口走（原来写死 400px，小屏上会顶掉底部按钮） */
+.m-tpl-modal .template-list {
+  max-height: 48vh !important;
+  margin-bottom: 12px !important;
+}
+/* 空态与创建时间那种写死 #86909c 的内联色，modal 在 body 下够不到 .m-batch 的收口规则 */
+.m-tpl-modal [style*="color: rgb(134, 144, 156)"],
+.m-tpl-modal [style*="color: #86909c"] {
+  color: var(--m-text3) !important;
+}
+/* 底部「关闭」拉满一行，拇指好点 */
+.m-tpl-modal .modal-actions {
+  display: flex;
+  margin-top: 4px !important;
+}
+.m-tpl-modal .modal-actions > .n-button {
+  flex: 1;
+}
+/* 空态：搜索无结果和「一本都没有」要说清楚，别都写「暂无模板」 */
+.m-tpl-modal .tpl-empty {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--m-text3);
+}
+
+/* ---------- 分组管理弹窗（.m-group-modal）----------
+ * 原版是 n-divider 挖空横线 + 绿色 Naive 主色 + 3px 黑框色块 +「#f9f9f9 底 + 1px #eee 边」双层盒子
+ * + 账号 3 列网格（406px 下每个勾选框只剩 ~70px）。
+ * 按 DESIGN.md 重排：只有一个行动蓝（--m-primary），圆角只 0/4/8/12，分区靠 band 不靠边框，
+ * 章节用小标题 + 间距说话；账号选择改成单列 34px 行 + 全选，读法和批量任务的账号列表一致。 */
+.m-group-modal .gm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 68vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-group-modal .gm-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.m-group-modal .gm-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 20px;
+  color: var(--m-text) !important;
+}
+/* 「分组列表」后面的计数做成 band 小徽章，不做 pill（圆角只用 r-sm） */
+.m-group-modal .gm-sec-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-band);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  color: var(--m-text3) !important;
+}
+
+/* 色块：选中态用 outline 环，不用 3px 黑框（黑框在暗色下变成「选中即消失」） */
+/* 8 个色块要在 320px 下也排成一行：8×26 + 7×6 = 250，壳内剩 268 ⇒ 够。
+   原来 28/8 加起来 280，窄屏会掉一个到第二行。 */
+.m-group-modal .gm-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.m-group-modal .gm-swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-r-sm);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.12s ease;
+}
+.m-group-modal .gm-swatch.is-on {
+  outline-color: var(--m-primary);
+}
+
+/* 包含账号：整块是一层 band，内部不再套盒子和边框 */
+.m-group-modal .gm-acc {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--m-r-lg);
+  background: var(--m-band);
+}
+.m-group-modal .gm-acc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.m-group-modal .gm-acc-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--m-text2) !important;
+}
+.m-group-modal .gm-acc-count {
+  font-size: 11.5px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text3) !important;
+}
+/* 全选：单独一行，和下面的账号行同一节奏 */
+.m-group-modal .gm-all {
+  min-height: 26px;
+}
+.m-group-modal .gm-acc-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 30vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-group-modal .gm-acc-row {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+/* 暗色下 App.vue 的 `html[data-theme=dark] span{color:#fff!important}` 会把勾选框文字拉白，
+   这里同权重再补一条，让账号名停在正文层 */
+.m-group-modal .n-checkbox__label {
+  color: var(--m-text2) !important;
+}
+
+/* 动作条：卡内按钮统一 32px，主动作占满一行（拇指好点） */
+.m-group-modal .gm-actions {
+  display: flex;
+  gap: 8px;
+}
+.m-group-modal .gm-actions > .n-button {
+  flex: 1;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+/* 分组列表：一行一块 band，色点 + 名称 + 账号数 + 文字操作 */
+.m-group-modal .gm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.m-group-modal .gm-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--m-r-lg);
+  background: var(--m-band);
+}
+.m-group-modal .gm-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.m-group-modal .gm-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--m-r-sm);
+}
+.m-group-modal .gm-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text) !important;
+}
+.m-group-modal .gm-meta {
+  flex: none;
+  font-size: 11.5px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text3) !important;
+}
+.m-group-modal .gm-ops {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+.m-group-modal .gm-op {
+  height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--m-r-sm);
+  background: transparent;
+  font-size: 11.5px;
+  line-height: 24px;
+  color: var(--m-primary) !important;
+}
+.m-group-modal .gm-op-del {
+  color: var(--m-red) !important;
+}
+
+/* 已含账号：白胶囊一列排开，叉号单独给点击区 */
+.m-group-modal .gm-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.m-group-modal .gm-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 3px 0 8px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-card);
+  font-size: 11.5px;
+  line-height: 24px;
+  color: var(--m-text2) !important;
+}
+.m-group-modal .gm-token-x {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-r-sm);
+  background: transparent;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+}
+.m-group-modal .gm-add {
+  width: 100%;
+}
+/* 组内账号已全部加入时下拉会隐藏，改用一句说明收尾，避免留一个空行 */
+.m-group-modal .gm-add-done {
+  padding: 6px 0 2px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--m-text3) !important;
+}
+
+.m-group-modal .gm-empty {
+  padding: 28px 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--m-text3) !important;
+}
+
+/* App.vue 全局给暗色下所有 .n-input 刷了 rgba(255,255,255,.1) 的填充（!important），
+ * 在本弹窗里会变成一块比卡片亮的灰板，却和同一屏的 n-select（只描边、无填充）对不上。
+ * 这里只在本弹窗内把 idle 填充改透明，描边保留 —— 和浅色下「白底白卡 + 描边」的读法一致。
+ * 不加这条会影响其他页面，故只限 .m-group-modal。 */
+html[data-theme="dark"] .m-group-modal .n-input,
+html[data-theme="dark"] .m-group-modal .n-input__input,
+html[data-theme="dark"] .m-group-modal .n-input__textarea {
+  background-color: transparent !important;
+}
+
+/* ---------- 任务设置 / 任务模板设置弹窗（.m-setmodal）----------
+ * 原来 4 个下拉各占一整行（label 一行 + 全宽控件一行），下面 7 个开关又是左右布局，
+ * 11 行控件要滚一屏多，两种行型混在一起也没有节奏。
+ * 现在统一成「label 左 / 控件右」的 44px 行：阵容、自动执行 两节靠小节标题 + 间距分区，
+ * 不画分隔线（design.md：分层靠 band 与间距，不靠 border）。 */
+.m-setmodal .sm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* 70vh：模板弹窗比任务设置多一节「模板名称」，需要多一档高度 ——
+     矮屏放不下时这里照常滚动 */
+  max-height: 70vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-setmodal .sm-sec {
+  display: flex;
+  flex-direction: column;
+}
+.m-setmodal .sm-sec-title {
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 18px;
+  letter-spacing: 0.2px;
+  color: var(--m-text3) !important;
+}
+.m-setmodal .sm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* 44px 是理想行高，但 11 行 × 44 = 484 会把「付费招募」挤出滚动区，
+     默认要滚一下才看得见最后一行 ⇒ 压到 38px（拇指照样点得准），
+     11 行 + 三节标题正好一屏放下 */
+  min-height: 38px;
+}
+.m-setmodal .sm-label {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text2) !important;
+}
+/* 下拉按「值」的宽度收窄，不铺满 —— 阵容名最多 5 个字，全宽反而把 label 挤成孤零零一行 */
+.m-setmodal .sm-ctl {
+  flex: none;
+  width: 132px;
+}
+/* 整宽输入（模板名称）：label 在上、控件在下，因为名字要能看全，不能像下拉那样收到 132px */
+.m-setmodal .sm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.m-setmodal .sm-field .sm-label {
+  font-size: 12.5px;
+  color: var(--m-text3) !important;
+}
+.m-setmodal .sm-foot {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.m-setmodal .sm-foot > .n-button {
+  flex: 1;
+  height: 34px;
+  min-height: 34px;
+}
+
+/* 执行间隔那种数字输入：和下拉同宽同高，右侧对齐 */
+.m-setmodal .sm-num {
+  flex: none;
+  width: 110px;
+}
+
+/* ---------- 每日任务详情弹窗（.m-taskdetail）----------
+ * 原版每行 = 绿色实心对勾 + 绿色描边「已完成」tag，10 行共 20 个绿块 —— 绿色从状态色变成了主色。
+ * 现在：顶部一条 band 汇总（完成数 + 4px 进度条），行内只留一个 16px 状态图标 +
+ * 右侧文字状态（完成 = text3 安静、未完成 = amber 提醒），不再用 tag 盒子。
+ * 行分隔沿用「一张白卡 + hairline」的既有列表读法。 */
+.m-taskdetail .td-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 64vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-taskdetail .td-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--m-r-lg);
+  background: var(--m-band);
+}
+.m-taskdetail .td-sum-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.m-taskdetail .td-sum-n {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text) !important;
+}
+.m-taskdetail .td-sum-n small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--m-text3) !important;
+}
+.m-taskdetail .td-sum-lb {
+  font-size: 11.5px;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+}
+.m-taskdetail .td-bar {
+  height: 4px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-border);
+  overflow: hidden;
+}
+.m-taskdetail .td-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--m-primary);
+  transition: width 0.24s ease;
+}
+
+.m-taskdetail .td-list {
+  display: flex;
+  flex-direction: column;
+}
+.m-taskdetail .td-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--m-border);
+}
+.m-taskdetail .td-row:last-child {
+  border-bottom: 0;
+}
+/* ★ 图标的颜色落在里面的 <svg> 上：App.vue 的 `html[data-theme="dark"] *{color:#fff}`
+   会直接命中 svg **以及里面的 ellipse/path**（(0,1,1)），只给 .td-ico 设色在暗色下会被刷白
+   ⇒ 必须用 .td-ico * 覆盖整棵子树，只写 svg 不够（描边在子节点上）。 */
+.m-taskdetail .td-ico,
+.m-taskdetail .td-ico * {
+  flex: none;
+  font-size: 16px;
+  color: var(--m-text3) !important;
+}
+.m-taskdetail .td-row.is-done .td-ico,
+.m-taskdetail .td-row.is-done .td-ico * {
+  color: var(--m-green) !important;
+}
+.m-taskdetail .td-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.m-taskdetail .td-name {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--m-text2) !important;
+}
+/* 提示语（请先设置采购清单）走第二行小字，不再塞在任务名里用括号 */
+.m-taskdetail .td-hint {
+  font-size: 11.5px;
+  line-height: 16px;
+  color: var(--m-text3) !important;
+}
+.m-taskdetail .td-state {
+  flex: none;
+  font-size: 11.5px;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+}
+/* 未完成才需要被看见：给一档 amber，完成态保持安静 */
+.m-taskdetail .td-row:not(.is-done) .td-state {
+  color: var(--m-amber) !important;
+  font-weight: 500;
+}
+
+/* ============================================================
+ * 确认框（utils/confirm.js）：一句说明 + 一块 band 账目
+ * 原来只有一整段长句，删东西时「删的是什么 / 动几个账号 / 动几项任务」全糊在句子里，
+ * 图标又是一个裸的 40px 感叹号悬在左上角。现在：图标收到 34px 圆底（amber-soft），
+ * 影响面拆成账目行 —— 复用任务设置弹窗那套「键 12.5 / 值 13」的读法。
+ * ============================================================ */
+body.m-mobile .n-dialog .n-dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--m-amber-soft);
+}
+/* ★ App.vue 的 html[data-theme=dark] * { color:#fff } 会打到 svg 里的 path/ellipse，
+   只写 .n-dialog__icon 不够，必须连整棵子树一起改。 */
+body.m-mobile .n-dialog .n-dialog__icon,
+body.m-mobile .n-dialog .n-dialog__icon * {
+  color: var(--m-amber) !important;
+}
+body.m-mobile .n-dialog .n-dialog__icon svg {
+  width: 20px;
+  height: 20px;
+}
+.m-cf {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.m-cf .m-cf-lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--m-text2) !important;
+}
+.m-cf .m-cf-band {
+  padding: 2px 12px;
+  border-radius: var(--m-r-md);
+  background: var(--m-bg);
+}
+.m-cf .m-cf-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 32px;
+  padding: 5px 0;
+}
+.m-cf .m-cf-row + .m-cf-row {
+  box-shadow: inset 0 1px 0 var(--m-border);
+}
+.m-cf .m-cf-k {
+  flex: none;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+}
+.m-cf .m-cf-v {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text) !important;
+}
+
+/* ---------- 设置弹窗补充：节标题加一道 3px 行动色竖线 ----------
+ * 11 个开关 + 4 个下拉平铺时每节标题只是一行 12.5px 灰字，扫视时找不到分界。
+ * 给标题挂一条 3px 竖线（不做整块底色，避免又多一层盒子）。 */
+.m-setmodal .sm-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.m-setmodal .sm-sec-title::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--m-primary);
+}
+/* 页签内的说明行：解释数值含义，别再塞进 label 里把行挤爆 */
+.m-setmodal .sm-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--m-text3) !important;
+}
+/* 任务设置（页签版）：内容区顶部留一档，否则页签的底部描边贴着第一行字 */
+.m-bset .n-tabs {
+  margin-top: -4px;
+}
+.m-bset .n-tabs .sm-body {
+  padding-top: 12px;
+  max-height: 62vh;
+}
+/* 数字框要同时装下 5 位数（最长 10000）和右侧 − 两个步进键，
+   110px 在 320 窄屏上会把「+」挤到边框上 ⇒ 放宽到 120px */
+.m-bset .sm-num {
+  width: 120px;
+}
+
+/* ---------- 任务模板管理（.m-tplm）----------
+ * 原来：搜索框 + 3 个按钮硬挤一行，「查看账号模板引用」被挤成绿色描边独立块，
+ * 模板各自套一张描边卡（卡中卡），空态只有一行 12px 灰字，底部还挂一个「关闭」
+ * （右上角 X 已经在做同一件事）。现在：搜索独占一行、动作 2 键一排、
+ * 引用入口退成一条 band 行（它是跳转，不是与「新增/应用」并列的动作），
+ * 列表回到「一张白卡 + hairline 行」。 */
+.m-tplm .tm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 68vh;
+}
+.m-tplm .tm-search {
+  width: 100%;
+}
+.m-tplm .tm-acts {
+  display: flex;
+  gap: 8px;
+}
+.m-tplm .tm-acts > .n-button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+}
+.m-tplm .tm-ref {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--m-r-md);
+  background: var(--m-bg);
+  font-size: 13px;
+  color: var(--m-primary);
+  cursor: pointer;
+}
+.m-tplm .tm-ref-k {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-primary) !important;
+}
+.m-tplm .tm-ref-a {
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--m-text3) !important;
+}
+.m-tplm .tm-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 96px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-tplm .tm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 0;
+}
+.m-tplm .tm-row + .tm-row {
+  box-shadow: inset 0 1px 0 var(--m-border);
+}
+.m-tplm .tm-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.m-tplm .tm-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text) !important;
+}
+.m-tplm .tm-meta {
+  font-size: 11.5px;
+  line-height: 16px;
+  color: var(--m-text3) !important;
+}
+.m-tplm .tm-ops {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+/* 原生 button：Naive 的 .n-button 有一条 min-height 把它撑成竖长条 */
+.m-tplm .tm-op {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--m-r-sm);
+  background: var(--m-bg);
+  font-size: 12.5px;
+  color: var(--m-text2);
+  cursor: pointer;
+}
+.m-tplm .tm-op.is-danger {
+  background: var(--m-red-soft);
+  color: var(--m-red);
+}
+.m-tplm .tm-op.is-danger > span {
+  color: var(--m-red) !important;
+}
+.m-tplm .tm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 36px 16px;
+  text-align: center;
+}
+.m-tplm .tm-empty-t {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--m-text2) !important;
+}
+.m-tplm .tm-empty-d {
+  max-width: 260px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--m-text3) !important;
+}
+
+/* ---------- 应用任务模板（.m-tplap）----------
+ * 分组快选原来是一排「彩色描边 ghost 按钮」（颜色来自分组自选的色值，跟行动蓝不是一套），
+ * 现在收进一块 band：说明一行 + 无边框白块 chip。 */
+.m-tplap .ta-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--m-r-md);
+  background: var(--m-bg);
+}
+.m-tplap .ta-groups-k {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--m-text3) !important;
+}
+.m-tplap .ta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* 分组 chip = 开关：左侧 8px 色点用分组自己创建时选的颜色（--gc 由模板内联给），
+   已选中的组用同色 1.5px 内描边标记。颜色只落在「点 + 描边」上，
+   整块染色会把唯一行动蓝压成第二主色。 */
+.m-tplap .ta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--m-r-sm);
+  /* 分组创建时选了颜色 ⇒ chip 就吃那支色做淡底（8%），方块读起来像分组自己的标签。
+     color-mix 在 Edge 111+ / Chrome 111+ 可用；取值来自 group.color 的十六进制。 */
+  background: color-mix(in srgb, var(--gc, var(--m-primary)) 8%, var(--m-card));
+  box-shadow: inset 0 0 0 1px transparent;
+  font-size: 12.5px;
+  color: var(--m-text2);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+/* 原生 button 的默认焦点环是系统黑框，和整站两套 ⇒ 只给键盘焦点画行动色环 */
+.m-tplap .ta-chip:focus {
+  outline: none;
+}
+.m-tplap .ta-chip:focus-visible {
+  outline: 2px solid var(--m-primary);
+  outline-offset: 1px;
+}
+.m-tplap .ta-chip-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gc, var(--m-primary));
+  opacity: 0.55;
+}
+.m-tplap .ta-chip-t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.m-tplap .ta-chip.is-on {
+  background: color-mix(in srgb, var(--gc, var(--m-primary)) 16%, var(--m-card));
+  box-shadow: inset 0 0 0 1.5px var(--gc, var(--m-primary));
+}
+.m-tplap .ta-chip.is-on .ta-chip-dot {
+  opacity: 1;
+}
+.m-tplap .ta-chip.is-on .ta-chip-t {
+  font-weight: 500;
+  color: var(--m-text) !important;
+}
+.m-tplap .ta-chip.is-off {
+  background: transparent;
+  color: var(--m-text3);
+}
+/* 暗色下同一支色要更深一档的混合比例，8% 落在深底上几乎看不见 */
+html[data-theme="dark"] .m-tplap .ta-chip {
+  background: color-mix(in srgb, var(--gc, var(--m-primary)) 16%, var(--m-card));
+}
+html[data-theme="dark"] .m-tplap .ta-chip.is-on {
+  background: color-mix(in srgb, var(--gc, var(--m-primary)) 26%, var(--m-card));
+}
+.m-tplap .ta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.m-tplap .ta-count {
+  font-size: 12px;
+  color: var(--m-text3) !important;
+}
+.m-tplap .n-checkbox-group {
+  margin-top: 8px;
+}
+
+/* ---------- 页面第一张卡不吃 margin-top（全局对齐）----------
+ * .m-page 自己已经给了 16px 上内边距，而桌面的 .n-card 还带 12px margin-top，
+ * 两者叠起来「账号列表」就比定时任务页低一档（实测 79 vs 67）。
+ * 移动端一律「离顶栏 16px」，页内其它卡之间的 12px 间距不受影响（那条来自弹窗外的相邻卡）。 */
+.m-page.m-page .m-desk > * > .n-card:first-child,
+.m-page.m-page .m-desk > .n-card:first-child {
+  margin-top: 0 !important;
+}
+
+/* ---------- 账号模板引用查看（.m-tplref）----------
+ * 每个账号一张描边卡 + 绿色 success tag，5 个账号就是 5 个盒子 5 块绿。
+ * 现在：表头一行（总数 + 模板筛选），行内只留「账号名 + 一枚安静的状态块」，
+ * 有关联 = 行动蓝底，未关联 = band 底灰字。 */
+.m-tplref .tr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 68vh;
+}
+.m-tplref .tr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.m-tplref .tr-count {
+  font-size: 12.5px;
+  color: var(--m-text3) !important;
+}
+.m-tplref .tr-filter {
+  flex: none;
+  width: 140px;
+}
+.m-tplref .tr-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-tplref .tr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px 0;
+}
+.m-tplref .tr-row + .tr-row {
+  box-shadow: inset 0 1px 0 var(--m-border);
+}
+.m-tplref .tr-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text) !important;
+}
+.m-tplref .tr-tag {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-primary-soft);
+  font-size: 11.5px;
+  line-height: 18px;
+  color: var(--m-primary) !important;
+}
+.m-tplref .tr-tag.is-none {
+  background: var(--m-bg);
+  color: var(--m-text3) !important;
+}
+.m-tplref .tr-empty {
+  padding: 28px 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--m-text3) !important;
+}
+
+/* ---------- Naive 开关：圆角 8，不做药丸 ----------
+ * Naive 默认 rail 是「高度一半」的胶囊，和 design.md「圆角只 0/4/8/12」冲突。
+ * rail 的 width/height 是内联算出来的，这里只动圆角与旋钮圆角。 */
+body.m-mobile .n-switch .n-switch__rail,
+.m-desk .n-switch .n-switch__rail {
+  border-radius: var(--m-r-md) !important;
+}
+body.m-mobile .n-switch .n-switch__button,
+.m-desk .n-switch .n-switch__button {
+  border-radius: var(--m-r-sm) !important;
+}
+
+/* ★ 禁用态按钮的文字被 Naive 直接写在 .n-button__content 上（不走 --n-text-color），
+   只改按钮级变量会得到「band 底 + 白字」（实测 rgb(234,236,238) 底上 rgb(255,255,255) 字，
+   对比 1.1:1，等于看不见）—— 必须打到 span 上，和暗色那条同一套打法。 */
+body.m-mobile .n-button[disabled] .n-button__content,
+body.m-mobile .n-button.n-button--disabled .n-button__content,
+.m-desk .n-button[disabled] .n-button__content,
+.m-desk .n-button.n-button--disabled .n-button__content {
+  color: var(--m-text3) !important;
+}
+
+/* ---------- 梦境商品购买配置（.m-dreambuy）----------
+ * 三列勾选网格在 366px 里每格只有 110px：勾选框 + 4 个字的商品名刚好顶满，
+ * 手指点在两个商品中间很容易勾错。改成 2 列、每行 34px，节标题右侧带「已选 / 总数」。 */
+.m-dreambuy .db-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 66vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.m-dreambuy .db-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--m-r-md);
+  background: var(--m-band-blue);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--m-text2) !important;
+}
+.m-dreambuy .db-acts {
+  display: flex;
+  gap: 8px;
+}
+.m-dreambuy .db-acts > .n-button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 8px;
+  font-size: 12.5px;
+}
+/* 主行动给多一点宽度：它比「全选 / 清空」长一倍 */
+.m-dreambuy .db-acts > .n-button:first-child {
+  flex: 1.5 1 0;
+}
+.m-dreambuy .db-sec {
+  display: flex;
+  flex-direction: column;
+}
+.m-dreambuy .db-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--m-text3) !important;
+}
+.m-dreambuy .db-sec-title::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--m-primary);
+}
+.m-dreambuy .db-sec-k {
+  color: var(--m-text3) !important;
+}
+.m-dreambuy .db-sec-n {
+  margin-left: auto;
+  font-size: 11.5px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text3) !important;
+}
+.m-dreambuy .n-grid-item {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+.m-dreambuy .n-checkbox .n-checkbox__label {
+  font-size: 13px;
+  color: var(--m-text2) !important;
+}
+/* 320 窄屏：三个动作键平分时「勾选金币商品」仍是最长的那个，字号降一档 */
+@media (max-width: 360px) {
+  .m-dreambuy .db-acts > .n-button {
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
+
+
+/* ============================================================
+ * design.md 全站收口（2026-10-30 审计后补，见 docs/mobile-design-audit.md）
+ * 这一段只处理「渲染态才看得见」的 5 条，不涉及任何页面结构。
+ * ============================================================ */
+
+/* 2. body 层（非确认框）的 error 按钮：实心红 → 软红底 + 红字
+ *    DESIGN.md：红色只留给不可逆动作。榜单/阵容里的 error 按钮多是「下阵 / 重置 / 换人」，
+ *    用实心红会跟唯一行动蓝抢注意力。确认框（.n-dialog，teleport 到 body）不受影响，
+ *    它在上面已单独收口为实心 --m-red。 */
+body.m-mobile .n-button.n-button--error-type:not(.n-button--text-type) {
+  --n-color: var(--m-red-soft) !important;
+  --n-color-hover: var(--m-red-soft) !important;
+  --n-color-pressed: var(--m-red-soft) !important;
+  --n-color-focus: var(--m-red-soft) !important;
+  --n-border: 1px solid transparent !important;
+  --n-border-hover: 1px solid var(--m-red) !important;
+  --n-border-pressed: 1px solid var(--m-red) !important;
+  --n-border-focus: 1px solid var(--m-red) !important;
+  --n-text-color: var(--m-red) !important;
+  --n-text-color-hover: var(--m-red) !important;
+  --n-text-color-pressed: var(--m-red) !important;
+  --n-text-color-focus: var(--m-red) !important;
+}
+/* ★ 字挂在 span 上，App.vue 的暗色通配会压成白字 ⇒ 下沉一层 */
+body.m-mobile .n-button.n-button--error-type:not(.n-button--text-type) .n-button__content,
+html[data-theme="dark"] body.m-mobile .n-button.n-button--error-type:not(.n-button--text-type) .n-button__content {
+  color: var(--m-red) !important;
+}
+
+/* 3. n-tag：Naive 默认底是 #fafafc（不在调色板），描边是 #0000 的透明内描边；
+ *    圆角默认 3px 也不在 0/4/8/12 里。统一成 band + 4px，类型标签（success/error/
+ *    warning/info）保留语义，但换成 token 的软底 + 实字。 */
+body.m-mobile .n-tag {
+  border-radius: var(--m-r-sm) !important;
+  border: none !important;
+  background: var(--m-band) !important;
+  color: var(--m-text3) !important;
+  --n-border: none !important;
+  --n-border-radius: var(--m-r-sm) !important;
+  --n-color: var(--m-band) !important;
+  --n-text-color: var(--m-text3) !important;
+}
+body.m-mobile .n-tag.n-tag--success-type {
+  background: var(--m-green-soft) !important;
+  color: var(--m-green) !important;
+  --n-color: var(--m-green-soft) !important;
+  --n-text-color: var(--m-green) !important;
+}
+body.m-mobile .n-tag.n-tag--error-type {
+  background: var(--m-red-soft) !important;
+  color: var(--m-red) !important;
+  --n-color: var(--m-red-soft) !important;
+  --n-text-color: var(--m-red) !important;
+}
+body.m-mobile .n-tag.n-tag--warning-type {
+  background: var(--m-amber-soft) !important;
+  color: var(--m-amber) !important;
+  --n-color: var(--m-amber-soft) !important;
+  --n-text-color: var(--m-amber) !important;
+}
+body.m-mobile .n-tag.n-tag--info-type {
+  background: var(--m-band-blue) !important;
+  color: var(--m-primary) !important;
+  --n-color: var(--m-band-blue) !important;
+  --n-text-color: var(--m-primary) !important;
+}
+
+/* 4. Naive 自带的两处投影：message 的浮层阴影、switch 滑块的 0.3 黑 -
+ *    前者改成 band 描边（贴边不浮起），后者直接去掉（滑块靠 --m-card 与 rail 的色差已够）。 */
+body.m-mobile .n-message {
+  border: 1px solid var(--m-border) !important;
+  border-radius: var(--m-r-md) !important;
+}
+/* Naive 把滑块投影写在 --n-button-box-shadow 上（内联样式），只写 box-shadow 压不住 */
+body.m-mobile .n-switch {
+  --n-button-box-shadow: none !important;
+}
+body.m-mobile .n-switch .n-switch__button {
+  box-shadow: none !important;
+}
+
+/* 5. 头像色板：MobileLayout 的 4 色里 #2a6bb8 不在调色板内，JS 侧已换成 #0d2c55。
+ *    ★ 这里只能限 .m-appbar —— .m-ib 是全站复用的头像 class，
+ *    名单/抽屉里的头像底色是 --m-band，全局硬塞 --m-on-primary 会把首字压成白字（看不见）。 */
+.m-appbar .m-ib {
+  border-radius: var(--m-r-md);
+}
+
+/* ============================================================
+ * 悬停 / 按压：全站一套（11-01 用户口径：所有按钮表现必须一致）
+ *
+ * 收口前是四套语言各写各的：
+ *   · 「领取奖励」是页面自己刷成蓝的 `.action-button.primary`，被
+ *     `.card-action > button:not(.arco-btn-primary):hover` 当成中性按钮 ⇒ 悬停「蓝变灰 + 字变墨」
+ *   · 「重启服务」是 Arco `secondary`，悬停读 --color-secondary-hover（本体系没这号 token）⇒ 一点反应没有
+ *   · 「开启宝箱」是 Arco `primary`，悬停读 --primary-5 ⇒ 有反应
+ *   · `.m-btn`（管理 Token / 连接账号 / 分段控件）压根没写 :hover
+ * 现在统一成「叠一层」：
+ *   hover  = 往自身底色上叠 --m-veil     （实心蓝更蓝、白底极浅蓝灰、band 底深一档）
+ *   active = 叠 --m-veil-2
+ * 好处是不管底色是什么、由谁写的，叠完都是同一个方向、同一量级；也不换字色、不位移。
+ *
+ * ★ 必须 !important：`.card-action > button:not(.arco-btn-primary):not(.arco-btn-disabled)`
+ *   这类选择器是 (0,5,0)，`body.m-mobile :is(button, .arco-btn)…` 只有 (0,3,0)，打不过。
+ * ★ hover 只在真有指针的设备上出：触屏点完不会把按钮卡在悬停态。
+ * ★ transform: none 是为了压掉 fork 过来的桌面卡片（`.action-button:hover { transform: translateY(-1px) }`、
+ *   `.settings-gear:hover { transform: rotate(90deg) }`），本体系规范里没有「悬停抬升」。
+ * ★ 唯一的例外是 `.m-veil-off`：正文里那种「长得像链接的 button」（注册页的《用户协议》《隐私政策》）
+ *   不能用矩形叠色 —— 叠上去是一块方块贴在句子中间。要退出这套规则就给它挂这个类。
+ * ============================================================ */
+@media (hover: hover) and (pointer: fine) {
+  body.m-mobile
+    :is(button, .arco-btn, .n-button, [role="button"], .m-qa):hover:not(:disabled):not(
+      .arco-btn-disabled
+    ):not(.n-button--disabled):not(.m-veil-off) {
+    background-image: linear-gradient(var(--m-veil), var(--m-veil)) !important;
+    transform: none !important;
+  }
+}
+body.m-mobile
+  :is(button, .arco-btn, .n-button, [role="button"], .m-qa):active:not(:disabled):not(
+    .arco-btn-disabled
+  ):not(.n-button--disabled):not(.m-veil-off) {
+  background-image: linear-gradient(var(--m-veil-2), var(--m-veil-2)) !important;
+  transform: none !important;
+}
+/* 选中的分段 / 标签页按钮本来就实心蓝，veil 叠上去还是蓝，不用特殊处理；
+   唯一要排除的是「滚动条滑块」这类伪元素，不在 :is() 列表里，天然不受影响。 */

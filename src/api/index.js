@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
+import { isMobileMode } from "@/mobile/uiMode";
 
 // 创建axios实例
 const request = axios.create({
@@ -52,7 +53,8 @@ request.interceptors.response.use(
         case 401:
           // 未授权，清除登录状态
           authStore.logout();
-          window.location.href = "/login";
+          // 移动模式下必须去移动端登录页，否则会整页跳到桌面版登录界面
+          window.location.href = isMobileMode() ? "/mobile/login" : "/login";
           return Promise.reject({
             success: false,
             message: "登录已过期，请重新登录",

@@ -720,6 +720,20 @@ export class DailyTaskRunner {
 
     for (let i = 0; i < taskList.length; i++) {
       const task = taskList[i];
+      /* 支持调用方中途取消：传了 shouldAbort 且返回 true 就停在这里。
+       * 不传时（桌面端批量任务没传这个回调）行为与原来完全一致 ——
+       * 之前「停止」只是设了个标记，这个循环从头到尾不检查，所以必须等
+       * 当前账号的一整轮任务全部跑完才停，用户感知就是「点了停止没反应」。 */
+      if (
+        typeof this.callbacks?.shouldAbort === "function" &&
+        this.callbacks.shouldAbort()
+      ) {
+        this.log(
+          `已手动停止，剩余 ${totalTasks - i} 个任务不再执行`,
+          "warning",
+        );
+        return;
+      }
       try {
         await task.execute();
         const progress = Math.floor(((i + 1) / totalTasks) * 100);

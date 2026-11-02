@@ -91,6 +91,16 @@
             <n-switch v-model:value="preferences.notifications" />
             <template #extra> 接收任务完成通知 </template>
           </a-form-item>
+          <a-form-item label="界面模式">
+            <n-select
+              v-model:value="uiMode"
+              :options="uiModeOptions"
+              @update:value="onUiModeChange"
+            />
+            <template #extra>
+              新版为移动端界面（俱乐部已先行，其余功能边做边改）；旧版桌面界面完整保留，可随时切回
+            </template>
+          </a-form-item>
           <a-form-item label="自动执行">
             <n-switch v-model:value="preferences.autoExecute" />
             <template #extra> 默认开启任务自动执行 </template>
@@ -147,6 +157,7 @@ import { useRouter } from "vue-router";
 import { useMessage, useDialog } from "naive-ui";
 import { useAuthStore } from "@/stores/auth";
 import { passwordRules as buildPasswordRules } from "@/utils/passwordPolicy";
+import { uiMode as uiModeState, switchUiMode } from "@/mobile/uiMode";
 
 const router = useRouter();
 const message = useMessage();
@@ -177,6 +188,17 @@ const preferences = reactive({
   notifications: true,
   autoExecute: false,
 });
+
+// 界面模式（新旧两套 UI 开关，持久化在 localStorage）
+const uiMode = ref(uiModeState.mode);
+const uiModeOptions = [
+  { label: "旧版界面（桌面）", value: "legacy" },
+  { label: "新版界面（移动端）", value: "mobile" },
+];
+const onUiModeChange = (val) => {
+  switchUiMode(val);
+  message.success(val === "mobile" ? "已切换到新版移动端界面" : "已切换回旧版界面");
+};
 
 // 密码验证规则
 const passwordRules = {

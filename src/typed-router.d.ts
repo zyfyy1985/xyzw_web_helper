@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     '/TokenImport/cloudRestore': RouteRecordInfo<'/TokenImport/cloudRestore', '/TokenImport/cloudRestore', Record<never, never>, Record<never, never>>,
     '/TokenImport/localRestore': RouteRecordInfo<'/TokenImport/localRestore', '/TokenImport/localRestore', Record<never, never>, Record<never, never>>,
     '/TokenImport/manual': RouteRecordInfo<'/TokenImport/manual', '/TokenImport/manual', Record<never, never>, Record<never, never>>,
+    '/TokenImport/mobile': RouteRecordInfo<'/TokenImport/mobile', '/TokenImport/mobile', Record<never, never>, Record<never, never>>,
     '/TokenImport/singlebin': RouteRecordInfo<'/TokenImport/singlebin', '/TokenImport/singlebin', Record<never, never>, Record<never, never>>,
     '/TokenImport/url': RouteRecordInfo<'/TokenImport/url', '/TokenImport/url', Record<never, never>, Record<never, never>>,
     '/TokenImport/wxqrcode': RouteRecordInfo<'/TokenImport/wxqrcode', '/TokenImport/wxqrcode', Record<never, never>, Record<never, never>>,

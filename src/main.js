@@ -5,12 +5,17 @@ import "@/utils/localStorageCloudSync";
 import "@arco-design/web-vue/dist/arco.css";
 import "virtual:uno.css";
 import "./assets/styles/global.scss";
+// 新版移动端界面样式（与旧版完全隔离，互不影响）
+import "@/mobile/styles/mobile.css";
+// 主题换肤：只在 html[data-skin] 命中时覆盖 --m-* 行动色族，必须排在 mobile.css 之后
+import "@/mobile/styles/skins.css";
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import naive from "naive-ui";
 import router from "./router";
 import App from "./App.vue";
+import { applySkin } from "@/mobile/utils/skin";
 // import { i18n } from './locales';
 
 // 创建应用实例
@@ -54,6 +59,10 @@ const applyTheme = () => {
 };
 
 applyTheme();
+
+/* 皮肤：与深浅色正交，启动时同样先落一次 dataset，避免首屏闪一下默认蓝再变。
+   顺序无所谓（applyTheme 只管 data-theme，这里只管 data-skin），但必须在 mount 之前。 */
+applySkin();
 
 // 挂载应用
 app.mount("#app");
