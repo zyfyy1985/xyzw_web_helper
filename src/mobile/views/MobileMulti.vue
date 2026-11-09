@@ -1,5 +1,6 @@
 <template>
-  <div class="mm-page">
+  <!-- style 里会带 --mm-ime-b（键盘高度）与键盘期间钉死的高度，见 script 里的 syncViewport -->
+  <div class="mm-page" :class="{ 'is-ime': !!lockH, 'is-full': fullOn >= 0 }" :style="pageStyle">
     <!-- ① 顶栏：只剩槽位（点账号名即切换窗格，点空格子开选账号抽屉）
          不放返回箭头：手机有系统返回手势，页内再放一个只会占掉槽位宽度 -->
     <header class="mm-bar">
@@ -71,7 +72,8 @@
         :class="{
           'is-focus': focus === i,
           'is-idle': excluded.includes(i),
-          'is-hidden': view === 'single' && focus !== i,
+          'is-hidden': view === 'single' && focus !== i && fullOn !== i,
+          'is-full': fullOn === i,
           'is-dragging': dragDx !== 0,
         }"
         :style="{
@@ -84,7 +86,7 @@
       >
         <div
           class="mm-head"
-          :class="{ 'is-single': view === 'single' }"
+          :class="{ 'is-single': view === 'single' || fullOn === i }"
           @click="focus = i"
           @pointerdown="onHeadDown"
         >
@@ -93,6 +95,16 @@
           <span v-if="focus === i" class="mm-tag">主控</span>
           <span v-if="excluded.includes(i)" class="mm-tag is-off">断开</span>
           <i class="mm-grow"></i>
+          <!-- 全屏 / 退出全屏：这一窗铺满整块屏幕（iPhone 没有 Fullscreen API，靠布局铺满） -->
+          <button
+            type="button"
+            class="mm-zoom"
+            :class="{ on: fullOn === i }"
+            :aria-label="fullOn === i ? '退出全屏' : '全屏这一窗'"
+            @click.stop="toggleFull(i)"
+          >
+            <MIcon :name="fullOn === i ? 'shrink' : 'expand'" :size="fullOn === i ? 15 : 14" />
+          </button>
           <button
             type="button"
             class="mm-more"
@@ -119,6 +131,7 @@
             <span class="mm-empty-t">添加账号</span>
           </button>
         </div>
+
       </div>
 
       <!-- 落点反馈：协同真正打到别的窗时闪一圈，证明事件进了那个窗 -->
@@ -130,6 +143,18 @@
           :style="{ left: r.x + 'px', top: r.y + 'px' }"
         ></span>
       </div>
+
+      <!-- 回落全屏（iPhone / 无 Fullscreen API）：没有系统返回键可用，给一个悬浮退出钮。
+           真全屏时不显示 —— 那种情况返回键 / 上滑手势本身就是出口。 -->
+      <button
+        v-if="fullOn >= 0 && !fsOn"
+        type="button"
+        class="mm-fs-exit"
+        aria-label="退出全屏"
+        @click="toggleFull(fullOn)"
+      >
+        <MIcon name="shrink" :size="16" />
+      </button>
     </div>
 
     <!-- ④ 选账号：底部抽屉（全宽 44px 行，符合手机点按尺寸） -->
@@ -219,7 +244,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { computeLayout } from "@/utils/multiLayout";
 import { createSyncRouter } from "@/utils/multiSync";
@@ -285,6 +310,8 @@ const countOptions = [
  *   · 多窗 → 原样用 auto（竖容器上下 / 横容器左右，横屏自动翻成左右）。 */
 const stage = ref(null);
 const stageSize = reactive({ w: 0, h: 0 });
+/* 全屏中的窗格下标；-1 = 没全屏。见下面 toggleFull 的注释 */
+const fullOn = ref(-1);
 const layout = computed(() => {
   const single = view.value === "single";
   const base = computeLayout({
@@ -294,19 +321,79 @@ const layout = computed(() => {
     mode: "auto",
   });
   const box = base.panes[0];
-  if (!single || !box) return base;
-  return { ...base, panes: Array.from({ length: count.value }, () => box) };
+  const panes =
+    !single || !box ? base.panes.slice() : Array.from({ length: count.value }, () => box);
+  /* 全屏：把这一窗的 rect 直接换成整个舞台（顶栏/控制条已被 display:none 摘掉，
+     舞台此时就是整块屏幕）。其它窗留在原位被盖住 —— 但仍在正常布局里，
+     canvas 的 rect 有效，协同转发不受影响。 */
+  if (fullOn.value >= 0 && panes[fullOn.value]) {
+    panes[fullOn.value] = { x: 0, y: 0, w: stageSize.w, h: stageSize.h };
+  }
+  return { ...base, panes };
 });
 
-/* 头部高度：单窗 32（够手指按 ‹ › 与拖动翻页），多窗 24（格子窄，只放得下一行小字） */
-const headH = computed(() => (view.value === "single" ? HEAD_H_SINGLE : HEAD_H));
+/* 头部高度：单窗 32（够手指按按钮与拖动翻页），多窗 24（格子窄，只放得下一行小字）；
+   全屏 0 —— 头部整条摘掉，游戏画面顶到屏幕最上沿。 */
+const headH = computed(() => {
+  if (fullOn.value >= 0) return 0;
+  return view.value === "single" ? HEAD_H_SINGLE : HEAD_H;
+});
 
 function measure() {
+  // 键盘期间一律不重算：舞台被压矮时重算会把窗格整体缩小重排（画面跳一下）
+  if (lockH.value) return;
   const el = stage.value;
   if (!el) return;
   stageSize.w = el.clientWidth;
   stageSize.h = el.clientHeight;
 }
+
+/* ---------- 软键盘（输入法）绝不参与布局 ----------
+ * .mm-page 是 position:fixed; inset:0，尺寸跟的是「布局视口」，而输入法弹出压的是「可视视口」，
+ * 两种浏览器的表现还不一样：
+ *   · Android Chrome：布局视口一起被压矮 → .mm-stage 变矮 → ResizeObserver 重算
+ *     → 所有窗格缩小重排，游戏画面「抖一下、位置全变」；
+ *   · iOS / 只压可视视口：浏览器把可视视口往上平移，顶栏被推出屏幕，
+ *     贴在底边的抽屉浮到屏幕中间 —— 用户截图里「窗格菜单跑到下方、位置错乱」就是这个。
+ * 做法：把键盘弹出前的可用高度记成 baseH，键盘期间用它把 .mm-page 的高度钉死
+ * （height: baseH），窗格因此一动不动；抽屉再按可视视口贴到键盘上沿，保证看得见、点得到。 */
+const IME_MIN = 120; // 可视视口比基线矮这么多才算键盘（地址栏收起只差几十像素，别误判）
+const vvH = ref(0); // visualViewport.height
+const vvTop = ref(0); // visualViewport.offsetTop（iOS 会把可视视口往下平移）
+const lockH = ref(0); // 键盘前的页面高度；>0 就等于「键盘开着」
+let baseH = 0;
+
+function syncViewport() {
+  const vv = window.visualViewport;
+  const h = Math.round(vv ? vv.height : window.innerHeight);
+  const top = Math.round(vv ? vv.offsetTop : 0);
+  vvH.value = h;
+  vvTop.value = top;
+  const ime = !!baseH && h < baseH - IME_MIN;
+  if (!ime) {
+    // 没键盘时基线跟着走：转屏、地址栏收起之类都能自愈
+    baseH = h;
+    if (lockH.value) {
+      lockH.value = 0;
+      nextTick(measure); // 键盘收起：按真实高度重算一次
+    }
+    return;
+  }
+  if (!lockH.value) lockH.value = baseH;
+}
+
+/* 抽屉要贴「可视区底边」：可视区底边在页面坐标里是 offsetTop + height，
+   离钉死后的页面底边还差 lockH - (offsetTop + height)。
+   Android 压布局视口时 offsetTop=0、height 变小；iOS 平移可视视口时 offsetTop 正好补上 ——
+   同一个式子两边都对。 */
+const imeBottom = computed(() =>
+  lockH.value ? Math.max(0, Math.round(lockH.value - (vvTop.value + vvH.value))) : 0
+);
+const pageStyle = computed(() => {
+  const s = { "--mm-ime-b": imeBottom.value + "px" };
+  if (lockH.value) s.height = lockH.value + "px";
+  return s;
+});
 
 /* ---------- 账号 ----------
    账号清单取自 gameTokens（账号的唯一真相），不是 bin_file_list（那只是「启动过」的缓存）。
@@ -507,13 +594,69 @@ function step(d) {
   const n = count.value;
   if (n < 2) return;
   focus.value = (focus.value + d + n) % n;
-  applyAudio();
+}
+
+/* ---------- 头部按钮：全屏 ----------
+ * 两层叠加，缺一不可：
+ *   ① 布局铺满（一定生效）：把顶栏和控制条摘掉、这一窗的 rect 换成整个舞台。
+ *      全程 px 绝对定位，不碰 100vh / fixed —— .mm-page 是 position:fixed; inset:0，
+ *      高度天然等于「真正看得见的高度」（地址栏/手势条已扣掉），比 screen.height 准。
+ *   ② 浏览器全屏（有就用）：再调一次 document.documentElement.requestFullscreen，
+ *      把地址栏、状态栏一并压掉，底部由系统提示「返回键 / 上滑退出全屏」。
+ *      iPhone Safari 没有这套 API（或只对 video 开放）→ 自动只留 ①，视觉照样铺满。
+ *
+ * ★ 全屏元素必须是 documentElement 整页：拿 .mm-pane 去 requestFullscreen 会把
+ *   抽屉/遮罩/落点反馈全盖在外面（top layer 只渲染全屏元素本身）。
+ * ★ 全屏时**标题栏整条摘掉**：这一窗就是纯游戏画面，iframe 从 y=0 铺到屏幕底。
+ *   ★ 全屏不做协同（getState 的 enabled 会临时置 false）：各窗 canvas 比例不同，
+ *     按比例映射必然错位；全屏的语义就是「专心玩这一个号」。
+ * ★ 协同不受影响（非全屏时）：forward 归一化用的是「源窗 canvas 的 rect → 目标窗自己的 canvas rect」，
+ *   本来就按比例映射，不要求各窗等尺寸。
+ * ★ 别把窗格改成 position:fixed 去铺满：fixed 相对布局视口，iOS 会把地址栏算进来，底部顶出屏幕。 */
+const fsOn = ref(false); // 浏览器真全屏是否生效（决定要不要提示「返回键退出」）
+const fsAvail =
+  typeof document !== "undefined" && !!document.documentElement.requestFullscreen;
+
+async function enterFs() {
+  if (!fsAvail || document.fullscreenElement) return;
+  try {
+    // navigationUI:"hide" 让安卓 Chrome 把地址栏/状态栏一并收起（系统仍给「返回键退出」提示）
+    await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+  } catch (e) {
+    /* 被拒（iPhone / 非用户手势）→ 只留布局铺满，不报错 */
+  }
+}
+function exitFs() {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+/* 系统全屏状态变了：按返回键 / 上滑 / 系统手势退出，都要把「铺满」一起复位，
+   否则画面会停在一个没有顶栏、也退不出去的状态。 */
+function onFsChange() {
+  fsOn.value = !!document.fullscreenElement;
+  if (!fsOn.value && fullOn.value >= 0) fullOn.value = -1;
+  nextTick(measure);
+}
+
+function toggleFull(i) {
+  if (fullOn.value === i) {
+    fullOn.value = -1;
+    exitFs();
+    nextTick(measure);
+    return;
+  }
+  focus.value = i;
+  fullOn.value = i;
+  // 真全屏是异步的（要等 fullscreenchange），先按布局铺满画出来，视觉上不闪
+  enterFs();
+  // 顶栏/控制条被 display:none 摘掉后舞台会变高，立刻按新尺寸量一次，
+  // 免得全屏第一帧还按旧舞台尺寸画（ResizeObserver 也会来，但这是同一帧内的事）
+  nextTick(measure);
 }
 
 function onHeadDown(e) {
-  if (view.value !== "single") return;
-  // ⋮ 自己处理点击，别把它的按下当成翻页起点
-  if (e.target && e.target.closest && e.target.closest(".mm-more")) return;
+  if (view.value !== "single" || fullOn.value >= 0) return;
+  // ⋮ / 最大化按钮自己处理点击，别把它们的按下当成翻页起点
+  if (e.target && e.target.closest && e.target.closest(".mm-more, .mm-zoom")) return;
   dragFrom = { x: e.clientX, y: e.clientY, lock: 0 };
   window.addEventListener("pointermove", onHeadMove);
   window.addEventListener("pointerup", onHeadUp);
@@ -576,8 +719,48 @@ function injectPaneStyle(i) {
   (doc.head || doc.documentElement).appendChild(st);
 }
 
+/* ---------- 掐掉游戏自己的「点击任意位置全屏」 ----------
+ * 游戏首次进入会挂一个「点一下进全屏」的手势（cc.screen.requestFullScreen 之类），
+ * 单开时是对的，多开时会把整页顶成全屏 —— 所有窗格被挤成一屏，布局全废。
+ * 做法：在这一窗**自己的 realm** 里把 requestFullscreen 打成 no-op。
+ *   · 改 Element.prototype，不是 documentElement 实例：游戏多半是 canvas.requestFullscreen()；
+ *   · 只影响 iframe 内部，父页「全屏这一窗」用的还是真 API，互不干扰；
+ *   · 只 patch 多开页（本页与桌面 /multi），单开 GamePlayer 不动。 */
+function patchFrameFullscreen(i) {
+  let w = null;
+  try {
+    w = frames[i] && frames[i].contentWindow;
+  } catch (e) {
+    return;
+  }
+  if (!w || w.__mpFsOff) return;
+  try {
+    const noop = () => Promise.resolve();
+    const kill = (obj, name) => {
+      if (!obj || !(name in obj)) return;
+      try {
+        Object.defineProperty(obj, name, { value: noop, configurable: true, writable: true });
+      } catch (e) {
+        /* 不可写就跳过 */
+      }
+    };
+    const proto = w.Element && w.Element.prototype;
+    kill(proto, "requestFullscreen");
+    kill(proto, "webkitRequestFullscreen");
+    kill(proto, "webkitRequestFullScreen");
+    kill(proto, "mozRequestFullScreen");
+    kill(proto, "msRequestFullscreen");
+    kill(w.document.documentElement, "requestFullscreen"); // 双保险：实例属性优先于原型
+    w.__mpFsOff = true;
+  } catch (e) {
+    /* 跨域 / 已卸载：忽略 */
+  }
+}
+
 function onFrameLoad(i) {
   ready[i] = false;
+  // 一加载就掐，别等 cc 就绪 —— 游戏可能在很早就挂上那个点击手势
+  patchFrameFullscreen(i);
   let tries = 0;
   const probe = () => {
     if (tries++ > 60) return;
@@ -594,7 +777,16 @@ function onFrameLoad(i) {
     }
     ready[i] = true;
     injectPaneStyle(i);
-    applyAudio();
+    /* 第二道锁：引擎 cc.screen 有 enableAutoFullScreen —— 首次全屏被浏览器拒（没有用户手势）后，
+       它会往 canvas 上挂一个一次性 touchend 监听，用户「点任意地方」时再试一次全屏。
+       这正是"首次进入点一下就全屏"的来源。cc 就绪后直接把它关掉（它的官方开关）。 */
+    try {
+      const w = frames[i] && frames[i].contentWindow;
+      const scr = w && w.cc && w.cc.screen;
+      if (scr && typeof scr.disableAutoFullScreen === "function") scr.disableAutoFullScreen();
+    } catch (e) {
+      /* 引擎还没起来 / 跨域：忽略，靠上面的 API 补丁兜底 */
+    }
   };
   window.setTimeout(probe, 300);
 }
@@ -625,31 +817,24 @@ function toggleExcluded(i) {
   persist();
 }
 
-/* ---------- 声音：只让主控窗出声（两块游戏同时响是没法用的） ---------- */
-let muteTimer = null;
-function setPaneAudio(i, on) {
-  const w = frames[i] && frames[i].contentWindow;
-  const ae = w && w.cc && w.cc.audioEngine;
-  if (!ae) return;
-  try {
-    if (typeof ae.setMusicVolume === "function") ae.setMusicVolume(on ? 1 : 0);
-    if (typeof ae.setEffectsVolume === "function") ae.setEffectsVolume(on ? 1 : 0);
-  } catch (e) {
-    /* 引擎版本差异，忽略 */
-  }
-}
-function applyAudio() {
-  for (let i = 0; i < 4; i++) {
-    if (!slots[i].binId || !ready[i]) continue;
-    setPaneAudio(i, i === focus.value);
-  }
-}
+/* ---------- 声音：一律不碰 ----------
+ * 之前这里做过「只让主控窗出声」：每 2.5s 把主控窗 setMusicVolume/setEffectsVolume 设回 1。
+ * 但引擎的实现是「记录音量 + 立刻 setVolume(当前实例, v)」——
+ *    cc.audioEngine.setMusicVolume = function (v) { this._music.volume = v; this.setVolume(this._music.id, v) }
+ * 也就是说这个调用会把**正在播放的音乐/音效直接改成新音量**。
+ * 游戏内关声音是它自己的 SoundManager 逐实例调 setVolume(id, 0) 做的，被我们这一发设回 1
+ * ⇒ 用户在设置里关掉也没用，每 2.5 秒又响（用户报的「声音关不掉」就是这个）。
+ * 结论：多开不做任何音量干预，以游戏内设置为准。要「只主控出声」只能另做成显式开关，
+ * 且只能静音别的窗、永远不许把任何窗的音量调大。
+ */
 
 /* ---------- 协同 ---------- */
 let rafId = 0;
 const sync = createSyncRouter({
   getState: () => ({
-    enabled: syncOn.value,
+    /* 全屏时不协同：全屏窗 canvas 的比例与分格窗不同，按比例映射必然错位；
+       而且全屏的语义就是「专心玩这一个号」，误转发到后景号反而危险。 */
+    enabled: syncOn.value && fullOn.value < 0,
     panes: [0, 1, 2, 3].map((i) => ({
       excluded: excluded.value.includes(i),
       ready: !!ready[i],
@@ -699,7 +884,18 @@ onMounted(async () => {
     persist();
   }
   window.addEventListener("keydown", onKeyDown);
-  muteTimer = window.setInterval(applyAudio, 2500);
+  /* 真全屏可能被系统手势 / 返回键 / Esc（浏览器自己处理）退出，
+     fullscreenchange 是唯一可靠的通知，必须听，否则页面停在「铺满但退不出去」。 */
+  document.addEventListener("fullscreenchange", onFsChange);
+  /* 输入法：visualViewport 的 resize 不一定触发 window.resize（iOS 只发 scroll），
+     两个都听；scroll 用来跟住「浏览器把可视视口往上平移」带来的 offsetTop 变化。 */
+  window.addEventListener("resize", syncViewport);
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.addEventListener("resize", syncViewport);
+    vv.addEventListener("scroll", syncViewport);
+  }
+  syncViewport();
 });
 
 function onKeyDown(e) {
@@ -707,7 +903,10 @@ function onKeyDown(e) {
   if (e.key === "Escape") {
     if (menuShow.value) menuShow.value = false;
     else if (pickerShow.value) closePicker();
-    else goBack();
+    else if (fullOn.value >= 0) {
+      fullOn.value = -1;
+      exitFs();
+    } else goBack();
   }
 }
 
@@ -719,10 +918,18 @@ function goBack() {
 
 onBeforeUnmount(() => {
   document.body.classList.remove("m-mobile");
+  document.removeEventListener("fullscreenchange", onFsChange);
+  // 全屏状态下离开页面：先退全屏，否则下一个路由会卡在「无地址栏」的窗口里
+  exitFs();
   ro && ro.disconnect();
-  if (muteTimer) window.clearInterval(muteTimer);
   if (rafId) window.clearTimeout(rafId);
   window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("resize", syncViewport);
+  const vv = window.visualViewport;
+  if (vv) {
+    vv.removeEventListener("resize", syncViewport);
+    vv.removeEventListener("scroll", syncViewport);
+  }
   // 翻页拖到一半就离开页面：监听是挂在 window 上的，必须自己摘
   window.removeEventListener("pointermove", onHeadMove);
   window.removeEventListener("pointerup", onHeadUp);
@@ -747,6 +954,8 @@ window.__MULTI_DEBUG__ = {
     view: view.value,
     syncOn: syncOn.value,
     focus: focus.value,
+    full: fullOn.value,
+    fs: fsOn.value,
     ready: [ready[0], ready[1], ready[2], ready[3]],
     layout: layout.value,
   }),
@@ -966,6 +1175,55 @@ export default { name: "MobileMulti" };
 .mm-pane.is-focus {
   z-index: 2;
 }
+/* ---------- 全屏 ----------
+ * 顶栏 + 控制条整条摘掉（display:none），舞台自然占满 .mm-page；.mm-page 是
+ * position:fixed; inset:0，高度就是「真正看得见的高度」（iOS 地址栏 / 手势条都已经扣掉），
+ * 不读 screen.height 也不会踩 100vh 的坑。窗格仍是 stage 内的 px 绝对定位，只是 rect 换成整个舞台。
+ * ★ 标题栏（.mm-head，32px）**保留**：账号名/主控标识要看得见，右侧小按钮就是退出入口，
+ *   下方 iframe 从 y=32 开始。
+ * ★ 别改成把窗格 position:fixed：fixed 相对视口，iOS 上会按布局视口算（含地址栏），底部会被顶出去。 */
+.mm-page.is-full .mm-bar,
+.mm-page.is-full .mm-ctrl {
+  display: none;
+}
+.mm-pane.is-full {
+  z-index: 3;
+  border-radius: 0;
+  box-shadow: none;
+}
+/* 全屏时标题栏整条摘掉，游戏画面顶到 y=0（配合 headH 返回 0） */
+.mm-pane.is-full .mm-head {
+  display: none;
+}
+/* 回落全屏的退出钮：只有没进真全屏（iPhone）时才出现 */
+.mm-fs-exit {
+  position: absolute;
+  top: calc(8px + env(safe-area-inset-top));
+  right: 10px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff !important;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+/* 真全屏（documentElement 进 top layer）：UA 会给 :fullscreen 加黑底并可能带 8px 边距，
+   body/html 在这里对齐一次，免得画面缩一圈、四周露黑边。
+   ★ 必须 :global —— scoped 会给选择器尾巴加 [data-v]，永远匹配不到 <html>。 */
+:global(html:fullscreen),
+:global(html:fullscreen body) {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #000 !important;
+}
 /* 翻页拖动：跟手期间关掉过渡，松手回位再打开 */
 .mm-pane {
   transition: transform 0.16s ease-out;
@@ -1050,6 +1308,31 @@ export default { name: "MobileMulti" };
   cursor: pointer;
 }
 .mm-more.on {
+  background: var(--m-primary-soft);
+  color: var(--m-primary-deep);
+}
+/* 最大化 / 还原：比 ⋮ 大一圈（这是窗格最常用的操作，得按得准）。
+   按压反馈走全局 veil，不在这里自写 :active 叠底（全站只留那一条）。 */
+.mm-zoom {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  color: var(--m-text3);
+  cursor: pointer;
+}
+.mm-head.is-single .mm-zoom {
+  width: 28px;
+  height: 26px;
+}
+/* 全屏中：按钮保持高亮，提示「再点一下退出」 */
+.mm-zoom.on {
   background: var(--m-primary-soft);
   color: var(--m-primary-deep);
 }
@@ -1271,5 +1554,18 @@ export default { name: "MobileMulti" };
   .mm-sync {
     padding: 0 8px;
   }
+}
+
+/* ---------- 键盘开着时：抽屉贴到键盘上沿 ----------
+ * 键盘期间 .mm-page 的高度被钉成键盘前的高度（见 script 的 syncViewport），
+ * 所以抽屉不能再用「bottom:0 就贴屏幕底」来算 —— 页面底边可能已经缩到键盘后面了。
+ * --mm-ime-b 是「可视区底边离页面底边还差多少」，键盘收起时是 0px、且 .is-ime 不在，
+ * 完全回到 mobile.css 的默认行为。 */
+.mm-page.is-ime :deep(.m-sheet) {
+  bottom: var(--mm-ime-b, 0px);
+  max-height: calc(100% - var(--mm-ime-b, 0px) - 12px);
+}
+.mm-page {
+  --mm-ime-b: 0px;
 }
 </style>

@@ -521,7 +521,6 @@ onMounted(() => {
   window.addEventListener("keyup", onKeyUp);
   document.addEventListener("pointerdown", onDocDown, true);
   document.addEventListener("fullscreenchange", onFsChange);
-  muteTimer = window.setInterval(applyAudio, 2500);
 });
 
 function persist() {
@@ -584,8 +583,46 @@ function injectPaneStyle(i) {
   (doc.head || doc.documentElement).appendChild(st);
 }
 
+/* ---------- 掐掉游戏自己的「点击任意位置全屏」 ----------
+ * 游戏首次进入会挂一个「点一下进全屏」的手势（cc.screen.requestFullScreen 之类），
+ * 单开时是对的，多开时会把整页顶成全屏 —— 所有窗格被挤成一屏，布局全废。
+ * 做法：在这一窗**自己的 realm** 里把 requestFullscreen 打成 no-op。
+ *   · 改 Element.prototype，不是 documentElement 实例：游戏多半是 canvas.requestFullscreen()；
+ *   · 只影响 iframe 内部，父页 /multi 自己的整页全屏（返回键退）互不干扰。 */
+function patchFrameFullscreen(i) {
+  let w = null;
+  try {
+    w = frames[i] && frames[i].contentWindow;
+  } catch (e) {
+    return;
+  }
+  if (!w || w.__mpFsOff) return;
+  try {
+    const noop = () => Promise.resolve();
+    const kill = (obj, name) => {
+      if (!obj || !(name in obj)) return;
+      try {
+        Object.defineProperty(obj, name, { value: noop, configurable: true, writable: true });
+      } catch (e) {
+        /* 不可写就跳过 */
+      }
+    };
+    const proto = w.Element && w.Element.prototype;
+    kill(proto, "requestFullscreen");
+    kill(proto, "webkitRequestFullscreen");
+    kill(proto, "webkitRequestFullScreen");
+    kill(proto, "mozRequestFullScreen");
+    kill(proto, "msRequestFullscreen");
+    kill(w.document.documentElement, "requestFullscreen");
+    w.__mpFsOff = true;
+  } catch (e) {
+    /* 跨域 / 已卸载：忽略 */
+  }
+}
+
 function onFrameLoad(i) {
   ready[i] = false;
+  patchFrameFullscreen(i); // 一加载就掐，别等 cc 就绪
   let tries = 0;
   const probe = () => {
     if (tries++ > 60) return;
@@ -602,7 +639,15 @@ function onFrameLoad(i) {
     }
     ready[i] = true;
     injectPaneStyle(i);
-    applyAudio();
+    /* 第二道锁：引擎 cc.screen.enableAutoFullScreen 会在全屏被拒后往 canvas 挂一次性 touchend，
+       用户「点任意地方」就再试一次全屏 —— 这就是首次进入点一下就全屏的来源。 */
+    try {
+      const w = frames[i] && frames[i].contentWindow;
+      const scr = w && w.cc && w.cc.screen;
+      if (scr && typeof scr.disableAutoFullScreen === "function") scr.disableAutoFullScreen();
+    } catch (e) {
+      /* 引擎还没起来 / 跨域：忽略，靠 API 补丁兜底 */
+    }
     if (diagOn.value) hookPaneCounter(i);
   };
   window.setTimeout(probe, 300);
@@ -632,25 +677,17 @@ function toggleExcluded(i) {
   persist();
 }
 
-/* ---------- 声音：只让主控窗出声 ---------- */
-let muteTimer = null;
-function setPaneAudio(i, on) {
-  const w = frames[i] && frames[i].contentWindow;
-  const ae = w && w.cc && w.cc.audioEngine;
-  if (!ae) return;
-  try {
-    if (typeof ae.setMusicVolume === "function") ae.setMusicVolume(on ? 1 : 0);
-    if (typeof ae.setEffectsVolume === "function") ae.setEffectsVolume(on ? 1 : 0);
-  } catch (e) {
-    /* 引擎版本差异，忽略 */
-  }
-}
-function applyAudio() {
-  for (let i = 0; i < 4; i++) {
-    if (!slots[i].binId || !ready[i]) continue;
-    setPaneAudio(i, i === focus.value);
-  }
-}
+/* ---------- 声音：一律不碰 ----------
+ * 这里原来做过「只让主控窗出声」：每 2.5s 把主控窗 setMusicVolume/setEffectsVolume 设回 1，
+ * 别的窗设 0。问题出在引擎的实现上（src/xyzw/cocos2d-js-min.js）：
+ *   setMusicVolume(v)  { this._music.volume = v; this.setVolume(this._music.id, v) }
+ *   setEffectsVolume(v){ this._effect.volume = v; for (var i in a) if (i !== musicId) setVolume(i, v) }
+ * 也就是「记下音量 + 立刻改正在播放的实例」。游戏内关声音是它自己的 SoundManager 逐实例
+ * setVolume(id, 0) 做的，我们这一发设回 1 就把刚关掉的声音又调起来了
+ * ⇒ 用户在设置里关掉也没用，每 2.5 秒又响（用户报的「游戏声音关不掉」就是这个）。
+ * 结论：多开不做任何音量干预，以游戏内设置为准。要「只主控出声」只能做成显式开关，
+ * 且只能往小调（静音别的窗），永远不许把任何窗的音量调大。
+ */
 
 /* ---------- 协同 ---------- */
 let rafId = 0;
@@ -719,7 +756,6 @@ function goBack() {
 
 onBeforeUnmount(() => {
   ro && ro.disconnect();
-  if (muteTimer) window.clearInterval(muteTimer);
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("keyup", onKeyUp);
   document.removeEventListener("pointerdown", onDocDown, true);
