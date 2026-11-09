@@ -118,6 +118,7 @@ import {
   Cloud,
   Download,
   GameController,
+  Grid,
 } from "@vicons/ionicons5";
 import useIndexedDB from "@/hooks/useIndexedDB";
 import { openGameWindow, navigateGameWindow } from "@/utils/gameWindow";
@@ -258,6 +259,14 @@ const quickActions = ref([
   },
 
   {
+    id: 5,
+    icon: markRaw(Grid),
+    title: "多开",
+    description: "2~4 个账号分屏，可协同操作",
+    action: "multi-open",
+  },
+
+  {
     id: 2,
     icon: markRaw(Cube),
     title: "游戏功能",
@@ -329,11 +338,21 @@ const handleManageTokens = () => {
   }
 };
 
+/* 多开：BIN 已缓存（打开过一次游戏）就把当前账号带进第 1 窗，否则进空页面自己挑 */
+const openMulti = () => {
+  const token = tokenStore.selectedToken;
+  const hasBin = token && localStorage.getItem("bin_data_" + token.id);
+  router.push({ path: "/multi", query: hasBin ? { bin_id: String(token.id) } : {} });
+};
+
 const handleQuickAction = (action) => {
   switch (action.action) {
     case "open-game":
       // 直接进游戏，不再弹内置脚本对话框（脚本改由卡片右上角齿轮进入）
       openGame();
+      break;
+    case "multi-open":
+      openMulti();
       break;
     case "game-features":
       router.push("/admin/game-features");

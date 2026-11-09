@@ -44,7 +44,7 @@
             取消
           </n-button>
           <n-button type="primary" size="large" @click="onStart">
-            启动 H5
+            {{ confirmText }}
           </n-button>
         </div>
       </template>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { selectedTokenId } from "@/stores/tokenStore";
 import {
   FEATURE_SCRIPTS,
@@ -65,8 +65,14 @@ import {
 
 const props = defineProps({
   show: { type: Boolean, default: false },
+  /* 不传就用「当前选中账号」；多开页按窗格传具体账号 */
+  tokenId: { type: String, default: "" },
+  confirmText: { type: String, default: "启动 H5" },
 });
 const emit = defineEmits(["update:show", "start"]);
+
+/* 脚本开关是按账号（tokenId）存的：多开时每个窗格是不同账号，必须跟着窗格走 */
+const scopeId = computed(() => props.tokenId || selectedTokenId.value);
 
 // 与 Dashboard 一致的紫蓝主色（取代 naive 默认的绿色）
 const dashboardOverrides = {
@@ -84,19 +90,19 @@ const scriptList = ref(FEATURE_SCRIPTS.slice());
 
 // 每次打开时拉取线上清单 → 清掉已失效的勾选 → 恢复剩余勾选
 watch(
-  () => props.show,
-  async (v) => {
+  () => [props.show, scopeId.value],
+  async ([v, id]) => {
     if (!v) return;
     checkedIds.value = getEnabledFeatures(
       scriptList.value.map((f) => f.id),
-      selectedTokenId.value
+      id
     );
-    const list = await fetchFeatureScripts(selectedTokenId.value);
+    const list = await fetchFeatureScripts(id);
     scriptList.value = list;
     const ids = list.map((f) => f.id);
     // 勾选过但已不在清单里的脚本（如 tokenid 失效后受限脚本被剔除）→ 取消勾选
-    pruneEnabledFeatures(ids, selectedTokenId.value);
-    checkedIds.value = getEnabledFeatures(ids, selectedTokenId.value);
+    pruneEnabledFeatures(ids, id);
+    checkedIds.value = getEnabledFeatures(ids, id);
   },
   { immediate: true }
 );
@@ -107,9 +113,9 @@ const toggle = (id) => {
   else checkedIds.value.push(id);
 };
 
-// 启动：写入勾选记录，再由父页面执行原有的打开游戏逻辑
+// 启动/保存：写入勾选记录，再交由父页面处理（启动 H5 / 重载窗格）
 const onStart = () => {
-  setEnabledFeatures([...checkedIds.value], selectedTokenId.value);
+  setEnabledFeatures([...checkedIds.value], scopeId.value);
   emit("update:show", false);
   emit("start", [...checkedIds.value]);
 };

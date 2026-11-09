@@ -1,7 +1,13 @@
 // @name         工具坞
-// @version      1.0.6
+// @version      1.0.7
 // @description  把各功能脚本的入口收进右上角一个翡翠青圆钮（白色魔法棒图标）：点开弹出菜单
 //               （账号切换 / 云阵容 / 蟠桃辅助 / 盐场辅助），屏幕只留 1 个图标。
+//
+// ── 多开模式（?multi=1）────────────────────────────────────────────────
+//   多开页每格的画面本来就小，再钉一个圆钮就挡视野了；而且多开页的窗格头部会
+//   提供同名的「脚本设置」入口。所以 multi=1 时**不建任何 UI**，只保留注册表：
+//   功能脚本照常 register、账号切换照样能注册，宿主页通过 describe()/open(id)
+//   在页面里列出入口、点了让面板在对应窗格里展开。
 //
 // ── 为什么需要它 ───────────────────────────────────────────────────────
 //   各功能脚本各自往屏幕右上角钉一个悬浮入口（圆的、胶囊的都有），形态尺寸颜色
@@ -35,11 +41,19 @@
 
   if (window.__XYZW_DOCK__) return; // 已安装（iframe 重载后重新注入属正常）
 
-  var VERSION = '1.0.6';
+  var VERSION = '1.0.7';
   var DOCK_ID = 'xyzw-dock';
   var MENU_ID = 'xyzw-dock-menu';
   var STYLE_ID = 'xyzw-dock-style';
   var POS_KEY = 'xyzw_dock_pos';
+
+  // 多开模式：不建 UI（宿主页提供入口），但保留注册表与 describe/open 接口
+  var MULTI = false;
+  try {
+    MULTI = /[?&]multi=1(&|$)/.test(window.location.search);
+  } catch (e) {
+    MULTI = false;
+  }
 
   var SIZE = 38; // 圆钮直径
   var MARGIN = 8; // 距屏幕边缘
@@ -379,6 +393,11 @@
   // ── 构建 UI ──────────────────────────────────────────────────────────
   function buildUi() {
     if (uiReady || !document.body) return false;
+    if (MULTI) {
+      // 多开：一个像素都不往游戏里放，只把 uiReady 置真，让 register 不用排队
+      uiReady = true;
+      return true;
+    }
     injectStyle();
 
     btn = el('button');
@@ -474,6 +493,38 @@
         return x.id;
       });
     },
+    /** 带名称/颜色的入口清单：多开页用它渲染「脚本设置」菜单 */
+    describe: function () {
+      return items.map(function (x) {
+        var on = null;
+        if (typeof x.enabled === 'function') {
+          try {
+            on = !!x.enabled();
+          } catch (e) {
+            on = null;
+          }
+        }
+        return { id: x.id, name: x.name, char: x.char, color: x.color, on: on };
+      });
+    },
+    /** 宿主页（多开页）调用：在游戏内展开指定功能面板 */
+    open: function (id) {
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id !== id) continue;
+        try {
+          if (typeof items[i].open === 'function') items[i].open();
+          return true;
+        } catch (e) {
+          console.warn('[工具坞] 打开「' + id + '」失败:', e);
+          return false;
+        }
+      }
+      return false;
+    },
+    /** 是否多开模式（宿主页判断要不要自己提供入口） */
+    isMulti: function () {
+      return MULTI;
+    },
     /** 展开 / 收起菜单 */
     toggle: function () {
       setOpen(!openFlag);
@@ -490,5 +541,5 @@
 
   window.__XYZW_DOCK__ = api;
   boot();
-  console.log('[工具坞] v' + VERSION + ' 已就绪');
+  console.log('[工具坞] v' + VERSION + ' 已就绪' + (MULTI ? '（多开模式：不挂 UI）' : ''));
 })();

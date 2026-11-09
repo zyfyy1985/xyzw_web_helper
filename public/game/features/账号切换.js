@@ -1,5 +1,5 @@
 // @name         账号切换
-// @version      1.1.5
+// @version      1.1.6
 // @description  游戏内账号切换登录器：白色浮层面板，显示当前登录账号与启动列表，
 //               支持切换（当前窗口换号并重载游戏）/ 刷新（重开当前账号游戏）/
 //               启动（PC 上开一个 480×940 的独立小窗口，窄屏退回新标签页）/ 删除（仅移除 bin_file_list 条目与 bin_data 缓存，
@@ -12,6 +12,8 @@
 //     由 GamePlayer 透传进 iframe），否则回退 localStorage('current_bin_id')。
 //     这样多标签页互不干扰：新标签页的游戏与面板显示的都是 URL 指定的账号。
 //   浏览器标签页标题同步为当前账号的角色名。
+//   ★ 多开（父页 /multi，iframe 带 ?multi=1）：面板不再挂父窗口，改为各窗一份，
+//     否则 4 个实例抢同一份 DOM、「切换」会重载父页第一个 iframe（打错窗）。
 //
 // ── 面板挂载（本脚本的关键设计）────────────────────────────────────────
 //   功能脚本由 game-bridge 注入游戏页（GamePlayer 的 iframe 内）。若把面板画在
@@ -36,7 +38,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '1.1.5';
+  var VERSION = '1.1.6';
   var MIN_KEY = 'xyzw_acct_switch_min';
   var PANEL_ID = 'acctSwitchPanel';
   var PILL_ID = 'acctSwitchPill';
@@ -65,6 +67,20 @@
     twin = null;
   }
   var host = twin || window;
+  /* 多开（父页 /multi 网格，iframe 带 ?multi=1）：每个窗都要有自己的一份面板。
+     挂父窗口会让 4 个实例抢同一份 DOM，而且「切换/刷新」会去重载父页里第一个
+     iframe —— 直接打错窗。这里退回自身文档：面板各窗一份，reloadGame 走
+     「独立打开」分支重载本窗（面板随 iframe 重载重建，短暂消失属预期）。 */
+  var MULTI = false;
+  try {
+    MULTI = /[?&]multi=1(&|$)/.test(window.location.search);
+    if (twin && MULTI) {
+      twin = null;
+      host = window;
+    }
+  } catch (e) {
+    /* 拿不到 URL 就按原逻辑 */
+  }
   var doc = host.document;
   var hostDoc = doc; // 宿主文档固定引用（全屏时 doc 会切到 iframe 文档）
 
@@ -615,6 +631,10 @@
     'display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}'
   ].join('\n');
 
+  /* 多开：单窗宽度可能只有 260px 左右，300px 固定宽会被 iframe 裁掉 →
+     改成跟随窗口宽度收窄（内容换行，不隐藏任何区块）。 */
+  if (MULTI) css += '\n#' + PANEL_ID + '{width:min(300px,calc(100vw - 20px));}';
+
   /** 向「工具坞」注册本脚本入口（统一右上角圆钮 + 菜单）。
    *  工具坞运行在游戏 iframe 文档里，本脚本也在 iframe 里执行 → window 上能拿到。
    *  面板 DOM 仍挂父窗口，点菜单项 → restore() 展开面板。 */
@@ -661,11 +681,18 @@
 
 
 
+  /** 初始是否收起：多开时默认收起（面板会盖住半个窗），单开沿用用户上次的选择 */
+  function initialMin() {
+    var saved = host.localStorage.getItem(MIN_KEY);
+    if (saved === null) return MULTI;
+    return saved === '1';
+  }
+
   if (host[CTRL_KEY] && doc.getElementById(PANEL_ID)) {
     // 已有面板：只换新控制器（旧 iframe 上下文即将销毁），重画当前账号标记
     host[CTRL_KEY] = ctrl;
     render();
-    applyMinState(host.localStorage.getItem(MIN_KEY) === '1');
+    applyMinState(initialMin());
     installFsSync();
     // ★ iframe 每次重载都是新的 window / 新的工具坞实例 → 必须重新注册，
     //   否则重载后「账号切换」会从菜单里消失（面板还在，但入口没了）。
@@ -682,7 +709,7 @@
   host[CTRL_KEY] = ctrl;
   injectPanel();
   render();
-  applyMinState(host.localStorage.getItem(MIN_KEY) === '1');
+  applyMinState(initialMin());
   installFsSync();
   console.log('[账号切换] 面板就绪 v' + VERSION + '（宿主=' + (twin ? 'parent' : 'self') + '）');
 })();

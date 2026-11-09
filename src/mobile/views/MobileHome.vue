@@ -22,6 +22,13 @@
         </span>
         <span class="m-lb">打开游戏</span>
       </div>
+      <!-- 多开：与桌面 /multi 同样的协同内核，进去默认把当前账号放进第 1 窗 -->
+      <button class="m-qa" @click="openMulti">
+        <span class="m-ib" style="background: var(--m-primary)">
+          <MIcon name="grid" />
+        </span>
+        <span class="m-lb">多开</span>
+      </button>
       <button class="m-qa" @click="router.push('/mobile/batch')">
         <span class="m-ib" style="background: var(--m-primary)">
           <MIcon name="batch" />
@@ -45,12 +52,6 @@
           <MIcon name="peach" />
         </span>
         <span class="m-lb">蟠桃园</span>
-      </button>
-      <button class="m-qa" @click="router.push('/mobile/tokens')">
-        <span class="m-ib" style="background: var(--m-primary)">
-          <MIcon name="token" />
-        </span>
-        <span class="m-lb">管理 Token</span>
       </button>
     </section>
 
@@ -195,6 +196,14 @@ function onDeskClick(e) {
     value: n.querySelector(".value")?.textContent?.trim() || "",
   }));
   resSheet.value = true;
+}
+
+/* ---------- 多开 ----------
+ * 独立全屏页（/mobile/multi），进去先用当前账号占住第 1 窗：
+ * 传 bin_id 而不是在页面里读 store —— 多开页不套 MobileLayout，不依赖壳里的自动选号。 */
+function openMulti() {
+  const token = tokenStore.selectedToken;
+  router.push({ path: "/mobile/multi", query: token ? { bin_id: token.id } : {} });
 }
 
 async function openGame() {

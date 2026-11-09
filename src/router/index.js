@@ -48,6 +48,16 @@ const my_routes = [
     })
   },
   {
+    // 多开：2~4 个同源 iframe 并排，父页做协同输入广播
+    path: '/multi',
+    name: 'MultiPlayer',
+    component: () => import('@/views/MultiPlayer.vue'),
+    meta: {
+      title: '多开',
+      requiresToken: true
+    }
+  },
+  {
     name: 'DefaultLayout',
     path: '/admin',
     component: () => import('@/layout/DefaultLayout.vue'),
@@ -154,6 +164,15 @@ const my_routes = [
     name: 'MobileRegister',
     component: () => import('@/mobile/views/MobileRegister.vue'),
     meta: { title: '注册', requiresAuth: false }
+  },
+  {
+    // 移动端多开：与桌面 /multi 同一套协同内核，但不套 MobileLayout ——
+    // 多开要的是画面面积，顶栏 + tabbar 会白吃掉 100px（真机上等于少一条血条）。
+    // 独立全屏路由，左上角自带返回，和 /game 的处理方式一致。
+    path: '/mobile/multi',
+    name: 'MobileMulti',
+    component: () => import('@/mobile/views/MobileMulti.vue'),
+    meta: { title: '多开', requiresToken: true }
   },
   {
     path: '/mobile',

@@ -44,7 +44,7 @@
             取消
           </n-button>
           <n-button type="primary" size="large" @click="onStart">
-            启动 H5
+            {{ confirmText }}
           </n-button>
         </div>
       </template>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { selectedTokenId } from "@/stores/tokenStore";
 import {
   FEATURE_SCRIPTS,
@@ -65,8 +65,15 @@ import {
 
 const props = defineProps({
   show: { type: Boolean, default: false },
+  /* 脚本开关是按账号（tokenId）存的：多开时每个窗格是不同账号，必须跟着窗格传进来。
+     不传（首页 / 桌面）就退回当前选中账号，行为与以前完全一致。 */
+  tokenId: { type: String, default: "" },
+  /* 多开里这个对话框不是「启动游戏」而是「保存并重载本窗」，按钮文案跟着调用方走 */
+  confirmText: { type: String, default: "启动 H5" },
 });
 const emit = defineEmits(["update:show", "start"]);
+
+const scopeId = computed(() => props.tokenId || selectedTokenId.value);
 
 /* themeOverrides 会被 Naive 在 JS 里二次计算（派生 hover/pressed/soft），塞 var() 算不出来，
    只能给字面色值。所以每次打开时从 documentElement 读一次当前生效的 --m-primary*：
@@ -92,23 +99,23 @@ const checkedIds = ref([]);
 // 脚本清单：优先线上（tokenid 命中白名单才含受限脚本），失败自动回退本地
 const scriptList = ref(FEATURE_SCRIPTS.slice());
 
-// 每次打开时拉取线上清单 → 清掉已失效的勾选 → 恢复剩余勾选
+// 每次打开（或换了窗格账号）时拉取线上清单 → 清掉已失效的勾选 → 恢复剩余勾选
 watch(
-  () => props.show,
-  async (v) => {
+  () => [props.show, scopeId.value],
+  async ([v, id]) => {
     if (!v) return;
     /* 打开这一刻重算一次主色：皮肤可能在页面里刚被换过（本弹窗是懒渲染的，setup 只跑一次） */
     dashboardOverrides.value = buildOverrides();
     checkedIds.value = getEnabledFeatures(
       scriptList.value.map((f) => f.id),
-      selectedTokenId.value
+      id
     );
-    const list = await fetchFeatureScripts(selectedTokenId.value);
+    const list = await fetchFeatureScripts(id);
     scriptList.value = list;
     const ids = list.map((f) => f.id);
     // 勾选过但已不在清单里的脚本（如 tokenid 失效后受限脚本被剔除）→ 取消勾选
-    pruneEnabledFeatures(ids, selectedTokenId.value);
-    checkedIds.value = getEnabledFeatures(ids, selectedTokenId.value);
+    pruneEnabledFeatures(ids, id);
+    checkedIds.value = getEnabledFeatures(ids, id);
   },
   { immediate: true }
 );
@@ -121,7 +128,7 @@ const toggle = (id) => {
 
 // 启动：写入勾选记录，再由父页面执行原有的打开游戏逻辑
 const onStart = () => {
-  setEnabledFeatures([...checkedIds.value], selectedTokenId.value);
+  setEnabledFeatures([...checkedIds.value], scopeId.value);
   emit("update:show", false);
   emit("start", [...checkedIds.value]);
 };
