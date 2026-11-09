@@ -77,8 +77,10 @@ declare interface TokenGroup {
 
 export const gameTokens = useLocalStorage<TokenData[]>("gameTokens", []);
 export const hasTokens = computed(() => gameTokens.value.length > 0);
-// ★ Token 数量上限（自用约定）：最多保留 1 个。添加入口（TokenImport 页）统一拦截，
+// ★ Token 数量上限（自用约定）：最多保留 6 个。添加入口（TokenImport 页）统一拦截，
 // addToken 内再硬兜底；restore（importTokens 整体替换）不受影响。
+// 所有入口/文案都读这个常量（MobileTokens 的「最多 N 个账号」、TokenImport 的「还能添加 N 个」），
+// 改数字即可，别在页面里另写死。
 export const MAX_GAME_TOKENS = 6;
 export const selectedTokenId = useLocalStorage("selectedTokenId", "");
 export const selectedToken = computed(() => {
