@@ -66,6 +66,7 @@ export const availableTasks = [
   { label: "一键扫荡灯神", value: "batchGenieSweep" },
   { label: "一键购买梦境商品", value: "batchBuyDreamItems" },
   { label: "一键玄武赐福", value: "batchXuanwuBlessing" },
+  { label: "逐鹿盐山竞猜", value: "batchApexGuess" },
 ];
 
 // 月度任务目标

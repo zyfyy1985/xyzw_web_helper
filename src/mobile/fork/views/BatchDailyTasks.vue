@@ -3023,6 +3023,7 @@ const taskGroupDefinitions = [
       "skinChallenge",
       "batchClaimPeachTasks",
       "batchBuyDreamItems",
+      "batchApexGuess",
     ],
   },
   { name: "baoku", label: "宝库", tasks: ["batchbaoku13", "batchbaoku45"] },
