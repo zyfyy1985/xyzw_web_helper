@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <!-- viewport-fit=cover：配合下面 apple meta，在 iPhone「添加到主屏幕」的 standalone 模式下
-         页面直接铺到刘海/home 横条底下，不留白边；普通 Safari 不受影响 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+         页面直接铺到刘海/home 横条底下，不留白边；普通 Safari 不受影响
+         interactive-widget=resizes-content：键盘弹出时直接压矮**布局视口**（Chrome 108+ 的默认值
+         是 resizes-visual：布局视口不动、只压可视视口，于是页面能被浏览器往上推，
+         推过去露出的是页面外的空白，收键盘后还不一定推回来）。iOS 不认识这个键，忽略即可 👇 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <!-- iOS「添加到主屏幕」全屏三件套：
          capable   → 从图标打开时进入 standalone（无地址栏/工具栏，iPhone 没有网页全屏 API，这是唯一全屏途径）
          black-translucent → 状态栏透明覆盖在页面上，画面顶到屏幕最顶

@@ -196,8 +196,12 @@ const uiModeOptions = [
   { label: "新版界面（移动端）", value: "mobile" },
 ];
 const onUiModeChange = (val) => {
+  const prev = uiModeState.mode;
   switchUiMode(val);
   message.success(val === "mobile" ? "已切换到新版移动端界面" : "已切换回旧版界面");
+  /* 只写 key 不跳转的话，人会停在当前这页继续看旧版（路由守卫只拦「进去」的那一步），
+     以为开关没生效。真的切了模式才跳：新版进移动壳，旧版回桌面首页。 */
+  if (val !== prev) router.push(val === "mobile" ? "/mobile/home" : "/admin/dashboard");
 };
 
 // 密码验证规则

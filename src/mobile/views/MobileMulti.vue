@@ -1,8 +1,9 @@
 <template>
-  <!-- style 里会带 --mm-ime-b（键盘高度）与键盘期间钉死的高度，见 script 里的 syncViewport -->
+  <!-- 键盘期间 style 会带 top/height，把整页摆到「可视视口」上，见 script 里的 syncViewport / pageStyle -->
   <div class="mm-page" :class="{ 'is-ime': !!lockH, 'is-full': fullOn >= 0 }" :style="pageStyle">
-    <!-- ① 顶栏：只剩槽位（点账号名即切换窗格，点空格子开选账号抽屉）
-         不放返回箭头：手机有系统返回手势，页内再放一个只会占掉槽位宽度 -->
+    <!-- ① 顶栏：一行装下「槽位 + 视图 + ⋮」
+         不放返回箭头：手机有系统返回手势，页内再放一个只会占掉槽位宽度。
+         槽位名固定截成两个字（超出的用 …），否则长名字会把视图切换挤出屏幕。 -->
     <header class="mm-bar">
       <div class="mm-slots">
         <button
@@ -14,15 +15,11 @@
           @click="onChip(i - 1)"
         >
           <i class="mm-chip-i">{{ i }}</i>
-          <span class="mm-chip-n">{{ slots[i - 1].binId ? slotName(i - 1) : "空" }}</span>
+          <span class="mm-chip-n">{{ chipName(i - 1) }}</span>
         </button>
       </div>
-    </header>
 
-    <!-- ② 控制条：视图 / 数量 / 协同。手机只有 430 逻辑宽，刻意收成两条，
-         全部塞一行会需要横滚（横滚条在手机上没人会发现） -->
-    <div class="mm-ctrl">
-      <div class="mm-seg" role="group" aria-label="视图">
+      <div class="mm-seg mm-seg-view" role="group" aria-label="视图">
         <button
           v-for="o in viewOptions"
           :key="o.value"
@@ -33,30 +30,40 @@
           {{ o.label }}
         </button>
       </div>
-      <div class="mm-seg" role="group" aria-label="数量">
-        <button
-          v-for="o in countOptions"
-          :key="o.value"
-          type="button"
-          :class="{ on: count === o.value }"
-          @click="count = o.value"
-        >
-          {{ o.value }}
-        </button>
-      </div>
+
       <button
         type="button"
-        class="mm-sync"
-        :class="{ on: syncOn }"
-        role="switch"
-        :aria-checked="syncOn"
-        :aria-label="syncOn ? '协同已开启，当前窗的操作会同步到其他窗' : '协同已关闭，各窗独立'"
-        @click="syncOn = !syncOn"
+        class="mm-bar-more"
+        :class="{ on: topMenu }"
+        aria-label="更多设置"
+        :aria-expanded="topMenu"
+        @click="topMenu = !topMenu"
       >
-        <i class="mm-k"></i>
-        <span class="mm-sync-t">协同</span>
+        ⋮
       </button>
-    </div>
+
+      <!-- 顶栏 ⋮ 的小菜单：协同默认关，开关收在这里，不再占一整条控制栏 -->
+      <div v-if="topMenu" class="mm-pop-mask" @click="topMenu = false"></div>
+      <div v-if="topMenu" class="mm-pop">
+        <div class="mm-pop-row">
+          <span class="mm-pop-t">协同</span>
+          <button
+            type="button"
+            class="mm-sync"
+            :class="{ on: syncOn }"
+            role="switch"
+            :aria-checked="syncOn"
+            :aria-label="syncOn ? '协同已开启，当前窗的操作会同步到其他窗' : '协同已关闭，各窗独立'"
+            @click="syncOn = !syncOn"
+          >
+            <i class="mm-k"></i>
+          </button>
+        </div>
+        <p class="mm-pop-hint" :class="{ 'is-warn': view !== 'multi' }">
+          {{ popHint }}
+        </p>
+      </div>
+    </header>
 
     <!-- ③ 舞台
          单窗（默认）：所有窗格叠在同一个「最大等比盒子」上，只有 focus 那个可见，
@@ -240,6 +247,9 @@
       confirm-text="保存并重载"
       @start="onScriptSaved"
     />
+
+    <!-- 键盘几何自检：地址栏加 ?vvdbg=1 才出现（真机没有控制台，只能把读数画在屏幕上） -->
+    <pre v-if="dbgOn" class="mm-dbg">{{ dbgText }}</pre>
   </div>
 </template>
 
@@ -274,11 +284,14 @@ function readCfg() {
 }
 
 const saved = readCfg();
-const count = ref(Math.min(4, Math.max(2, Number(saved.count) || 2)));
+/* 开数固定 4（2×2）：不再让用户选。2/3 开时格子大小不一、留白难看，
+   而 2×2 在竖屏上刚好填满。旧配置里存的 2/3 一律按 4 处理。 */
+const count = ref(4);
 /* 默认单窗：手机竖屏上两块 480:940 只能各占 187×367，字根本看不清。
    多窗（同屏分格）保留为可选，切回去就是桌面那套 grid。 */
 const view = ref(saved.view === "multi" ? "multi" : "single");
-const syncOn = ref(saved.sync !== false); // 默认开：多开的默认意图就是同步操作
+/* 协同默认关：多开时各号独立操作是常态，同步是需要显式开启的动作 */
+const syncOn = ref(saved.sync === true);
 const excluded = ref(Array.isArray(saved.excluded) ? saved.excluded.slice() : []);
 
 const slots = reactive(
@@ -291,15 +304,18 @@ const reloadTick = reactive([0, 0, 0, 0]);
 const ready = reactive([false, false, false, false]);
 const focus = ref(0);
 const ripples = ref([]);
+/* 顶栏 ⋮ 的下拉菜单（现在只放协同开关） */
+const topMenu = ref(false);
+/* 下拉里那行说明：大窗模式下协同是不生效的，必须讲清楚，否则用户以为开了 */
+const popHint = computed(() => {
+  if (view.value !== "multi") return "大窗模式不协同：看不到其他窗，同步过去容易误操作";
+  if (!syncOn.value) return "各窗独立，操作互不影响";
+  return "一个窗的操作会同步到其它窗";
+});
 
 const viewOptions = [
   { label: "大窗", value: "single" },
   { label: "小窗", value: "multi" },
-];
-const countOptions = [
-  { label: "2 开", value: 2 },
-  { label: "3 开", value: 3 },
-  { label: "4 开", value: 4 },
 ];
 
 /* ---------- 布局 ----------
@@ -340,28 +356,51 @@ const headH = computed(() => {
 });
 
 function measure() {
-  // 键盘期间一律不重算：舞台被压矮时重算会把窗格整体缩小重排（画面跳一下）
-  if (lockH.value) return;
   const el = stage.value;
   if (!el) return;
   stageSize.w = el.clientWidth;
   stageSize.h = el.clientHeight;
 }
 
-/* ---------- 软键盘（输入法）绝不参与布局 ----------
- * .mm-page 是 position:fixed; inset:0，尺寸跟的是「布局视口」，而输入法弹出压的是「可视视口」，
- * 两种浏览器的表现还不一样：
- *   · Android Chrome：布局视口一起被压矮 → .mm-stage 变矮 → ResizeObserver 重算
- *     → 所有窗格缩小重排，游戏画面「抖一下、位置全变」；
- *   · iOS / 只压可视视口：浏览器把可视视口往上平移，顶栏被推出屏幕，
- *     贴在底边的抽屉浮到屏幕中间 —— 用户截图里「窗格菜单跑到下方、位置错乱」就是这个。
- * 做法：把键盘弹出前的可用高度记成 baseH，键盘期间用它把 .mm-page 的高度钉死
- * （height: baseH），窗格因此一动不动；抽屉再按可视视口贴到键盘上沿，保证看得见、点得到。 */
+/* ---------- 页面几何 = 可视区（键盘期间） ----------
+ * .mm-page 是 position:fixed; inset:0，跟的是「布局视口」。键盘弹出时：
+ *   · Android Chrome：布局视口一起变矮 → 舞台变矮；
+ *   · iOS（Safari / Chrome 都是 WKWebView）：布局视口不动，浏览器把「可视视口」整体
+ *     往上平移去露出游戏里的聊天输入框。页面只有一屏高，平移过去露出的是页面外的一片白，
+ *     收键盘后 WKWebView 还不一定推回来 —— 用户实测：下方大片白、顶部角色 chip 不见了。
+ * 做法：只要可视视口和布局视口对不上（键盘弹出，或残留的平移），就把 .mm-page 摆到
+ * 「可视视口」上：top 抵消平移、height 取可视高度。页面 = 眼睛看到的那块，
+ * 既没有露白的余量，也不指望浏览器事后帮我们复原。
+ * 代价：键盘期间窗格整体变矮（游戏画面跟着缩）。这反过来是必须的 ——
+ * 窗格比可视区高的话，输入框永远落在键盘后面，浏览器只会继续推页面。 */
 const IME_MIN = 120; // 可视视口比基线矮这么多才算键盘（地址栏收起只差几十像素，别误判）
 const vvH = ref(0); // visualViewport.height
-const vvTop = ref(0); // visualViewport.offsetTop（iOS 会把可视视口往下平移）
-const lockH = ref(0); // 键盘前的页面高度；>0 就等于「键盘开着」
+const vvTop = ref(0); // visualViewport.offsetTop（iOS 平移可视视口时 > 0）
+const lockH = ref(0); // 键盘前的可视高度；>0 就等于「键盘开着」
 let baseH = 0;
+
+/* ---------- 别让浏览器「滚」这几层（见 CSS 里 overflow: clip 的注释） ----------
+ * 就算内核不认 overflow: clip，也不能让它把舞台滚走：哪一层被滚了就把哪一层归零。
+ * 只认这三层 —— `.m-sheet` 自己是要滚的（账号列表长），别误伤。 */
+const CLIP_LAYERS = ["mm-page", "mm-stage", "mm-pane"];
+function onInnerScroll(e) {
+  const t = e.target;
+  if (!t || !t.classList) return;
+  let hit = false;
+  for (let i = 0; i < CLIP_LAYERS.length; i++) if (t.classList.contains(CLIP_LAYERS[i])) hit = true;
+  if (!hit) return;
+  if (t.scrollTop) t.scrollTop = 0;
+  if (t.scrollLeft) t.scrollLeft = 0;
+}
+function resetClip() {
+  for (let i = 0; i < CLIP_LAYERS.length; i++) {
+    const els = document.querySelectorAll("." + CLIP_LAYERS[i]);
+    for (let k = 0; k < els.length; k++) {
+      if (els[k].scrollTop) els[k].scrollTop = 0;
+      if (els[k].scrollLeft) els[k].scrollLeft = 0;
+    }
+  }
+}
 
 function syncViewport() {
   const vv = window.visualViewport;
@@ -375,6 +414,14 @@ function syncViewport() {
     baseH = h;
     if (lockH.value) {
       lockH.value = 0;
+      /* 收键盘后把文档滚回原点：WKWebView 有时把页面推上去就不管了，
+         不主动推回来，页面会停在「顶栏在屏幕外」的状态 */
+      try {
+        window.scrollTo(0, 0);
+      } catch (e) {
+        /* 忽略 */
+      }
+      resetClip();
       nextTick(measure); // 键盘收起：按真实高度重算一次
     }
     return;
@@ -382,18 +429,115 @@ function syncViewport() {
   if (!lockH.value) lockH.value = baseH;
 }
 
-/* 抽屉要贴「可视区底边」：可视区底边在页面坐标里是 offsetTop + height，
-   离钉死后的页面底边还差 lockH - (offsetTop + height)。
-   Android 压布局视口时 offsetTop=0、height 变小；iOS 平移可视视口时 offsetTop 正好补上 ——
-   同一个式子两边都对。 */
-const imeBottom = computed(() =>
-  lockH.value ? Math.max(0, Math.round(lockH.value - (vvTop.value + vvH.value))) : 0
-);
 const pageStyle = computed(() => {
-  const s = { "--mm-ime-b": imeBottom.value + "px" };
-  if (lockH.value) s.height = lockH.value + "px";
-  return s;
+  if (!lockH.value && vvTop.value <= 0) return {};
+  return { top: vvTop.value + "px", bottom: "auto", height: vvH.value + "px" };
 });
+
+/* ---------- 键盘几何自检（地址栏加 ?vvdbg=1 才出现） ----------
+ * 真机没有控制台，「键盘弹出后页面被推走」这类问题只能把读数画在屏幕上。
+ * 第一行的版本号是有用的：手机上看到的还是旧画面时，先确认到底加载没加载新代码。 */
+const DBG_TAG = "kbd-fix-5";
+const dbgOn = (() => {
+  try {
+    return new URLSearchParams(location.search).has("vvdbg");
+  } catch (e) {
+    return false;
+  }
+})();
+const dbgText = ref("");
+let dbgTimer = 0;
+let dbgMaxTop = 0;
+let dbgMaxScroll = 0;
+
+/* 游戏 iframe 内部读数：键盘期间外层页面已经正确，剩下要看的就是
+   iframe 的 innerHeight / canvas 尺寸 / iframe 自己的滚动位置到底跟没跟上。 */
+function dbgFrame(i) {
+  try {
+    const w = frames[i] && frames[i].contentWindow;
+    if (!w) return `f${i} -`;
+    const d = w.document;
+    const c = d.querySelector("canvas");
+    const cc = w.cc;
+    let vis = "";
+    try {
+      const v = cc && cc.view && cc.view.getVisibleSize();
+      if (v) vis = ` vis=${Math.round(v.width)}x${Math.round(v.height)}`;
+    } catch (e) {
+      /* 引擎没就绪 */
+    }
+    const cs = c ? w.getComputedStyle(c) : null;
+    return [
+      `f${i} inner=${w.innerWidth}x${w.innerHeight} vv=${Math.round((w.visualViewport && w.visualViewport.height) || 0)}`,
+      ` scroll=${Math.round(w.scrollY || 0)} docH=${d.documentElement ? d.documentElement.scrollHeight : "-"}`,
+      c
+        ? ` canvas attr=${c.width}x${c.height} css=${Math.round(c.clientWidth)}x${Math.round(c.clientHeight)}${vis}`
+        : ` canvas -`,
+      cs ? ` cstyle=${cs.width}/${cs.height}/${cs.transform}` : "",
+    ].join("\n");
+  } catch (e) {
+    return `f${i} 读取失败 ${e && e.message}`;
+  }
+}
+
+/* 从窗格往上走 5 层，逐层打印 class / transform / rect.top —— 负的 top 只可能出在某一层 */
+function dbgChain(el) {
+  const out = [];
+  let n = el;
+  for (let k = 0; k < 5 && n; k++) {
+    const cs = getComputedStyle(n);
+    const r = n.getBoundingClientRect();
+    const tag = String(n.className || n.tagName || "?").split(" ")[0];
+    out.push(` ${"·".repeat(k)}${tag} t=${cs.transform} y=${Math.round(r.top)}`);
+    n = n.parentElement;
+  }
+  return out;
+}
+
+function startDbg() {  if (!dbgOn) return;
+  const tick = () => {
+    const vv = window.visualViewport;
+    const el = document.querySelector(".mm-page");
+    const r = el ? el.getBoundingClientRect() : null;
+    const st = document.querySelector(".mm-stage");
+    const sy = Math.round(window.scrollY || window.pageYOffset || 0);
+    const vt = Math.round(vv ? vv.offsetTop : 0);
+    dbgMaxTop = Math.max(dbgMaxTop, vt);
+    dbgMaxScroll = Math.max(dbgMaxScroll, sy);
+    const meta = document.querySelector('meta[name="viewport"]');
+    const pane = document.querySelector(".mm-pane");
+    const pr = pane ? pane.getBoundingClientRect() : null;
+    const pcs = pane ? getComputedStyle(pane) : null;
+    const head = document.querySelector(".mm-head");
+    const hr = head ? head.getBoundingClientRect() : null;
+    const sr = st ? st.getBoundingClientRect() : null;
+    const fr = frames[focus.value] && frames[focus.value].getBoundingClientRect
+      ? frames[focus.value].getBoundingClientRect()
+      : null;
+    dbgText.value = [
+      `v ${DBG_TAG}`,
+      `meta resizes-content=${meta && /resizes-content/.test(meta.content) ? 1 : 0}`,
+      `inner=${window.innerHeight} vv=${vt}+${Math.round(vv ? vv.height : 0)} scale=${vv ? vv.scale : "-"}`,
+      `scrollY=${sy} maxScroll=${dbgMaxScroll} maxVvTop=${dbgMaxTop}`,
+      `lockH=${lockH.value} baseH=${baseH} stageSize=${stageSize.w}x${stageSize.h}`,
+      `page=${r ? Math.round(r.top) : "-"}/${r ? Math.round(r.height) : "-"} stage=${sr ? `${Math.round(sr.top)}/${Math.round(sr.height)}` : "-"}`,
+      `head=${hr ? `${Math.round(hr.top)}/${Math.round(hr.height)}` : "-"} paneRect=${pr ? `${Math.round(pr.left)},${Math.round(pr.top)} ${Math.round(pr.width)}x${Math.round(pr.height)}` : "-"}`,
+      /* offsetTop 不吃 transform，也不吃可视视口平移：和 rect.top 对不上就是被变换/平移推走的 */
+      pane
+        ? `paneOff=${pane.offsetTop}/${pane.offsetLeft} inline="${pane.style.cssText}"`
+        : "pane -",
+      pcs ? `paneCS top=${pcs.top} pos=${pcs.position} tf=${pcs.transform}` : "",
+      `f=${fr ? `${Math.round(fr.top)}/${Math.round(fr.height)}` : "-"}`,
+      dbgFrame(focus.value),
+      /* 往上走 5 层，把每层的 class / transform / rect.top 打出来：
+         top 是算出来的（≥8）、offsetTop 是布局值、rect.top 是最终位置，三者对不上就出在这一层 */
+      ...dbgChain(pane),
+    ].join("\n");
+  };
+  tick();
+  dbgTimer = window.setInterval(tick, 300);
+  window.addEventListener("resize", tick);
+}
 
 /* ---------- 账号 ----------
    账号清单取自 gameTokens（账号的唯一真相），不是 bin_file_list（那只是「启动过」的缓存）。
@@ -417,6 +561,15 @@ const usedSlotOf = (id) => (usedIds.value.has(String(id)) ? usedIds.value.get(St
 const slotName = (i) => {
   const s = slots[i];
   return s ? s.name || s.binId || "Token" : "-";
+};
+/* 顶栏槽位名固定两个字，多的变省略号：4 个 chip + 视图切换 + ⋮ 要挤在一行里，
+   名字一长（"小号甲"、"测试账号"）就会把右边的按钮顶出屏幕。
+   用 Array.from 按码点切，避免把 emoji / 生僻字劈成半个。 */
+const chipName = (i) => {
+  const s = slots[i];
+  if (!s || !s.binId) return "空";
+  const cps = Array.from(slotName(i));
+  return cps.length > 2 ? cps.slice(0, 2).join("") + "…" : cps.join("");
 };
 
 const { getArrayBuffer } = useIndexedDB();
@@ -517,6 +670,7 @@ function readDock(i) {
   }
 }
 function openMenu(i) {
+  topMenu.value = false; // 顶栏那个下拉收起来，别和窗格抽屉叠着
   if (!slots[i].binId) {
     openPicker(i);
     return;
@@ -832,9 +986,12 @@ function toggleExcluded(i) {
 let rafId = 0;
 const sync = createSyncRouter({
   getState: () => ({
-    /* 全屏时不协同：全屏窗 canvas 的比例与分格窗不同，按比例映射必然错位；
-       而且全屏的语义就是「专心玩这一个号」，误转发到后景号反而危险。 */
-    enabled: syncOn.value && fullOn.value < 0,
+    /* 只有「小窗分格」时才真的转发。两种情况下必须关：
+       · 全屏：这一窗铺满屏幕，操作本来就是专心玩这个号；
+       · 大窗：各窗叠在同一个盒子上、非当前窗只是 opacity:0 —— 用户**看不见**别的号，
+         却把点击同步过去，就是背着人在别的号上乱点，极易造成损失。
+       开关本身仍可切换（记的是偏好），切回小窗立刻生效。 */
+    enabled: syncOn.value && fullOn.value < 0 && view.value === "multi",
     panes: [0, 1, 2, 3].map((i) => ({
       excluded: excluded.value.includes(i),
       ready: !!ready[i],
@@ -890,18 +1047,22 @@ onMounted(async () => {
   /* 输入法：visualViewport 的 resize 不一定触发 window.resize（iOS 只发 scroll），
      两个都听；scroll 用来跟住「浏览器把可视视口往上平移」带来的 offsetTop 变化。 */
   window.addEventListener("resize", syncViewport);
+  /* 捕获阶段接所有 scroll：.mm-page/.mm-stage/.mm-pane 被浏览器滚动时要立刻归零 */
+  document.addEventListener("scroll", onInnerScroll, true);
   const vv = window.visualViewport;
   if (vv) {
     vv.addEventListener("resize", syncViewport);
     vv.addEventListener("scroll", syncViewport);
   }
   syncViewport();
+  startDbg();
 });
 
 function onKeyDown(e) {
   // Esc：桌面浏览器调试时先收抽屉，和全局弹窗习惯一致
   if (e.key === "Escape") {
-    if (menuShow.value) menuShow.value = false;
+    if (topMenu.value) topMenu.value = false;
+    else if (menuShow.value) menuShow.value = false;
     else if (pickerShow.value) closePicker();
     else if (fullOn.value >= 0) {
       fullOn.value = -1;
@@ -918,6 +1079,7 @@ function goBack() {
 
 onBeforeUnmount(() => {
   document.body.classList.remove("m-mobile");
+  if (dbgTimer) window.clearInterval(dbgTimer);
   document.removeEventListener("fullscreenchange", onFsChange);
   // 全屏状态下离开页面：先退全屏，否则下一个路由会卡在「无地址栏」的窗口里
   exitFs();
@@ -925,6 +1087,7 @@ onBeforeUnmount(() => {
   if (rafId) window.clearTimeout(rafId);
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("resize", syncViewport);
+  document.removeEventListener("scroll", onInnerScroll, true);
   const vv = window.visualViewport;
   if (vv) {
     vv.removeEventListener("resize", syncViewport);
@@ -953,6 +1116,8 @@ window.__MULTI_DEBUG__ = {
     count: count.value,
     view: view.value,
     syncOn: syncOn.value,
+    /* 实际生效状态：大窗 / 全屏时即使开着开关也不转发 */
+    syncActive: syncOn.value && fullOn.value < 0 && view.value === "multi",
     focus: focus.value,
     full: fullOn.value,
     fs: fsOn.value,
@@ -974,18 +1139,44 @@ export default { name: "MobileMulti" };
   inset: 0;
   display: flex;
   flex-direction: column;
+  /* ★★ 必须是 clip，不能只有 hidden：hidden 只是「不许滚动条出现」，它照样是个
+     滚动容器 —— 键盘弹出时浏览器会顺着祖先链找能滚的容器去露出 iframe 里的输入框，
+     于是把整个 .mm-page 滚上去（实测 401px：页面 rect 还是 y=0，舞台却跑到 y=-356，
+     顶部 chip 被推出屏幕、底下露出一片背景色），而且收键盘后不滚回来。
+     clip = 裁切 + 不是滚动容器，浏览器无从滚起。旧内核不认 clip 时退回 hidden，
+     再由 onInnerScroll 把被滚的位置归零。 */
   overflow: hidden;
+  overflow: clip;
   overscroll-behavior: none;
   background: var(--m-bg);
   color: var(--m-text);
   font-size: 13px;
 }
 
+/* PC 上收成「手机壳」宽度：这页刻意不套 .mobile-shell（真机上要铺满整屏），
+   可桌面窗口里铺满 1800px 会把顶栏 chips、底部抽屉全拉成一条线。
+   宽度对齐 --m-shell-w（body.m-mobile 在 ≥760px 时 = 430px，与 .mobile-shell 同一基准），
+   左右描边也照着壳来。
+   ★ 用 margin-left 居中，不用 transform：transform 会把 position:fixed 的后代
+     （.mm-pop-mask / .mm-dbg）的包含块换成本元素，位置跟着页面而非视口。 */
+@media (min-width: 760px) {
+  .mm-page {
+    left: 50%;
+    right: auto;
+    width: var(--m-shell-w, 430px);
+    margin-left: calc(var(--m-shell-w, 430px) / -2);
+    border-left: 1px solid var(--m-border);
+    border-right: 1px solid var(--m-border);
+  }
+}
+
 /* ---------- ① 顶栏 ---------- */
 .mm-bar {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex: none;
   padding: 6px 8px;
   padding-top: calc(6px + env(safe-area-inset-top));
@@ -1005,13 +1196,15 @@ export default { name: "MobileMulti" };
   display: none;
 }
 .mm-chip {
-  flex: 0 0 auto;
+  /* 允许收缩：430 宽下 4 个 chip + 视图切换 + ⋮ 正好放下（名字是「2 字 + …」）；
+     390 宽下差三十几像素，靠这里压掉一点名字宽度，而不是把第 4 个 chip 挤出屏幕 */
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   height: 32px;
-  max-width: 116px;
-  padding: 0 10px;
+  padding: 0 6px;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
   background: var(--m-card);
@@ -1022,17 +1215,20 @@ export default { name: "MobileMulti" };
 }
 .mm-chip-i {
   flex: none;
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   color: var(--m-text3);
   font-size: 10px;
   font-style: normal;
-  line-height: 15px;
+  line-height: 14px;
   text-align: center;
 }
+/* 名字固定两个字宽；空间不够时由 CSS 再收一点（JS 已经切到 2 字 + …，这里只兜底） */
 .mm-chip-n {
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1052,17 +1248,9 @@ export default { name: "MobileMulti" };
   color: var(--m-text3);
 }
 
-/* ---------- ② 控制条 ---------- */
-.mm-ctrl {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-  height: 42px;
-  padding: 0 8px;
-  background: var(--m-bg);
-  border-bottom: 1px solid var(--m-band);
-}
+/* ---------- ② 顶栏右侧：视图切换 / ⋮ / 协同下拉 ----------
+ * 原来「大窗小窗 + 开数 + 协同」占了一整条控制栏；开数固定 4 之后整条都不要了，
+ * 剩下的三样挤回顶栏一行：4 个 2 字 chip + 视图切换 + ⋮ 在 430 逻辑宽下刚好放得下。 */
 .mm-seg {
   display: flex;
   flex: 0 0 auto;
@@ -1081,7 +1269,7 @@ export default { name: "MobileMulti" };
   font-size: 12px;
   line-height: 1.2;
   height: 26px;
-  padding: 0 9px;
+  padding: 0 7px;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1090,54 +1278,91 @@ export default { name: "MobileMulti" };
   color: var(--m-on-primary);
   font-weight: 500;
 }
-.mm-sync {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.mm-bar-more {
   flex: none;
-  margin-left: auto;
-  height: 30px;
-  padding: 0 10px;
+  width: 28px;
+  height: 32px;
+  padding: 0;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
   background: var(--m-card);
-  color: var(--m-text3);
-  font-family: inherit;
-  font-size: 12px;
+  color: var(--m-text2);
+  font-size: 16px;
+  line-height: 1;
   cursor: pointer;
 }
-.mm-sync.on {
+.mm-bar-more.on {
   border-color: var(--m-primary);
   background: var(--m-primary-soft);
   color: var(--m-primary-deep);
 }
-.mm-sync .mm-k {
-  position: relative;
-  width: 26px;
-  height: 15px;
-  border-radius: 999px;
-  background: var(--m-border);
-  transition: background 0.15s;
+/* 下拉：贴在顶栏右下角，点外面关掉。mask 用 fixed 才能盖住整个页面 */
+.mm-pop-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
 }
-.mm-sync .mm-k::after {
-  content: "";
+.mm-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 8px;
+  z-index: 31;
+  width: 190px;
+  padding: 10px 12px;
+  border: 1px solid var(--m-band);
+  border-radius: var(--m-r-lg);
+  background: var(--m-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+.mm-pop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mm-pop-t {
+  font-size: 13px;
+  color: var(--m-text) !important;
+}
+.mm-pop-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--m-text3) !important;
+}
+/* 大窗模式下协同不生效：这句要用警示色，不能和普通说明一个灰 */
+.mm-pop-hint.is-warn {
+  color: var(--m-orange, #d46b08) !important;
+}
+/* 纯开关（没有文字标签了）：38×22 的胶囊 + 16px 滑块 */
+.mm-sync {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--m-border);
+  border-radius: 999px;
+  background: var(--m-band);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mm-sync.on {
+  border-color: var(--m-primary);
+  background: var(--m-primary);
+}
+.mm-sync .mm-k {
   position: absolute;
   left: 2px;
   top: 2px;
-  width: 11px;
-  height: 11px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #fff;
   transition: transform 0.15s;
 }
 .mm-sync.on .mm-k {
-  background: var(--m-primary);
-}
-.mm-sync.on .mm-k::after {
-  transform: translateX(11px);
-}
-.mm-sync-t {
-  color: inherit !important;
+  transform: translateX(16px);
 }
 
 /* ---------- ③ 舞台 / 窗格 ---------- */
@@ -1146,11 +1371,14 @@ export default { name: "MobileMulti" };
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  overflow: clip; /* 同上：舞台也是祖先链上的一站，不许被浏览器滚 */
 }
 .mm-pane {
   position: absolute;
   display: flex;
   flex-direction: column;
+  /* 这里保持 hidden（不用 clip）：clip 按 padding box 裁，圆角会被切成直角。
+     窗格里 iframe 是 100% 铺满的，本来就没有可滚的溢出，真被滚了由 onInnerScroll 归零。 */
   overflow: hidden;
   border-radius: var(--m-r-md);
   /* 窗格底走主题色，不是 #000：空窗态的 .mm-empty 内缩 3px，垫黑底会在浅色主题下
@@ -1176,14 +1404,12 @@ export default { name: "MobileMulti" };
   z-index: 2;
 }
 /* ---------- 全屏 ----------
- * 顶栏 + 控制条整条摘掉（display:none），舞台自然占满 .mm-page；.mm-page 是
+ * 顶栏整条摘掉（display:none），舞台自然占满 .mm-page；.mm-page 是
  * position:fixed; inset:0，高度就是「真正看得见的高度」（iOS 地址栏 / 手势条都已经扣掉），
  * 不读 screen.height 也不会踩 100vh 的坑。窗格仍是 stage 内的 px 绝对定位，只是 rect 换成整个舞台。
- * ★ 标题栏（.mm-head，32px）**保留**：账号名/主控标识要看得见，右侧小按钮就是退出入口，
- *   下方 iframe 从 y=32 开始。
+ * ★ 全屏时连窗格标题栏也摘掉（配 headH 返回 0），iframe 从 y=0 铺到屏幕底。
  * ★ 别改成把窗格 position:fixed：fixed 相对视口，iOS 上会按布局视口算（含地址栏），底部会被顶出去。 */
-.mm-page.is-full .mm-bar,
-.mm-page.is-full .mm-ctrl {
+.mm-page.is-full .mm-bar {
   display: none;
 }
 .mm-pane.is-full {
@@ -1541,31 +1767,70 @@ export default { name: "MobileMulti" };
   color: var(--m-text3) !important;
 }
 
-/* 窄屏（≤359px）控制条再收一档，避免三段控件换行 */
+/* 窄屏（≤359px）：顶栏更紧，chip 与视图切换各收一档，别把 ⋮ 挤出去 */
 @media (max-width: 359px) {
-  .mm-ctrl {
-    gap: 5px;
-    padding: 0 6px;
+  .mm-bar {
+    gap: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
   }
-  .mm-seg > button {
-    padding: 0 7px;
+  .mm-slots {
+    gap: 4px;
+  }
+  .mm-chip {
+    gap: 4px;
+    padding: 0 6px;
     font-size: 11px;
   }
-  .mm-sync {
-    padding: 0 8px;
+  .mm-seg > button {
+    padding: 0 6px;
+    font-size: 11px;
+  }
+  .mm-bar-more {
+    width: 26px;
   }
 }
 
 /* ---------- 键盘开着时：抽屉贴到键盘上沿 ----------
- * 键盘期间 .mm-page 的高度被钉成键盘前的高度（见 script 的 syncViewport），
- * 所以抽屉不能再用「bottom:0 就贴屏幕底」来算 —— 页面底边可能已经缩到键盘后面了。
- * --mm-ime-b 是「可视区底边离页面底边还差多少」，键盘收起时是 0px、且 .is-ime 不在，
- * 完全回到 mobile.css 的默认行为。 */
-.mm-page.is-ime :deep(.m-sheet) {
-  bottom: var(--mm-ime-b, 0px);
-  max-height: calc(100% - var(--mm-ime-b, 0px) - 12px);
+ * .mm-page 在键盘期间被摆到「可视视口」上（见 script 的 pageStyle），
+ * 页面底边就是键盘上沿 ⇒ 抽屉照旧 bottom:0 就贴在键盘上，不需要任何偏移量。
+ * 这里只把抽屉的高度上限收一收，别让它把整个可视区占满（留 12px 露出一点游戏）。 */
+.mm-page.is-ime :deep(.m-sheet.on) {
+  max-height: calc(100% - 12px);
 }
-.mm-page {
-  --mm-ime-b: 0px;
+
+/* ---------- 没打开的抽屉：靠「藏」而不是靠「挪」 ----------
+ * mobile.css 里未打开的抽屉是 translateY(105%)，也就是往屏幕外挪自己高度的 105%，
+ * 留出的余量只有 5%（一个 185px 高的短抽屉 ⇒ 9px）。键盘弹出时抽屉还会被整体抬高，
+ * 而 105% 是抽屉自己的比例、跟抬高量没关系：抽屉比抬高量矮就落不下去 = 自己浮出来
+ * （用户截图里「点游戏输入框，第 N 窗菜单自己冒出来」）。
+ * 所以未打开的抽屉直接 visibility:hidden —— 抽屉不参与协同的命中测试（multiSync 只认窗格），
+ * 隐藏它是安全的。延迟 0.32s 生效是为了保留关闭时那段下滑动画。 */
+.mm-page :deep(.m-sheet:not(.on)) {
+  visibility: hidden;
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), visibility 0s linear 0.32s;
+}
+.mm-page :deep(.m-sheet.on) {
+  visibility: visible;
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), visibility 0s linear 0s;
+}
+
+/* 键盘几何自检浮层（?vvdbg=1）：不吃点击，只负责把读数画出来。
+   用 absolute 而不是 fixed：PC 上页面只占手机壳那一条，fixed 会跑到窗口最左边去。 */
+.mm-dbg {
+  position: absolute;
+  top: 56px;
+  left: 6px;
+  z-index: 60;
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #7cff8a;
+  font: 10px/1.35 ui-monospace, Menlo, monospace;
+  white-space: pre;
+  overflow: hidden;
+  max-width: calc(100vw - 12px);
+  pointer-events: none;
 }
 </style>
