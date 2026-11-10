@@ -54,7 +54,6 @@ const SYNC_KEYS = [
   "gameTokens",
   "scheduledTasks",
   "tokenGroups",
-  "selectedTokenId",
   "selectedRoleInfo",
 ];
 /**
@@ -82,8 +81,22 @@ const BLOCK_KEYS = [
   "userPreferences",
   "tokenSortConfig",
   "activeConnections",
+  // ★「当前选中的账号」归**服务端**同步（客户端自己拉 / 写），本地这份只是缓存。
+  //   它不再走本模块的 localStorage 同步：两套通道同时写同一个键会互相覆盖
+  //   （换了账号点选 A，刷新后被服务端旧值掰回 B）。留在 BLOCK 里是防以后放宽白名单时被误加回来。
+  "selectedTokenId",
 ];
 const BLOCK_PREFIXES = ["cloud_", "ws_connection_", "xyzw_"];
+
+/**
+ * **不同步、但属于账号数据**的本地键：换账号（登出 / 401 下线）时必须一起清掉。
+ *
+ * `selectedTokenId` 已改成由服务端同步（见 BLOCK_KEYS 的说明），所以它不能进白名单；
+ * 但它仍然是「本账号当前选中谁」的本地缓存 —— 不清的话，换账号后界面上「当前」标记
+ * 仍指着上一个账号的 token（`selectedToken` 查不到 ⇒ 一片空白 / 误判成没选账号）。
+ * 这里只清不推，因此不会把清除动作写进任何人的云端。
+ */
+const LOCAL_ONLY_CLEARED_KEYS = ["selectedTokenId"];
 
 export function isSyncableKey(key) {
   if (!key) return false;
@@ -713,15 +726,17 @@ export function pushAllLocalKeysToCloud() {
  *    （见 `ownedTokenKeys` / `pushLocalOnlyBins`），而不是在这里删数据。
  *    但 bin 的**派生缓存**（`bin_data_*` / `current_bin_id` / `bin_file_list`）必须一起清掉 ——
  *    否则换账号后界面/游戏仍会读到上一个账号的 bin（它们是 IndexedDB 的投影，清了会自动重建）。
- * @returns {number} 清掉的键数（业务键 + bin 派生缓存）
+ * @returns {number} 清掉的键数（业务键 + bin 派生缓存 + 不同步的账号键，如 selectedTokenId）
  */
 export function clearLocalBusinessKeys(holdMs = 120) {
   const keys = localSyncableKeys();
   const derived = localBinDerivedKeys(); // bin 的派生缓存（不在同步白名单里，得单独收）
-  if (!keys.length && !derived.length) return 0;
+  // 「不同步但属账号数据」的键（见 LOCAL_ONLY_CLEARED_KEYS）；只取本地确实存在的，计数才准
+  const localOnly = LOCAL_ONLY_CLEARED_KEYS.filter((k) => safeGet(k) !== null);
+  if (!keys.length && !derived.length && !localOnly.length) return 0;
   suppress++;
   try {
-    for (const key of [...keys, ...derived]) {
+    for (const key of [...keys, ...derived, ...localOnly]) {
       const oldRaw = safeGet(key);
       try {
         localStorage.removeItem(key);
@@ -737,7 +752,7 @@ export function clearLocalBusinessKeys(holdMs = 120) {
       suppress--;
     }, holdMs);
   }
-  return keys.length + derived.length;
+  return keys.length + derived.length + localOnly.length;
 }
 
 /**
