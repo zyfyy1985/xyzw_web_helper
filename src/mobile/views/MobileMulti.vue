@@ -1040,10 +1040,13 @@ onMounted(async () => {
     if (hit) {
       await ensureBin(hit);
       slots[0] = { binId: hit.id, name: hit.name };
-    } else {
-      slots[0] = { binId: qid, name: qid };
+      persist();
     }
-    persist();
+    /* 未命中 ⇒ 什么都不做。
+     * 早期这里有一句 `slots[0] = { binId: qid, name: qid }`，等于「URL 上写什么就开什么」：
+     * 共享角色本来由 `accounts` 的 !shared 过滤挡在门外（多开不允许用别人的号），
+     * 这个分支正好把过滤整个绕过去。现在落进这里的只剩「持久化里残留的已删除 / 已撤销
+     * 角色」—— 忽略即可，窗格留空让用户自己选。 */
   }
   window.addEventListener("keydown", onKeyDown);
   /* 真全屏可能被系统手势 / 返回键 / Esc（浏览器自己处理）退出，

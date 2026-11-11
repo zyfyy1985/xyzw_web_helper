@@ -756,7 +756,12 @@ export function pushAllLocalKeysToCloud() {
   for (const key of keys) {
     const raw = safeGet(key);
     if (raw === null) continue;
-    cloudSet(key, parseValue(raw));
+    /* ★ 与 `notify()` 走同一条规则：云端只能看到「自己的」角色。
+     *   这条因为「绕过 pushEnabled」而单独直调 cloudSet，很容易在以后接新场景时
+     *   忘了剥离 —— 一旦漏了，本地 gameTokens 里的共享条目（含别人角色的 cred）
+     *   就被推进自己的云端，且下次换设备登录会当自己的角色拉回来（见 withoutShared）。 */
+    const parsed = parseValue(raw);
+    cloudSet(key, isTokensKey(key) ? withoutShared(parsed) : parsed);
   }
   return keys.length;
 }

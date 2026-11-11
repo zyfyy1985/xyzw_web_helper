@@ -15,6 +15,7 @@ import {
   scheduleAuthUserRequest,
 } from "@/utils/token";
 import { abToBase64, base64ToAb } from "@/utils/binCloud";
+import { cloudFlush } from "@/utils/localStorageCloudSync";
 import { shareApi } from "@/utils/shareApi";
 import {
   refreshTokenFromCombUser,
@@ -271,6 +272,17 @@ export const useTokenStore = defineStore("tokens", () => {
       bin = null;
     }
 
+    /* ★ 服务端判「角色归属」读的是**云端** `gameTokens`（`readOwnGameTokens`），
+     *   而本地写入是排队异步推的（cloudSet → 定时 flush + dirty 重试）。
+     *   刚导入 / 刚改过 id 就去点「授权给他人」，云端可能还没有这条，
+     *   于是拿到 not_your_token「该角色不在你的角色列表里」—— 纯时序问题。
+     *   这里先把队列刷干净，把窗口关掉。失败不阻塞：真没推上去，服务端会给出可读错误。 */
+    try {
+      await cloudFlush();
+    } catch {
+      /* ignore */
+    }
+
     return shareApi.create({
       tokenId: token.id,
       to,
@@ -391,6 +403,7 @@ export const useTokenStore = defineStore("tokens", () => {
     const alive = new Map<string, any>(grants.map((g) => [String(g.gid), g]));
     let removed = 0;
     let added = 0;
+    let touched = false;
 
     // ① 先删：服务端已经不给我了（已撤销 / 已过期）
     const kept: TokenData[] = [];
@@ -429,14 +442,28 @@ export const useTokenStore = defineStore("tokens", () => {
       const idx = kept.findIndex((t) => t.shared && t.grantGid === g.gid);
       const meta = g.meta || {};
       if (idx >= 0) {
-        kept[idx] = {
-          ...kept[idx],
-          name: meta.name || kept[idx].name,
-          server: meta.server || kept[idx].server,
-          avatar: meta.avatar || kept[idx].avatar,
-          expiresAt: g.expiresAt || kept[idx].expiresAt,
+        const prev = kept[idx];
+        const next: TokenData = {
+          ...prev,
+          name: meta.name || prev.name,
+          server: meta.server || prev.server,
+          avatar: meta.avatar || prev.avatar,
+          expiresAt: g.expiresAt || prev.expiresAt,
           sharedFrom: g.owner,
         };
+        /* ★ 只有字段真的变了才置 touched：光靠 `removed || added` 判断是否回写，
+         *   会让「授权方改了角色名 / 区服」这类纯字段更新被静默丢掉（对象换了，
+         *   但数组没整体赋值 ⇒ 不写 localStorage，界面上永远是旧名字）。 */
+        if (
+          next.name !== prev.name ||
+          next.server !== prev.server ||
+          next.avatar !== prev.avatar ||
+          next.expiresAt !== prev.expiresAt ||
+          next.sharedFrom !== prev.sharedFrom
+        ) {
+          kept[idx] = next;
+          touched = true;
+        }
         continue;
       }
       kept.push({
@@ -461,7 +488,7 @@ export const useTokenStore = defineStore("tokens", () => {
     }
 
     // 只在真有变化时整体赋值，避免每次启动都触发一次 gameTokens 的写入与重渲染
-    if (removed || added || kept.length !== gameTokens.value.length) {
+    if (removed || added || touched || kept.length !== gameTokens.value.length) {
       gameTokens.value = kept;
     }
 

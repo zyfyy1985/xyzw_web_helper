@@ -660,7 +660,13 @@ async function refreshAll() {
 }
 
 async function updateAllInfo() {
-  if (!gameTokens.value.length) return message.warning("没有可更新的 Token");
+  /* ★ 跳过「还没接入」的共享角色（shared + needCred）：
+   *   它们的 token 是空串、id 还是临时 id（`shared:<gid>`），selectToken 会把它设成
+   *   当前账号并拿空 token 建 WS —— 批量跑完 selectedTokenId 就指向一个没有凭证的角色，
+   *   首页 / 玩法页随即拿着它空转。已接入的共享角色（有真 token）照旧更新。
+   *   顺手用快照：循环里 selectToken 会触发 updateToken，直接按下标读原数组会错位。 */
+  const list = (gameTokens.value || []).filter((t) => !(t.shared && t.needCred));
+  if (!list.length) return message.warning("没有可更新的 Token");
   confirmAction(dialog, {
     title: "更新所有 Token 信息",
     content: "将逐个连接所有 Token 获取最新的角色名和区服，完成后自动断开，约 3~5 秒一个。",
@@ -668,10 +674,10 @@ async function updateAllInfo() {
     onPositiveClick: async () => {
       let ok = 0,
         fail = 0;
-      const total = gameTokens.value.length;
+      const total = list.length;
       const tip = message.loading(`正在更新 (0/${total})`, { duration: 0 });
       for (let i = 0; i < total; i++) {
-        const tk = gameTokens.value[i];
+        const tk = list[i];
         tip.content = `正在更新 (${i + 1}/${total})：${tk.name}`;
         try {
           await tokenStore.selectToken(tk.id);

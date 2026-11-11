@@ -117,11 +117,15 @@ function close() {
   emit("close");
 }
 
+/* 后端 message 常常比固定文案更有用（比如「该角色正在授权给『某某』」里带了人名），
+ * 所以只把「后端说不出具体信息」的几类固定下来，其余回落到 res.message。 */
 const ERR_TEXT = {
   grantee_not_found: "对方账号不存在，请核对用户名",
   bad_grantee: "用户名格式不对（2-32 个字符，不含空格）",
   not_your_token: "该角色不在你的角色列表里",
   too_many_grants: "授权数量已达上限，请先撤销部分授权",
+  token_taken: "该角色已授权给他人，请先在「角色授权」里撤销",
+  foreign_token: "该角色登记在别的账号名下，不能转授权",
   bin_too_large: "该角色的 BIN 过大，无法托管授权",
   unauthorized: "登录已过期，请重新登录",
 };
