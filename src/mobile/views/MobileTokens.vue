@@ -95,6 +95,9 @@
               <span v-if="tk.id === selectedTokenId" class="m-tk-cur">当前</span>
             </span>
           </span>
+          <button class="m-tk-more" aria-label="更多操作" @click="openActions(tk)">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+          </button>
         </div>
 
         <div class="m-tk-remark">
@@ -152,20 +155,43 @@
       <h4>{{ actTk?.name }}</h4>
       <div class="m-sh-sub">{{ actTk?.server || "未知区服" }} · {{ actTk ? statusText(actTk.id) : "" }}</div>
 
-      <div class="m-trow" role="button" tabindex="0" @click="runAction('edit')" @keydown.enter="runAction('edit')">
+      <!-- 自己的角色才有的动作：编辑 / 复制 / 授权 / 下载 BIN / 升级 / 删除，
+           对象都是「我的账号」。共享角色那几项一律不出现（见下方 isSharedAct）。 -->
+      <div
+        v-if="!isSharedAct"
+        class="m-trow"
+        role="button"
+        tabindex="0"
+        @click="runAction('edit')"
+        @keydown.enter="runAction('edit')"
+      >
         <span class="m-body"><span class="m-nm">编辑信息</span><span class="m-ds">名称 / Token / 区服 / WebSocket / 备注</span></span>
       </div>
-      <div class="m-trow" role="button" tabindex="0" @click="runAction('copy')" @keydown.enter="runAction('copy')">
+      <div
+        v-if="!isSharedAct"
+        class="m-trow"
+        role="button"
+        tabindex="0"
+        @click="runAction('copy')"
+        @keydown.enter="runAction('copy')"
+      >
         <span class="m-body"><span class="m-nm">复制 Token</span></span>
       </div>
-      <div class="m-trow" role="button" tabindex="0" @click="runAction('grant')" @keydown.enter="runAction('grant')">
+      <div
+        v-if="!isSharedAct"
+        class="m-trow"
+        role="button"
+        tabindex="0"
+        @click="runAction('grant')"
+        @keydown.enter="runAction('grant')"
+      >
         <span class="m-body">
           <span class="m-nm">授权给他人</span>
           <span class="m-ds">让对方登录这个角色，24 小时 / 7 天 / 30 天后自动失效</span>
         </span>
       </div>
       <div
-        v-if="actTk && gameTokens[0] && gameTokens[0].id !== actTk.id"
+        v-if="actTk && !isSharedAct && gameTokens[0] && gameTokens[0].id !== actTk.id"
         class="m-trow"
         role="button"
         tabindex="0"
@@ -174,17 +200,38 @@
       >
         <span class="m-body"><span class="m-nm">移到最前</span><span class="m-ds">账号列表与切换器里的顺序</span></span>
       </div>
-      <div class="m-trow" role="button" tabindex="0" @click="runAction('bin')" @keydown.enter="runAction('bin')">
+      <div
+        v-if="!isSharedAct"
+        class="m-trow"
+        role="button"
+        tabindex="0"
+        @click="runAction('bin')"
+        @keydown.enter="runAction('bin')"
+      >
         <span class="m-body"><span class="m-nm">下载 BIN</span><span class="m-ds">按当前区服导出角色 BIN 文件</span></span>
       </div>
       <div class="m-trow" role="button" tabindex="0" @click="runAction('refresh')" @keydown.enter="runAction('refresh')">
         <span class="m-body">
-          <span class="m-nm">{{ actTk && actTk.importMethod === "url" ? "从 URL 刷新" : "重新获取" }}</span>
-          <span class="m-ds">用保存的登录凭据换一张新 Token</span>
+          <span class="m-nm">
+            {{
+              isSharedAct
+                ? "刷新 Token"
+                : actTk && actTk.importMethod === "url"
+                  ? "从 URL 刷新"
+                  : "重新获取"
+            }}
+          </span>
+          <span class="m-ds">
+            {{
+              isSharedAct
+                ? "用授权附带的 BIN 换一张新 Token（只留本地）"
+                : "用保存的登录凭据换一张新 Token"
+            }}
+          </span>
         </span>
       </div>
       <div
-        v-if="actTk && !isPermanent(actTk)"
+        v-if="actTk && !isSharedAct && !isPermanent(actTk)"
         class="m-trow"
         role="button"
         tabindex="0"
@@ -193,8 +240,25 @@
       >
         <span class="m-body"><span class="m-nm">升级为长期有效</span><span class="m-ds">不再因 24 小时未使用被自动清理</span></span>
       </div>
-      <div class="m-trow m-tk-danger" role="button" tabindex="0" @click="runAction('delete')" @keydown.enter="runAction('delete')">
+      <div
+        v-if="!isSharedAct"
+        class="m-trow m-tk-danger"
+        role="button"
+        tabindex="0"
+        @click="runAction('delete')"
+        @keydown.enter="runAction('delete')"
+      >
         <span class="m-body"><span class="m-nm">删除该账号</span><span class="m-ds">不可恢复</span></span>
+      </div>
+      <div
+        v-if="isSharedAct"
+        class="m-trow m-tk-danger"
+        role="button"
+        tabindex="0"
+        @click="runAction('remove-shared')"
+        @keydown.enter="runAction('remove-shared')"
+      >
+        <span class="m-body"><span class="m-nm">移除共享角色</span><span class="m-ds">从本机移除，需要时让对方重新授权</span></span>
       </div>
     </div>
 
@@ -436,6 +500,9 @@ onMounted(async () => {
  * 单个账号的动作（更多操作 sheet）
  * ============================================================ */
 const actTk = ref(null);
+/* 动作抽屉里的每一项都要按「是不是共享角色」分叉：编辑 / 复制 / 授权 / 下载 BIN /
+   升级 / 删除的对象都是「我的账号」，对共享角色一概不给。 */
+const isSharedAct = computed(() => !!(actTk.value && actTk.value.shared));
 function openActions(tk) {
   actTk.value = tk;
 }
@@ -448,8 +515,9 @@ function runAction(key) {
   else if (key === "grant") openGrant(tk);
   else if (key === "top") moveToTop(tk);
   else if (key === "bin") downloadTokenBin(tk);
-  else if (key === "refresh") refreshOne(tk);
+  else if (key === "refresh") (tk.shared ? refreshShared(tk) : refreshOne(tk));
   else if (key === "upgrade") upgradeOne(tk);
+  else if (key === "remove-shared") removeShared(tk);
   else if (key === "delete") removeOne(tk);
 }
 
@@ -527,6 +595,28 @@ function removeOne(tk) {
       message.success("Token 已删除");
     },
   });
+}
+
+/* 共享角色的刷新入口：先「接入」（拉凭证 + bin），再走与自己的号完全相同的 bin 刷新分支。
+ * ★ 未接入时 id 还是临时 id（`shared:<gid>`），IndexedDB 里没有对应 bin —— 直接 refreshOne
+ *   只会得到「本机未找到登录凭据」，所以必须先 adopt 把 id 换成真 id（= MD5(bin)）。
+ * ★ 刷出来的新 token 只留在本地，不回写服务端：bin 长期有效，谁需要谁自己换一张即可
+ *   （详见 share.js actRefresh 的说明）。 */
+async function refreshShared(tk) {
+  let target = tk;
+  if (target.needCred) {
+    const res = await tokenStore.adoptSharedToken(target.id);
+    if (!res || !res.ok) {
+      message.error((res && res.message) || "无法接入该角色");
+      return;
+    }
+    target = res.token;
+  }
+  if (target.importMethod !== "bin") {
+    message.warning("该授权没有附带 BIN，无法自动刷新，请联系授权方重新授权");
+    return;
+  }
+  await refreshOne(target);
 }
 
 /* 刷新：与旧版 refreshToken 完全相同的四路分支（URL / combUser / 本地凭据 / 无自动刷新） */
