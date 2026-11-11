@@ -426,9 +426,10 @@ function removeShared(tk) {
    被撤销 / 已过期的由 store 里 refreshSharedGrants 就地删除（无残留）。 */
 onMounted(async () => {
   const res = await tokenStore.refreshSharedGrants();
-  if (res && res.ok && res.added) {
-    message.info(`收到 ${res.added} 个共享角色`);
-  }
+  if (!res || !res.ok) return;
+  if (res.added) message.info(`收到 ${res.added} 个共享角色`);
+  // 到期 / 被撤销：卡片会直接消失，给一句说明，否则用户只会觉得「角色怎么没了」
+  if (res.removed) message.info(`${res.removed} 个共享角色已失效，已从本机移除`);
 });
 
 /* ============================================================

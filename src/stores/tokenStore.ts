@@ -330,6 +330,54 @@ export const useTokenStore = defineStore("tokens", () => {
     return { ok: true, updated };
   };
 
+  /* ---------- 到期本地结算 ----------
+   * 服务端**没有定时任务**：过期只在「下次 list / 取凭证」时才被发现。
+   * 如果用户把控制台一直开着，那条授权即便到期了也不会自己断 —— 已经建立的 WS 会话
+   * 不受服务端授权状态影响。所以本地再补一层：到点就断连 + 移除 + 删 bin。
+   * 定时器只是「尽力而为」：后台标签页会被浏览器节流，读取时判定仍然是兜底。 */
+  const sharedTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  /** setTimeout 的上限是 2^31-1 ≈ 24.8 天，30 天的授权必须分段排队 */
+  const MAX_TIMER_MS = 20 * 24 * 60 * 60 * 1000;
+
+  /** 到期结算（纯本地，不依赖网络）：断连 → 清选中 → 移除条目 → 删 bin */
+  const expireSharedLocal = (gid: string) => {
+    const idx = gameTokens.value.findIndex((t) => t.shared && t.grantGid === gid);
+    if (idx < 0) return false;
+    const t = gameTokens.value[idx];
+
+    if (wsConnections.value[t.id]) closeWebSocketConnection(t.id);
+    if (selectedTokenId.value === t.id) selectedTokenId.value = "";
+    gameTokens.value.splice(idx, 1);
+
+    const stillOwned = gameTokens.value.some((x) => x.id === t.id && !x.shared);
+    if (!stillOwned) void deleteArrayBuffer(t.id).catch(() => {});
+    return true;
+  };
+
+  function scheduleSharedExpiry(gid: string, expiresAt: number) {
+    const old = sharedTimers.get(gid);
+    if (old) clearTimeout(old);
+    if (!expiresAt) return;
+
+    const tick = () => {
+      const left = expiresAt - Date.now();
+      if (left > 0) {
+        sharedTimers.set(gid, setTimeout(tick, Math.min(left, MAX_TIMER_MS)));
+        return;
+      }
+      sharedTimers.delete(gid);
+      expireSharedLocal(gid);
+      void refreshSharedGrants(); // 顺手与服务端对齐；网络不通也不影响本地已经断开
+    };
+
+    const left = expiresAt - Date.now();
+    if (left <= 0) {
+      expireSharedLocal(gid);
+      return;
+    }
+    sharedTimers.set(gid, setTimeout(tick, Math.min(left, MAX_TIMER_MS)));
+  }
+
   /**
    * 被授权方：把服务端清单同步成本地的共享条目。
    * 服务端已撤销 / 已过期的**不会返回** ⇒ 本地对应条目在这里被删除（「无残留」的落点）。
@@ -344,8 +392,9 @@ export const useTokenStore = defineStore("tokens", () => {
     let removed = 0;
     let added = 0;
 
-    // ① 先删：服务端已经不给我了
+    // ① 先删：服务端已经不给我了（已撤销 / 已过期）
     const kept: TokenData[] = [];
+    const gone: TokenData[] = [];
     for (const t of gameTokens.value) {
       if (!t.shared) {
         kept.push(t);
@@ -355,9 +404,25 @@ export const useTokenStore = defineStore("tokens", () => {
         kept.push(t);
         continue;
       }
-      if (wsConnections.value[t.id]) closeWebSocketConnection(t.id);
-      removed++;
+      gone.push(t);
     }
+    for (const t of gone) {
+      if (wsConnections.value[t.id]) closeWebSocketConnection(t.id);
+      // 选中的就是它 → 立刻清空，否则首页/工具页拿着一个不存在的 selectedToken 空转
+      if (selectedTokenId.value === t.id) selectedTokenId.value = "";
+    }
+    /* 本地 bin 是**授权方的凭据副本**，授权没了就必须一起删：
+     * 过期只删条目不删 bin，等于把凭证留在 IndexedDB 里（用户要的「无残留」就不成立）。
+     * 先确认这个 id 没被自己的角色占用 —— 否则会误删自己的 bin。 */
+    const binDoomed = gone
+      .filter((t) => !kept.some((x) => x.id === t.id && !x.shared))
+      .map((t) => t.id);
+    if (binDoomed.length) {
+      await Promise.all(
+        binDoomed.map((id) => deleteArrayBuffer(id).catch(() => {})),
+      );
+    }
+    removed = gone.length;
 
     // ② 再补 / 更新
     for (const g of grants) {
@@ -399,6 +464,23 @@ export const useTokenStore = defineStore("tokens", () => {
     if (removed || added || kept.length !== gameTokens.value.length) {
       gameTokens.value = kept;
     }
+
+    // ③ 排到期定时：先清掉已经不存在的 gid（避免定时器泄漏），再按最新 expiresAt 重排
+    const aliveGids = new Set(
+      kept.filter((t) => t.shared && t.grantGid).map((t) => String(t.grantGid)),
+    );
+    for (const [gid, timer] of sharedTimers) {
+      if (!aliveGids.has(gid)) {
+        clearTimeout(timer);
+        sharedTimers.delete(gid);
+      }
+    }
+    for (const t of kept) {
+      if (t.shared && t.grantGid) {
+        scheduleSharedExpiry(String(t.grantGid), t.expiresAt || 0);
+      }
+    }
+
     return { ok: true, added, removed, count: grants.length };
   };
 
@@ -484,6 +566,12 @@ export const useTokenStore = defineStore("tokens", () => {
 
     let res: any = { ok: true };
     if (entry.grantGid) res = await shareApi.leave(entry.grantGid);
+
+    // 主动移除 → 先撤掉到期定时器，否则它到点还会再跑一次（幂等，但没必要）
+    if (entry.grantGid && sharedTimers.has(String(entry.grantGid))) {
+      clearTimeout(sharedTimers.get(String(entry.grantGid)) as any);
+      sharedTimers.delete(String(entry.grantGid));
+    }
 
     if (wsConnections.value[tokenId]) closeWebSocketConnection(tokenId);
     gameTokens.value.splice(idx, 1);
