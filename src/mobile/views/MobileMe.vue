@@ -50,6 +50,21 @@
           <svg class="m-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
         </span>
       </div>
+
+      <!-- 角色授权：账号级动作，和修改密码同一张卡。
+           入口只放在这里 + 角色列表每张卡的「⋯」，两处指的是同一件事。 -->
+      <div class="m-trow" role="button" tabindex="0" @click="router.push('/mobile/share')" @keydown.enter="router.push('/mobile/share')">
+        <span class="m-ib" style="background: var(--m-primary-deep)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3M20 12v2"/></svg>
+        </span>
+        <span class="m-body">
+          <span class="m-nm">角色授权</span>
+          <span class="m-ds">把自己的角色授权给他人，或查看收到哪些角色</span>
+        </span>
+        <span class="m-rt">
+          <svg class="m-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </span>
+      </div>
     </div>
 
     <!-- ============ 调试 ============

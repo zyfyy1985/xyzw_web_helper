@@ -2400,7 +2400,10 @@ const toggleSort = (field) => {
   localStorage.setItem("tokenSortConfig", JSON.stringify(sortConfig.value));
 };
 
-const tokens = computed(() => tokenStore.gameTokens);
+/* ★ 共享角色（别人授权给我登录的）不进批量任务：它不是「我的账号」，
+   批量跑日常等于替授权方操作他的号，责任边界不清；而且批量会长时间占用连接，
+   与授权方同时在线的概率极高（互相顶号）。用户明确要求排除。 */
+const tokens = computed(() => (tokenStore.gameTokens || []).filter((t) => !t.shared));
 const ismengjingActivityOpen = computed(() => {
   const day = new Date().getDay();
   return day === 0 || day === 1 || day === 3 || day === 4;

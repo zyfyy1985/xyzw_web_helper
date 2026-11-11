@@ -14,7 +14,7 @@
     <section class="m-quick">
       <!-- 这个格子是 div 不是 button：里面还要放一个齿轮按钮，button 不能嵌套 -->
       <div class="m-qa" role="button" tabindex="0" @click="openGame" @keydown.enter="openGame">
-        <span class="m-gear" role="button" title="内置脚本" @click.stop="showScriptDialog = true">
+        <span class="m-gear" role="button" title="内置脚本" @click.stop="openScripts">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.2a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/></svg>
         </span>
         <span class="m-ib" style="background: var(--m-primary)">
@@ -198,11 +198,29 @@ function onDeskClick(e) {
   resSheet.value = true;
 }
 
+/* ---------- 内置脚本 ----------
+ * ★ 共享角色（别人授权给我登录的）不允许挂脚本：脚本会按启用的玩法长期托管这个号，
+ *   等于替授权方操作他的角色，且与授权方同时在线的概率极高（互相顶号）。
+ *   用户明确要求「共享角色不进多开 / 批量 / 脚本」——这里是脚本这一处的闸门。 */
+function openScripts() {
+  const token = tokenStore.selectedToken;
+  if (token && token.shared) {
+    message.warning("共享角色不支持内置脚本，只有自己的账号可以");
+    return;
+  }
+  showScriptDialog.value = true;
+}
+
 /* ---------- 多开 ----------
  * 独立全屏页（/mobile/multi），进去先用当前账号占住第 1 窗：
- * 传 bin_id 而不是在页面里读 store —— 多开页不套 MobileLayout，不依赖壳里的自动选号。 */
+ * 传 bin_id 而不是在页面里读 store —— 多开页不套 MobileLayout，不依赖壳里的自动选号。
+ * ★ 共享角色同样排除：多开是同源多 iframe 同连，会与授权方互相顶号。 */
 function openMulti() {
   const token = tokenStore.selectedToken;
+  if (token && token.shared) {
+    message.warning("共享角色不支持多开");
+    return;
+  }
   router.push({ path: "/mobile/multi", query: token ? { bin_id: token.id } : {} });
 }
 

@@ -1407,6 +1407,40 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 }
 .m-finput:focus { outline: none; border-color: var(--m-primary); box-shadow: 0 0 0 2px var(--m-primary-soft); }
 
+/* ---------- 表单行（标签 + 输入 + 底部按钮） ----------
+ * 原先是 MobileTokens.vue 的 scoped 样式，只有那一页能用。
+ * 「授权给他人」抽屉与「角色授权」页是同一套表单外观，若各自再写一份，
+ * 三处的字号/间距会慢慢漂开 —— 提到全局，单一来源。 */
+.m-tk-f {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.m-tk-f > span {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--m-text3);
+}
+.m-tk-f > span i {
+  color: var(--m-red);
+  font-style: normal;
+}
+.m-tk-ta {
+  resize: none;
+  line-height: 1.5;
+  font-family: inherit;
+}
+.m-tk-fbtns {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.m-tk-fbtns .m-btn {
+  flex: 1;
+  width: auto;
+}
+
 /* ============================================================
  * 登录 / 注册（/mobile/login、/mobile/register）
  * 这两页不套 MobileLayout（没有顶栏和 tabbar），自己撑一个 .mobile-shell，

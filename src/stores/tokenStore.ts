@@ -10,9 +10,12 @@ import useIndexedDB from "@/hooks/useIndexedDB";
 import { generateRandomSeed } from "@/utils/randomSeed";
 import {
   transformToken,
+  getTokenId,
   setAuthUserRateLimiterCallback,
   scheduleAuthUserRequest,
 } from "@/utils/token";
+import { abToBase64, base64ToAb } from "@/utils/binCloud";
+import { shareApi } from "@/utils/shareApi";
 import {
   refreshTokenFromCombUser,
   roleIndexFromServerId,
@@ -40,6 +43,21 @@ declare interface TokenData {
   serverId?: string | number;
   roleId?: string | number;
   roleIndex?: number;
+  /* ---------- 角色授权（他人共享给我的角色） ----------
+   * ★ 共享角色**也会进 gameTokens**：控制台、玩法页、工具全部以 `selectedToken` 为唯一入口，
+   *   不进这个数组就等于「能看见但用不了」。代价是同步层必须把它剥掉（见
+   *   `localStorageCloudSync` 的 `gameTokens` 特判），否则它会被推到自己的云端、
+   *   还会被 `ownedTokenKeys()` 当成自己的角色，把授权方的 bin 一起迁过去。
+   *   `shared: false/undefined` = 自己的角色，语义与改造前完全一致。 */
+  shared?: boolean;
+  /** 授权记录 id（服务端 `shr_<gid>`），撤销 / 取凭证 / 退出都用它 */
+  grantGid?: string;
+  /** 授权方用户名 */
+  sharedFrom?: string;
+  /** 授权到期时间（ms）。过期后服务端 list 不再返回，本地由 refreshSharedGrants 清掉 */
+  expiresAt?: number;
+  /** 还没取到凭证（只拿到了元信息）：点「控制台」时才去拉 cred + bin */
+  needCred?: boolean;
 }
 
 declare interface WebSocketConnection {
@@ -82,6 +100,13 @@ export const hasTokens = computed(() => gameTokens.value.length > 0);
 // 所有入口/文案都读这个常量（MobileTokens 的「最多 N 个账号」、TokenImport 的「还能添加 N 个」），
 // 改数字即可，别在页面里另写死。
 export const MAX_GAME_TOKENS = 6;
+/**
+ * 只数「自己的」角色。
+ * ★ 共享来的角色不占配额：它们由授权方管理、随时可能被撤销，占掉名额会让用户
+ *   为了收一个共享角色反而删掉自己的号。所有「还能加几个」的判断都必须用它。
+ */
+export const countOwnTokens = (list: TokenData[] = gameTokens.value) =>
+  (list || []).filter((t) => !t.shared).length;
 export const selectedTokenId = useLocalStorage("selectedTokenId", "");
 export const selectedToken = computed(() => {
   return gameTokens.value?.find((token) => token.id === selectedTokenId.value);
@@ -214,6 +239,263 @@ export const useTokenStore = defineStore("tokens", () => {
     }
   };
 
+  // ==================== 角色授权（托管式共享） ====================
+  /* 两边的角色不同，别混着看：
+   *   · 授权方（owner）：把某个自己的角色授给某人。凭证从本地 token + IndexedDB 的 bin 取，
+   *     服务端会校验这个 tokenId 确实在自己账号的 gameTokens 里（防伪造）。
+   *   · 被授权方（grantee）：别人的角色会出现在 `gameTokens` 里（`shared: true`），
+   *     先只有元信息，点「控制台」时才去拉 cred + bin —— 否则列表一打开就要下几百 KB。
+   * ⚠️ 共享条目**永远不进自己的云端**：同步层对 `gameTokens` 做了剥离，见
+   *    `localStorageCloudSync` 里 `notify` / `doFirstPull` / `ownedTokenKeys` 三处。 */
+
+  /** 未接入的共享角色用这个 id；接入后换成真 id（= MD5(bin)），才能和 bin 对上 */
+  const SHARED_ID_PREFIX = "shared:";
+
+  const isSharedToken = (tokenId: string) => {
+    const t = gameTokens.value.find((x) => x.id === tokenId);
+    return !!(t && t.shared);
+  };
+
+  /** owner：把 tokenId 授权给 to（ttl: "24h" | "7d" | "30d"） */
+  const grantToken = async (tokenId: string, to: string, ttl: string) => {
+    const token = gameTokens.value.find((t) => t.id === tokenId);
+    if (!token) return { ok: false, message: "角色不存在" };
+    if (token.shared) return { ok: false, message: "别人的角色不能转授权" };
+
+    // bin 是角色凭据本体（刷新 token / 进游戏都要它），没有 bin 的授权基本只能用一次
+    let bin: string | null = null;
+    try {
+      const buf = await getArrayBuffer(token.id);
+      if (buf) bin = abToBase64(buf);
+    } catch {
+      bin = null;
+    }
+
+    return shareApi.create({
+      tokenId: token.id,
+      to,
+      ttl,
+      meta: {
+        name: token.name || "",
+        server: token.server || "",
+        avatar: token.avatar || "",
+      },
+      cred: {
+        token: token.token,
+        wsUrl: token.wsUrl || "",
+        combUser: token.combUser || null,
+        serverId: token.serverId ?? null,
+        roleId: token.roleId ?? null,
+      },
+      bin,
+    });
+  };
+
+  /** 清单：role = "owner"（我发出的）| "grantee"（我收到的） */
+  const listGrants = (role: "owner" | "grantee") => shareApi.list(role);
+
+  /** owner：撤销。服务端会清空凭证 + 删 bin + 删对方索引 */
+  const revokeGrant = async (gid: string) => {
+    const res = await shareApi.revoke(gid);
+    if (res.ok) await refreshSharedGrants();
+    return res;
+  };
+
+  /**
+   * owner：token 刷新后把新凭证回写给所有 active 授权。
+   * 不做这件事，对方会在授权期内某天突然「登录失效」，且原因完全看不出。
+   */
+  const syncGrantsForToken = async (tokenId: string) => {
+    const token = gameTokens.value.find((t) => t.id === tokenId);
+    if (!token || token.shared || !token.token) return { ok: true, updated: 0 };
+
+    const list = await shareApi.list("owner");
+    if (!list.ok) return list;
+    const targets = (list.grants || []).filter(
+      (g: any) => g.tokenId === tokenId && g.state === "active",
+    );
+    if (!targets.length) return { ok: true, updated: 0 };
+
+    let updated = 0;
+    for (const g of targets) {
+      const r = await shareApi.refresh(g.gid, {
+        token: token.token,
+        wsUrl: token.wsUrl || "",
+        combUser: token.combUser || null,
+        serverId: token.serverId ?? null,
+        roleId: token.roleId ?? null,
+      });
+      if (r.ok) updated++;
+    }
+    return { ok: true, updated };
+  };
+
+  /**
+   * 被授权方：把服务端清单同步成本地的共享条目。
+   * 服务端已撤销 / 已过期的**不会返回** ⇒ 本地对应条目在这里被删除（「无残留」的落点）。
+   * @returns 本次新增 + 移除的数量，UI 用来决定要不要提示
+   */
+  const refreshSharedGrants = async () => {
+    const res = await shareApi.list("grantee");
+    if (!res.ok) return res;
+
+    const grants = (res.grants || []) as any[];
+    const alive = new Map<string, any>(grants.map((g) => [String(g.gid), g]));
+    let removed = 0;
+    let added = 0;
+
+    // ① 先删：服务端已经不给我了
+    const kept: TokenData[] = [];
+    for (const t of gameTokens.value) {
+      if (!t.shared) {
+        kept.push(t);
+        continue;
+      }
+      if (t.grantGid && alive.has(t.grantGid)) {
+        kept.push(t);
+        continue;
+      }
+      if (wsConnections.value[t.id]) closeWebSocketConnection(t.id);
+      removed++;
+    }
+
+    // ② 再补 / 更新
+    for (const g of grants) {
+      const idx = kept.findIndex((t) => t.shared && t.grantGid === g.gid);
+      const meta = g.meta || {};
+      if (idx >= 0) {
+        kept[idx] = {
+          ...kept[idx],
+          name: meta.name || kept[idx].name,
+          server: meta.server || kept[idx].server,
+          avatar: meta.avatar || kept[idx].avatar,
+          expiresAt: g.expiresAt || kept[idx].expiresAt,
+          sharedFrom: g.owner,
+        };
+        continue;
+      }
+      kept.push({
+        id: SHARED_ID_PREFIX + g.gid,
+        grantGid: String(g.gid),
+        shared: true,
+        sharedFrom: g.owner,
+        needCred: true,
+        name: meta.name || "共享角色",
+        server: meta.server || "",
+        avatar: meta.avatar || "",
+        token: "",
+        wsUrl: null,
+        serverId: null,
+        roleId: null,
+        importMethod: "manual",
+        expiresAt: g.expiresAt || 0,
+        createdAt: new Date().toISOString(),
+        lastUsed: new Date().toISOString(),
+      });
+      added++;
+    }
+
+    // 只在真有变化时整体赋值，避免每次启动都触发一次 gameTokens 的写入与重渲染
+    if (removed || added || kept.length !== gameTokens.value.length) {
+      gameTokens.value = kept;
+    }
+    return { ok: true, added, removed, count: grants.length };
+  };
+
+  /**
+   * 被授权方：真正接入 —— 拉凭证与 bin，把临时 id 换成真 id。
+   * ★ 真 id 必须 = MD5(bin 字节)，与 `getTokenId(bin)` 同源；否则本地 bin 的键对不上，
+   *   刷新 token / 进游戏都会失败（这两条路径都是按 tokenId 去 IndexedDB 取的）。
+   */
+  const adoptSharedToken = async (tokenId: string) => {
+    const idx = gameTokens.value.findIndex((t) => t.id === tokenId);
+    if (idx < 0) return { ok: false, message: "角色不存在" };
+    const entry = gameTokens.value[idx];
+    if (!entry.shared) return { ok: true, token: entry };
+    if (!entry.grantGid) return { ok: false, message: "授权记录缺失，请刷新后重试" };
+
+    const credRes: any = await shareApi.cred(entry.grantGid);
+    if (!credRes.ok) {
+      // 撤销 / 过期 / 网络失败：把服务端状态同步下来（本地条目会被清掉）
+      if (credRes.error === "revoked" || credRes.error === "expired" || credRes.status === 404) {
+        await refreshSharedGrants();
+      }
+      return { ok: false, message: credRes.message || "无法获取登录凭证" };
+    }
+    const cred = credRes.cred || {};
+    if (!cred.token) return { ok: false, message: "授权方尚未配置凭证" };
+
+    let realId = entry.id;
+    let binBuffer: ArrayBuffer | null = null;
+    if (credRes.hasBin) {
+      const binRes: any = await shareApi.bin(entry.grantGid);
+      if (binRes.ok && binRes.bin) {
+        try {
+          binBuffer = base64ToAb(binRes.bin);
+          const hashed = getTokenId(binBuffer as ArrayBuffer);
+          // 同一个 bin 只可能对应同一个角色：本机若已有同 id 的「自己的」角色，说明冲突
+          const clash = gameTokens.value.find((t) => t.id === hashed && !t.shared);
+          if (clash) {
+            return { ok: false, message: "本机已有同一角色，无法重复接入" };
+          }
+          realId = hashed;
+        } catch {
+          binBuffer = null; // bin 解不开就退化成「无 bin」，凭证仍然可用（只是刷新要重新授权）
+        }
+      }
+    }
+
+    if (binBuffer) {
+      // ★ skipCloud：共享 bin 是**授权方**的凭据副本，绝不能推进自己的云端
+      await storeArrayBuffer(realId, binBuffer, { shared: true, gid: entry.grantGid }, {
+        skipCloud: true,
+      });
+    }
+
+    const merged: TokenData = {
+      ...entry,
+      id: realId,
+      token: String(cred.token),
+      wsUrl: cred.wsUrl || null,
+      combUser: cred.combUser || null,
+      serverId: cred.serverId ?? null,
+      roleId: cred.roleId ?? null,
+      needCred: false,
+      importMethod: binBuffer ? "bin" : "manual",
+    };
+
+    if (realId !== entry.id) {
+      // 换 id：先摘掉临时条目，再把选中标记跟过去，避免「当前账号」指向一个不存在的 id
+      gameTokens.value.splice(idx, 1, merged);
+      if (selectedTokenId.value === entry.id) selectedTokenId.value = realId;
+      if (wsConnections.value[entry.id]) closeWebSocketConnection(entry.id);
+    } else {
+      gameTokens.value[idx] = merged;
+    }
+
+    return { ok: true, token: merged };
+  };
+
+  /** 被授权方：移除本机的共享角色（同时通知服务端退出，不再出现在清单里） */
+  const dropSharedToken = async (tokenId: string) => {
+    const idx = gameTokens.value.findIndex((t) => t.id === tokenId && t.shared);
+    if (idx < 0) return { ok: false, message: "不是共享角色" };
+    const entry = gameTokens.value[idx];
+
+    let res: any = { ok: true };
+    if (entry.grantGid) res = await shareApi.leave(entry.grantGid);
+
+    if (wsConnections.value[tokenId]) closeWebSocketConnection(tokenId);
+    gameTokens.value.splice(idx, 1);
+    if (selectedTokenId.value === tokenId) selectedTokenId.value = "";
+
+    // 删本地 bin 前先确认这个 id 没有被自己的角色占用（冲突检查在 adopt 里做过，这里兜底）
+    const stillOwned = gameTokens.value.some((t) => t.id === tokenId && !t.shared);
+    if (!stillOwned) await deleteArrayBuffer(tokenId).catch(() => {});
+
+    return res;
+  };
+
   // Token管理
   const addToken = (tokenData: TokenData) => {
     let id =
@@ -221,7 +503,7 @@ export const useTokenStore = defineStore("tokens", () => {
       `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     // ★ 数量上限兜底：只有「净新增」受限；同 id 的更新（调用方应走 updateToken）不受影响
     const isExisting = gameTokens.value.some((t) => t.id === id);
-    if (!isExisting && gameTokens.value.length >= MAX_GAME_TOKENS) {
+    if (!isExisting && countOwnTokens() >= MAX_GAME_TOKENS) {
       throw new Error(
         `最多只能有 ${MAX_GAME_TOKENS} 个 Token，请先删除现有 Token 再添加`,
       );
@@ -260,6 +542,12 @@ export const useTokenStore = defineStore("tokens", () => {
         ...updates,
         updatedAt: new Date().toISOString(),
       };
+      // 凭证变了（手动编辑 / 自动刷新 / 重新获取）→ 回写给所有 active 授权。
+      // fire-and-forget：这步在保存路径上，失败只影响对方「下次登录」，
+      // 不能拖慢保存；打开「角色授权」页时还会整体对齐一次（见 syncGrantsForToken）。
+      if (updates.token && !gameTokens.value[index].shared) {
+        void syncGrantsForToken(tokenId);
+      }
       return true;
     }
     return false;
@@ -1201,7 +1489,10 @@ export const useTokenStore = defineStore("tokens", () => {
   // 工具方法
   const exportTokens = () => {
     return {
-      tokens: gameTokens.value,
+      // ★ 共享角色不导出：那是别人的凭证，落成 JSON 文件后就再也收不回来了
+      //   （撤销授权只能让服务端停止下发，已经下载到磁盘的副本我们管不到）。
+      //   恢复备份后服务端清单会重新把它们拉回来，不依赖这份文件。
+      tokens: gameTokens.value.filter((t) => !t.shared),
       exportedAt: new Date().toISOString(),
       version: "2.0",
     };
@@ -1210,10 +1501,13 @@ export const useTokenStore = defineStore("tokens", () => {
   const importTokens = (data: any) => {
     try {
       if (data.tokens && Array.isArray(data.tokens)) {
-        gameTokens.value = data.tokens;
+        // 恢复备份是「恢复自己的号」，不该顺带把别人授权给我的角色踢掉 —— 原地保留
+        const keptShared = gameTokens.value.filter((t) => t.shared);
+        const incoming = data.tokens.filter((t: any) => !(t && t.shared));
+        gameTokens.value = [...incoming, ...keptShared];
         return {
           success: true,
-          message: `成功导入 ${data.tokens.length} 个Token`,
+          message: `成功导入 ${incoming.length} 个Token`,
         };
       } else {
         return { success: false, message: "导入数据格式错误" };
@@ -1242,6 +1536,10 @@ export const useTokenStore = defineStore("tokens", () => {
 
     // 找出需要清理的token
     const tokensToRemove = gameTokens.value.filter((token) => {
+      // ★ 共享角色不参与「24 小时未使用」清理：它的生命周期由授权方决定，
+      //   本机只是缓存一份。清理了下次启动还会被 refreshSharedGrants 拉回来，
+      //   白白断一次连接。过期/撤销由服务端 list 决定，不走这条路径。
+      if (token.shared) return false;
       // URL和bin文件导入的token设为长期有效，不会过期
       // 升级为长期有效的token也不会过期
       if (
@@ -1478,6 +1776,9 @@ export const useTokenStore = defineStore("tokens", () => {
     cleanExpiredTokens();
     // 启动连接监控
     connectionMonitor.startMonitoring();
+    /* 别人授权给我的角色：启动时对齐一次清单（撤销 / 过期的会在这一步被清掉）。
+       异步、不阻塞启动；未登录时服务端回 401，这里静默失败，进角色列表时还会再拉一次。 */
+    void refreshSharedGrants();
 
     // 设置跨标签页监听
     setupCrossTabListener();
@@ -1622,6 +1923,16 @@ export const useTokenStore = defineStore("tokens", () => {
     updateToken,
     removeToken,
     selectToken,
+
+    // 角色授权
+    isSharedToken,
+    grantToken,
+    listGrants,
+    revokeGrant,
+    syncGrantsForToken,
+    refreshSharedGrants,
+    adoptSharedToken,
+    dropSharedToken,
 
     // Base64解析方法
     parseBase64Token,

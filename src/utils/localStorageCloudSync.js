@@ -195,6 +195,54 @@ function isEmptyArray(value) {
   return Array.isArray(value) && value.length === 0;
 }
 
+/**
+ * ★ 云端只能看到「自己的」角色。
+ *
+ * 共享角色（`shared: true`，别人授权给我登录的）也会进 `gameTokens` —— 不进去的话
+ * 控制台 / 玩法页 / 工具全都以 `selectedToken` 为唯一入口，等于看得见用不了。
+ * 但它**绝不能推上自己的云端**：
+ *   ① 那是别人的角色，推到我的账号里等于替我「存档」了一份别人的凭据；
+ *   ② 下次换设备登录会把别人的角色当自己的拉回来，撤销了也删不掉；
+ *   ③ `ownedTokenKeys()` 会把它算成我的 token，进而把授权方的 bin 也往我云端迁。
+ * 因此「本地 → 云端」的唯一出口 `notify()` 在这里统一剥离，读路径再合并回来。
+ */
+function withoutShared(value) {
+  if (!Array.isArray(value)) return value;
+  return value.filter((t) => !(t && t.shared));
+}
+
+/** 是否需要按「gameTokens 特殊处理」（剥离共享条目） */
+function isTokensKey(key) {
+  return key === "gameTokens";
+}
+
+/**
+ * 云端 → 本地时，把本地的共享条目合并回来。
+ * 云端的 `gameTokens` 只有自己的角色（上一条剥离的结果），直接覆盖会**把共享角色冲掉**，
+ * 表现就是「每次重启 / 换标签页，别人的角色就消失一次」。
+ */
+function withLocalShared(cloudValue) {
+  const cloud = Array.isArray(cloudValue) ? cloudValue : [];
+  let localShared = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem("gameTokens") || "[]");
+    if (Array.isArray(raw)) localShared = raw.filter((t) => t && t.shared);
+  } catch {
+    localShared = [];
+  }
+  if (!localShared.length) return cloud;
+
+  const ids = new Set(cloud.map((t) => t && t.id));
+  const gids = new Set(cloud.map((t) => t && t.grantGid).filter(Boolean));
+  const merged = cloud.slice();
+  for (const t of localShared) {
+    if (ids.has(t.id)) continue;
+    if (t.grantGid && gids.has(t.grantGid)) continue;
+    merged.push(t);
+  }
+  return merged;
+}
+
 function localIsNonEmptyArray(key) {
   const raw = safeGet(key);
   if (!raw) return false;
@@ -244,6 +292,9 @@ function ownedTokenKeys() {
     if (Array.isArray(list)) {
       for (const t of list) {
         if (!t) continue;
+        // ★ 共享角色不算「本账号拥有」：它的 bin 是授权方的凭据副本（本地写入时已 skipCloud），
+        //   把它算进来会让 pushLocalOnlyBins 把别人的 bin 推上自己的云端。
+        if (t.shared) continue;
         if (t.id) out.add(String(t.id));
         if (t.name) out.add(String(t.name));
       }
@@ -293,9 +344,11 @@ function notify(key, rawValue) {
 
   if (rawValue === null || rawValue === undefined) {
     cloudDel(key);
-  } else {
-    cloudSet(key, parseValue(rawValue));
+    return;
   }
+  const parsed = parseValue(rawValue);
+  // 共享角色只活在本地（见 withoutShared）
+  cloudSet(key, isTokensKey(key) ? withoutShared(parsed) : parsed);
 }
 
 // ==================== 安装拦截 ====================
@@ -608,7 +661,7 @@ async function doFirstPull() {
         continue;
       }
 
-      const raw = stringifyValue(value);
+      const raw = stringifyValue(isTokensKey(key) ? withLocalShared(value) : value);
       if (raw === null) continue;
       const oldRaw = safeGet(key);
       safeSet(key, raw);

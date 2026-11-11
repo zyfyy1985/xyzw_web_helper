@@ -229,6 +229,14 @@ const my_routes = [
         meta: { title: 'Token 管理', requiresToken: false }
       },
       {
+        path: 'share',
+        name: 'MobileShare',
+        component: () => import('@/mobile/views/MobileShare.vue'),
+        // 角色授权（我发出的 / 我收到的）。从「我的 → 角色授权」进，
+        // 也可能从角色列表的授权动作跳过来；无 Token 时不拦（页面自己会提示没有授权）
+        meta: { title: '角色授权', requiresToken: false }
+      },
+      {
         path: 'ws-test',
         name: 'MobileWsTest',
         component: () => import('@/mobile/views/MobileWsTest.vue'),

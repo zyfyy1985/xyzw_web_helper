@@ -541,14 +541,19 @@ function startDbg() {  if (!dbgOn) return;
 
 /* ---------- 账号 ----------
    账号清单取自 gameTokens（账号的唯一真相），不是 bin_file_list（那只是「启动过」的缓存）。
+   ★ 共享角色（`shared: true`，别人授权给我的）不列出来：多开是同源多 iframe 同时在线，
+     每个窗格都要独立连同一个 ws 并广播输入，共享角色同连会与授权方互相顶号，
+     而且它不是「我的账号」，不该出现在多开的选择器里（用户明确要求）。
    选完账号再按「打开游戏」那条路现场准备 BIN：IndexedDB 取原始 bin → 转 lx →
    写 localStorage['bin_data_<id>']，游戏侧 game-bridge-local.js 只认这个键。 */
 const accounts = computed(() =>
-  (gameTokens.value || []).map((t) => ({
-    id: String(t.id),
-    name: t.name || "Token",
-    remark: t.remark || "",
-  }))
+  (gameTokens.value || [])
+    .filter((t) => !t.shared)
+    .map((t) => ({
+      id: String(t.id),
+      name: t.name || "Token",
+      remark: t.remark || "",
+    }))
 );
 const usedIds = computed(() => {
   const m = new Map();

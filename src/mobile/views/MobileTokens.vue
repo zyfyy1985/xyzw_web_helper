@@ -16,9 +16,9 @@
       </button>
     </div>
 
-    <!-- ============ 账号卡 ============ -->
+    <!-- ============ 账号卡（自己的角色） ============ -->
     <div
-      v-for="tk in gameTokens"
+      v-for="tk in ownTokens"
       :key="tk.id"
       class="m-card m-tk-card"
       :class="{ on: tk.id === selectedTokenId }"
@@ -70,6 +70,45 @@
       </div>
     </div>
 
+    <!-- ============ 他人共享给我 ============
+         共享角色也在 gameTokens 里（不进这个数组，控制台 / 玩法页就找不到它），
+         但必须单独分组：这不是自己的号，卡片只留「控制台 / 移除」，
+         不给编辑、复制、导出、删除 —— 那几个动作的对象是「我的账号」。 -->
+    <template v-if="sharedTokens.length">
+      <div class="m-tk-sec">他人共享给我 · {{ sharedTokens.length }}</div>
+      <div
+        v-for="tk in sharedTokens"
+        :key="tk.id"
+        class="m-card m-tk-card"
+        :class="{ on: tk.id === selectedTokenId }"
+      >
+        <div class="m-tk-top">
+          <span class="m-tk-ava">{{ initialOf(tk) }}</span>
+          <span class="m-tk-id">
+            <span class="m-tk-nm">
+              {{ tk.name }}
+              <span class="m-tag">{{ tk.server || "未知区服" }}</span>
+              <span class="m-tag done">共享</span>
+            </span>
+            <span class="m-tk-sub">
+              <i class="m-tk-dot" :class="statusOf(tk.id)" />{{ statusText(tk.id) }}
+              <span v-if="tk.id === selectedTokenId" class="m-tk-cur">当前</span>
+            </span>
+          </span>
+        </div>
+
+        <div class="m-tk-remark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="3"/><path d="M12 12h8M17 12v3M20 12v2"/></svg>
+          <span>由 {{ tk.sharedFrom || "对方" }} 共享 · {{ shareExpireText(tk.expiresAt) }}</span>
+        </div>
+
+        <div class="m-tk-act">
+          <button class="m-btn m-btn-p" @click="enterConsole(tk)">控制台</button>
+          <button class="m-btn m-btn-g" @click="removeShared(tk)">移除</button>
+        </div>
+      </div>
+    </template>
+
     <!-- ============================================================
          批量动作（⋯ 抽屉）
          原来这是列表下方那张「数据与连接」卡，七行常驻占屏；现在是按需弹出的抽屉，
@@ -79,7 +118,7 @@
     <div class="m-sheet" :class="{ on: bulkSheet }">
       <div class="m-grab"></div>
       <h4>批量操作</h4>
-      <div class="m-sh-sub">{{ gameTokens.length }} 个账号 · 只作用于本机数据</div>
+      <div class="m-sh-sub">{{ ownTokens.length }} 个账号 · 只作用于本机数据</div>
 
       <div class="m-trow" role="button" tabindex="0" @click="bulk('refresh')" @keydown.enter="bulk('refresh')">
         <span class="m-body"><span class="m-nm">刷新所有 Token</span><span class="m-ds">仅刷新支持自动获取的那部分</span></span>
@@ -118,6 +157,12 @@
       </div>
       <div class="m-trow" role="button" tabindex="0" @click="runAction('copy')" @keydown.enter="runAction('copy')">
         <span class="m-body"><span class="m-nm">复制 Token</span></span>
+      </div>
+      <div class="m-trow" role="button" tabindex="0" @click="runAction('grant')" @keydown.enter="runAction('grant')">
+        <span class="m-body">
+          <span class="m-nm">授权给他人</span>
+          <span class="m-ds">让对方登录这个角色，24 小时 / 7 天 / 30 天后自动失效</span>
+        </span>
       </div>
       <div
         v-if="actTk && gameTokens[0] && gameTokens[0].id !== actTk.id"
@@ -210,6 +255,16 @@
         <button class="m-btn m-btn-p" @click="saveEdit">保存</button>
       </div>
     </div>
+
+    <!-- ============================================================
+         授权给他人（独立组件：它要读 IndexedDB 取 bin，逻辑不适合塞进本页）
+         ============================================================ -->
+    <ShareGrantSheet
+      :show="grantSheet"
+      :token="grantTk"
+      @close="grantSheet = false"
+      @done="onGranted"
+    />
   </div>
 </template>
 
@@ -219,7 +274,7 @@
  *   · 导入：直接复用桌面 TokenImport 的 4 个原子表单（wxqrcode / mobile / bin / manual），逻辑零改动
  *   · 连接 / 刷新 / 升级 / 删除 / 导出导入 / 清理：与旧版 TokenImport/index.vue 同名逻辑一一对应
  *   · 唯一的行为差异：「控制台」在旧版跳 /admin/dashboard，移动模式下该路由被守卫拦死，改跳 /mobile/home */
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useDialog, useMessage } from "naive-ui";
 import { confirmDanger, confirmAction } from "@/mobile/utils/confirm";
@@ -229,6 +284,7 @@ import WxQrcodeForm from "@/mobile/fork/views/TokenImport/wxqrcode.vue";
 import MobileTokenForm from "@/mobile/fork/views/TokenImport/mobile.vue";
 import BinTokenForm from "@/mobile/fork/views/TokenImport/bin.vue";
 import ManualTokenForm from "@/mobile/fork/views/TokenImport/manual.vue";
+import ShareGrantSheet from "@/mobile/components/ShareGrantSheet.vue";
 
 import { MAX_GAME_TOKENS, useTokenStore } from "@/stores/tokenStore";
 import { scheduleAuthUserRequest, transformToken } from "@/utils/token";
@@ -248,7 +304,13 @@ const { gameTokens, selectedTokenId } = storeToRefs(tokenStore);
 const { getArrayBuffer, storeArrayBuffer, deleteArrayBuffer } = useIndexedDB();
 
 const maxTokens = MAX_GAME_TOKENS;
-const atLimit = computed(() => gameTokens.value.length >= maxTokens);
+/* 分两段渲染：自己的角色（可编辑 / 导出 / 删除）与他人共享给我的（只能进控制台 / 移除）。
+   gameTokens 里两者的区别只有一个 `shared` 标记 —— 共享条目也必须在这个数组里，
+   否则控制台、玩法页、工具全部以 selectedToken 为唯一入口，共享角色等于看得见用不了。 */
+const ownTokens = computed(() => (gameTokens.value || []).filter((t) => !t.shared));
+const sharedTokens = computed(() => (gameTokens.value || []).filter((t) => t.shared));
+/* 配额只数自己的角色（共享的不占名额），与 store 里 addToken 的判定同一口径 */
+const atLimit = computed(() => ownTokens.value.length >= maxTokens);
 const refreshing = ref(new Set());
 
 /* ---------- 展示辅助 ---------- */
@@ -302,12 +364,72 @@ async function toggleConn(tk) {
   message.info(`正在连接 ${tk.name}…`);
 }
 
-/* 旧版 startTaskManagement：选中 + 进控制台。移动模式下 /admin/* 会被守卫踢回，改跳首页 */
-function enterConsole(tk) {
-  if (selectedTokenId.value !== tk.id) tokenStore.selectToken(tk.id);
-  message.success(`正在进入 ${tk.name} 的控制台`);
+/* 旧版 startTaskManagement：选中 + 进控制台。移动模式下 /admin/* 会被守卫踢回，改跳首页。
+ * ★ 共享角色在这里才真正「接入」：拉凭证 + bin 会把临时 id（shared:<gid>）换成真 id
+ *   （= MD5(bin)）。不接入就选不中它 —— selectToken / 消息处理全按 gameTokens 里的 id 找。 */
+async function enterConsole(tk) {
+  let target = tk;
+  if (target.shared && target.needCred) {
+    const res = await tokenStore.adoptSharedToken(target.id);
+    if (!res || !res.ok) {
+      message.error((res && res.message) || "无法接入该角色");
+      return;
+    }
+    target = res.token;
+  }
+  if (selectedTokenId.value !== target.id) tokenStore.selectToken(target.id);
+  message.success(`正在进入 ${target.name} 的控制台`);
   router.push("/mobile/home");
 }
+
+/* ============================================================
+ * 角色授权
+ * ============================================================ */
+const grantSheet = ref(false);
+const grantTk = ref(null);
+
+function openGrant(tk) {
+  grantTk.value = tk;
+  grantSheet.value = true;
+}
+
+function onGranted() {
+  message.success("授权已生效，可在「我的 → 角色授权」里随时撤销");
+}
+
+/* 共享角色的到期文案：与「角色授权」页保持同一套口径（分钟 / 小时 / 日期） */
+function shareExpireText(ts) {
+  if (!ts) return "有效期同步中";
+  const left = ts - Date.now();
+  if (left <= 0) return "已过期";
+  const h = Math.floor(left / 3600000);
+  if (h < 1) return `${Math.max(1, Math.floor(left / 60000))} 分钟后到期`;
+  if (h < 24) return `${h} 小时后到期`;
+  const d = new Date(ts);
+  return `${d.getMonth() + 1}-${d.getDate()} 到期`;
+}
+
+function removeShared(tk) {
+  confirmDanger(dialog, {
+    title: "移除共享角色",
+    content: `将从本机移除「${tk.name}」，需要时可以让对方重新授权给你。`,
+    positiveText: "确认移除",
+    onPositiveClick: async () => {
+      const res = await tokenStore.dropSharedToken(tk.id);
+      if (res && res.ok) message.success("已移除");
+      else message.error((res && res.message) || "移除失败，请重试");
+    },
+  });
+}
+
+/* 进页面同步一次「别人给我的角色」：新增的直接出现在下面那一段，
+   被撤销 / 已过期的由 store 里 refreshSharedGrants 就地删除（无残留）。 */
+onMounted(async () => {
+  const res = await tokenStore.refreshSharedGrants();
+  if (res && res.ok && res.added) {
+    message.info(`收到 ${res.added} 个共享角色`);
+  }
+});
 
 /* ============================================================
  * 单个账号的动作（更多操作 sheet）
@@ -322,6 +444,7 @@ function runAction(key) {
   actTk.value = null;
   if (key === "edit") openEdit(tk);
   else if (key === "copy") copyToken(tk);
+  else if (key === "grant") openGrant(tk);
   else if (key === "top") moveToTop(tk);
   else if (key === "bin") downloadTokenBin(tk);
   else if (key === "refresh") refreshOne(tk);
@@ -709,6 +832,16 @@ function saveEdit() {
   height: 17px;
 }
 
+/* ---------- 分节标题（他人共享给我） ----------
+ * 与卡内 .m-tk-meta 同档（11.5px / --m-text3），不加粗、不占卡片：
+ * 它只是把列表切成两段，不该看起来像一张卡的标题，否则会跟上面的账号卡抢层级。 */
+.m-tk-sec {
+  padding: 2px 2px 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--m-text3);
+}
+
 /* ---------- 账号卡 ---------- */
 .m-tk-card {
   display: flex;
@@ -865,35 +998,8 @@ function saveEdit() {
 }
 
 /* ---------- 编辑表单 ---------- */
-.m-tk-f {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-.m-tk-f > span {
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--m-text3);
-}
-.m-tk-f > span i {
-  color: var(--m-red);
-  font-style: normal;
-}
-.m-tk-ta {
-  resize: none;
-  line-height: 1.5;
-  font-family: inherit;
-}
-.m-tk-fbtns {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-.m-tk-fbtns .m-btn {
-  flex: 1;
-  width: auto;
-}
+/* 表单行（.m-tk-f / .m-tk-ta / .m-tk-fbtns）已提到 global `mobile.css`：
+   「授权给他人」抽屉用的是同一套外观，留在 scoped 里第二处就用不上了。 */
 </style>
 
 <script>
