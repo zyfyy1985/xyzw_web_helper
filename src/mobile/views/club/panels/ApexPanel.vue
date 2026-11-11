@@ -52,7 +52,7 @@
             <template v-if="nextStageItem.dateText && nextStageItem.dateText !== '待开启'">（{{ nextStageItem.dateText }}）</template>
           </template>
           <template v-else>该期当前没有进行中的阶段</template>
-          <template v-if="otherCurrentRounds.length"> · 同期进行中还有第 {{ otherCurrentRounds.join("、") }} 期</template>
+          <template v-if="otherCurrentRounds.length"> · 页签上还有第 {{ otherCurrentRounds.join("、") }} 期</template>
         </p>
       </template>
     </div>
@@ -175,7 +175,20 @@
         </div>
 
         <div class="m-card">
-          <div class="m-card-h"><span class="m-t">🎯 {{ currentBetTitle }}</span></div>
+          <div class="m-card-h">
+            <span class="m-t">🎯 {{ currentBetTitle }}</span>
+            <span class="m-acts">
+              <button
+                class="m-act m-act-i"
+                :disabled="!pendingClaims.length || pendingClaimKey !== '' || claimAllLoading || !isConnected"
+                :title="pendingClaims.length ? `领取 ${pendingClaims.length} 笔竞猜奖励` : '暂无待领取的竞猜奖励'"
+                @click="doClaimAll"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7"/><rect x="3" y="7" width="18" height="5" rx="1"/><path d="M12 7v14"/><path d="M12 7C12 7 10.5 3 8 3.5 5.5 4 6 7 8.5 7Z"/><path d="M12 7c0 0 1.5-4 4-3.5C18.5 4 18 7 15.5 7Z"/></svg>
+                领奖{{ pendingClaims.length ? ` (${pendingClaims.length})` : "" }}
+              </button>
+            </span>
+          </div>
           <div v-if="!dataReady || !loadedSources.bets || betsPending" class="m-skel"><i></i><i></i><i></i></div>
           <p v-else-if="currentBets.length === 0" class="m-hint" style="text-align: center; padding: 18px 0">当前期暂无淘汰赛竞猜阶段</p>
           <template v-else>
@@ -294,7 +307,7 @@
     <div class="m-sheet" :class="{ on: roundSheet }">
       <div class="m-grab"></div>
       <h4>选择期号</h4>
-      <div class="m-sh-sub">只列当前进行中的期号</div>
+      <div class="m-sh-sub">列出游戏里仍可查看的期号（含刚结束、奖励可领的期）</div>
       <template v-for="g in roundOptions" :key="g.key">
         <div class="m-csub" style="margin-top: 10px">{{ g.label }}</div>
         <div class="m-rlist">
@@ -306,6 +319,7 @@
             @click="pickRound(c.value)"
           >
             {{ c.label }}
+            <span v-if="c.ended" class="m-tag">已结束</span>
           </button>
         </div>
       </template>
@@ -367,6 +381,7 @@ import {
   canGuessRow,
   checkNowInSeason,
   checkSupportInTime,
+  collectClaimables,
   getAdvanceNum,
   getAvailableRounds,
   getCurrentRounds,
@@ -448,8 +463,8 @@ const voteRound = ref(null);
 const voteCnt = ref(VOTE_BASE_CNT);
 const voteMaxCnt = ref(0);
 const pendingGuessTeamId = ref("");
-const actionCooldown = reactive({ guess: 0, vote: 0 });
-const cooldownTimer = { guess: null, vote: null };
+const actionCooldown = reactive({ guess: 0, claim: 0, vote: 0 });
+const cooldownTimer = { guess: null, claim: null, vote: null };
 const fetchingStages = new Set();
 const refreshSeq = ref(0);
 let pollTimer = null;
@@ -532,10 +547,16 @@ const selectedRoundEnded = computed(
   () => selectedRoundPhase.value === ApexRoundPhase.Ended,
 );
 
-/* 只列「当前期」——已结束的期不再出现在选择器里。
- * 兜底：整季都结束（currentRounds 空）时退回全部可查看期，免得好不容易点开的抽屉是空的。 */
+/* 列「游戏里仍可查看的期」——与客户端 getAvailableRounds 一致：
+ * 末场刚打完但还没到该期 endDate 的期**仍要列出来**（奖励正是这时候去领的），
+ * 只是它会被标成「已结束」只读。只按末场 endTime 过滤会少列一期。
+ * 兜底：整季都翻篇（currentRounds 空）时退回全部已开期，免得抽屉是空的。 */
 const roundOptions = computed(() => {
-  const toOption = (r) => ({ label: `第${r}期`, value: r });
+  const toOption = (r) => ({
+    label: `第${r}期`,
+    value: r,
+    ended: getRoundPhase(r, season.value, serverNowMs.value) === ApexRoundPhase.Ended,
+  });
   const live = currentRounds.value;
   const rounds = live.length ? live : availableRounds.value;
   if (!rounds.length) return [];
@@ -543,7 +564,7 @@ const roundOptions = computed(() => {
     {
       type: "group",
       key: "current",
-      label: live.length ? `当前期（${live.length}）` : `可查看期号（${rounds.length}）`,
+      label: `可查看期号（${rounds.length}）`,
       children: rounds.map(toOption),
     },
   ];
@@ -1185,6 +1206,121 @@ const doGuess = async (teamId, row, grp) => {
   }
 };
 
+/* ---------- 领奖（apex_guessclaim） ---------- */
+
+/**
+ * 待领取的竞猜奖励：以 guessMap（我押过的场次/队伍）驱动，
+ * guessClaimMap 里该队为假值即可领；只限「页签上还在的期」——
+ * 已翻篇的期游戏里没有入口，领了会被服务端 200020 拒掉。
+ * 详见 apexRules.collectClaimables。
+ */
+const pendingClaims = computed(() =>
+  collectClaimables(roleInfo.value.guessClaimMap, roleInfo.value.guessMap, {
+    rounds: currentRounds.value,
+  }),
+);
+/** 并发防护：当前进行中的领奖项（`场次-队伍`，'' = 空闲） */
+const pendingClaimKey = ref("");
+/** 一键领奖进行中 */
+const claimAllLoading = ref(false);
+
+/**
+ * 领取一笔竞猜奖励。
+ * 参数与客户端 ApexGuessData.sendGuessClaim 一致：{ scheduleId, teamId }。
+ * 服务端只在「猜中且有奖」时往 guessClaimMap 写条目，所以这里不需要再判胜负。
+ */
+const doClaim = async (scheduleId, teamId, { immediate = true } = {}) => {
+  if (pendingClaimKey.value) {
+    message.warning("上一笔领奖请求处理中，请稍候");
+    return false;
+  }
+  if (actionCooldown.claim > 0) {
+    message.warning(`领奖被服务器限流，请 ${actionCooldown.claim} 秒后再试`);
+    return false;
+  }
+  const token = tokenStore.selectedToken;
+  if (!token) return false;
+
+  pendingClaimKey.value = `${scheduleId}-${teamId}`;
+  try {
+    await runApexAction(
+      ApexAction.CLAIM,
+      (queuedMs) =>
+        tokenStore.sendMessageWithPromise(
+          token.id,
+          "apex_guessclaim",
+          { scheduleId, teamId },
+          TIMEOUT_ACTION + queuedMs,
+        ),
+      { immediate, onWait: (ms) => startActionCooldown("claim", ms) },
+    );
+    actionCooldown.claim = 0;
+    return true;
+  } catch (e) {
+    if (isApexRateLimited(e)) {
+      startActionCooldown("claim", apexCooldownLeft(ApexAction.CLAIM));
+      message.warning(`服务器限流（200400），请 ${actionCooldown.claim} 秒后再试`);
+    } else {
+      message.error(`领奖请求失败: ${e.message}`);
+    }
+    return false;
+  } finally {
+    pendingClaimKey.value = "";
+  }
+};
+
+/**
+ * 一键领取全部待领奖励。
+ * 串行发送（第 2 笔起走排队 + 自适应冷却），被 200400 打回即停下。
+ */
+const doClaimAll = async () => {
+  const list = pendingClaims.value;
+  if (!list.length) {
+    message.info("没有待领取的竞猜奖励");
+    return;
+  }
+  claimAllLoading.value = true;
+  let ok = 0;
+  let fail = 0;
+  let stopped = false;
+  let consecutiveFail = 0;
+  try {
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      const done = await doClaim(item.scheduleId, item.teamId, {
+        immediate: i === 0,
+      });
+      if (done) {
+        ok += 1;
+        consecutiveFail = 0;
+      } else {
+        fail += 1;
+        consecutiveFail += 1;
+        if (actionCooldown.claim > 0) break; // 限流
+        /* 连输两笔就停：服务端不认这条请求时，剩下的只会继续白等超时 */
+        if (consecutiveFail >= 2) {
+          stopped = true;
+          break;
+        }
+      }
+    }
+  } finally {
+    claimAllLoading.value = false;
+  }
+  await fetchRoleInfo();
+  refreshCurrentBets();
+  const left = pendingClaims.value.length;
+  if (fail === 0 && left === 0) {
+    message.success(`已领取 ${ok} 笔竞猜奖励`);
+  } else if (stopped && ok === 0) {
+    message.warning("领奖请求服务端未响应，已停止（可稍后重试或到游戏内手动领取）");
+  } else {
+    message.warning(
+      `领取 ${ok} 笔，失败 ${fail} 笔，剩余 ${left} 笔未领（稍后再点一次即可续领）`,
+    );
+  }
+};
+
 const openVoteDialog = (teamId, name, round) => {
   voteTargetTeamId.value = teamId;
   voteTargetName.value = name || "该队伍";
@@ -1446,4 +1582,7 @@ export default { name: "MobileApexPanel" };
   background: var(--m-primary);
   border-color: transparent; color:var(--m-on-primary);
 }
+/* 「已结束」小标：只在期号列表里用，跟着按钮底色走 */
+.m-ritem .m-tag { margin-left: 6px; color: var(--m-text3); background: var(--m-band); }
+.m-ritem.on .m-tag { color: var(--m-on-primary); background: rgba(255, 255, 255, 0.22); }
 </style>

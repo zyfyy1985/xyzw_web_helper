@@ -18,21 +18,22 @@
  * 因此 task 会收到第二个参数 queuedMs：调用方应把它叠加到自己的超时上。
  */
 
-/** 限流动作类型：查询类（只读拉取）/ 竞猜（apex_guess）/ 助威（apex_vote） */
+/** 限流动作类型：查询类（只读拉取）/ 竞猜（apex_guess）/ 领奖（apex_guessclaim）/ 助威（apex_vote） */
 export const ApexAction = {
   READ: "read",
   GUESS: "guess",
+  CLAIM: "claim",
   VOTE: "vote",
 };
 
 /** 各动作间隔估计值下限（ms）：低于此值基本必被服务器打回 */
-const EST_FLOOR = { read: 300, guess: 1200, vote: 1200 };
+const EST_FLOOR = { read: 300, guess: 1200, claim: 1200, vote: 1200 };
 
 /** 间隔估计值上限（ms）：超过 15s 多为异常/全局限流，不再无脑拉长 */
 const EST_CEIL = 15000;
 
 /** 间隔估计初始值（ms）：对齐服务器实测冷却窗口（约 3~5s），收敛后会自动下调 */
-const EST_DEFAULT = { read: 600, guess: 3000, vote: 3000 };
+const EST_DEFAULT = { read: 600, guess: 3000, claim: 3000, vote: 3000 };
 
 /** 排期余量（ms）：避免贴边触发 200400 */
 const EST_MARGIN = 200;
@@ -51,6 +52,10 @@ const MIN_CMD_GAP_MS = 200;
 
 /** 单条命令遇到 200400 后的最大自动重试次数 */
 const MAX_RETRY = 3;
+
+/** 触发 onWait 的最小等待时长（ms）：低于此值只是两条命令间的最小间隔，
+    没必要上报（否则 200ms 的排期会被当成「被限流了」）。 */
+const WAIT_NOTIFY_MIN = 500;
 
 /** 估计值持久化键（跨会话沿用学习结果） */
 const STORE_KEY = "apex:estCooldown:v2";
@@ -100,9 +105,9 @@ const persistEst = () => {
 
 const est = loadEst();
 /** 各动作下一次允许发送的时刻（时间戳，ms） */
-const nextAllowedAt = { read: 0, guess: 0, vote: 0 };
+const nextAllowedAt = { read: 0, guess: 0, claim: 0, vote: 0 };
 /** 各动作连续成功次数 */
-const okStreak = { read: 0, guess: 0, vote: 0 };
+const okStreak = { read: 0, guess: 0, claim: 0, vote: 0 };
 /** 最近一条 apex 命令的发出时刻（全局最小间隔基准） */
 let lastSentAt = 0;
 
@@ -133,7 +138,7 @@ export const apexEstMs = (key) => est[key] ?? 0;
 
 /** 自适应限流概览文案（证明间隔是学习出来的，而非写死的常量） */
 export const apexEstText = () =>
-  `自适应限流：查询 ${(est.read / 1000).toFixed(1)}s · 竞猜 ${(est.guess / 1000).toFixed(1)}s · 助威 ${(est.vote / 1000).toFixed(1)}s`;
+  `自适应限流：查询 ${(est.read / 1000).toFixed(1)}s · 竞猜 ${(est.guess / 1000).toFixed(1)}s · 领奖 ${(est.claim / 1000).toFixed(1)}s · 助威 ${(est.vote / 1000).toFixed(1)}s`;
 
 /**
  * 按当前估计值排定下一次可发送时刻。
@@ -191,7 +196,9 @@ const serialize = (task) => {
  * @param {Function} task 实际发送函数，返回 Promise；入参为 queuedMs（排队耗时）
  * @param {object} [opt] 选项
  * @param {number} [opt.maxRetry] 200400 最大自动重试次数
- * @param {Function} [opt.onWait] 等待冷却时的回调，参数为等待毫秒数（用于 UI 倒计时 / 日志）
+ * @param {Function} [opt.onWait] 等待冷却时的回调，参数为 (等待毫秒数, 原因)；
+ *   原因为 "cooldown"（我们自己排的间隔）或 "rate-limit"（真被 200400 打回后主动退避）。
+ *   低于 WAIT_NOTIFY_MIN 的最小间隔不上报。
  * @param {boolean} [opt.immediate] 用户手动触发：跳过排队与冷却等待，直接发送
  * @returns {Promise<*>} task 的返回值
  * @throws {Error} 重试耗尽或遇到非限流错误时抛出原始异常
@@ -210,7 +217,9 @@ export const runApexAction = async (
       if (!immediate) {
         const wait = apexCooldownLeft(key);
         if (wait > 0) {
-          onWait?.(wait);
+          /* 只上报「值得解释」的等待：两条命令之间的 200ms 最小间隔属于常态，
+             上报出来只会被误读成「又被限流了」。 */
+          if (wait >= WAIT_NOTIFY_MIN) onWait?.(wait, "cooldown");
           await sleep(wait);
         }
       }
@@ -236,7 +245,7 @@ export const runApexAction = async (
         // 手动模式下退避一段时间再试，避免连续硬撞服务器冷却窗口
         if (immediate) {
           const backoff = Math.min(est[key] + EST_MARGIN, EST_CEIL);
-          onWait?.(backoff);
+          onWait?.(backoff, "rate-limit");
           await sleep(backoff);
         }
       }

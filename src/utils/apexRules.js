@@ -246,6 +246,115 @@ export function getScheduleConf(scheduleId) {
  */
 export const getSeasonConf = (season) => apexSeasonConf[season] || null;
 
+// ==================== 竞猜领奖 ====================
+
+/**
+ * 在 claimMap 里找出该队伍 id 对应的键。
+ *
+ * 服务端两个字段的队伍 id 表示不一定一致：guessClaimMap 的键见 `A10000369`，
+ * 而 guessMap 里可能存纯数字 `10000369`。这里是两边对齐的唯一入口：
+ * 先精确匹配，再试「加/去 A 前缀」，命中哪个就用哪个键回传协议
+ * （服务端用什么键标识这支队伍，就用什么键去领）。
+ * @param {Record<string, boolean>} map 该场次的 claimMap
+ * @param {string} teamId guessMap 里的原始队伍 id
+ * @returns {string|null} 命中时返回 map 里的键，否则 null
+ */
+const matchClaimKey = (map, teamId) => {
+  if (Object.prototype.hasOwnProperty.call(map, teamId)) return teamId;
+  const alt = teamId.startsWith("A") ? teamId.slice(1) : `A${teamId}`;
+  if (Object.prototype.hasOwnProperty.call(map, alt)) return alt;
+  return null;
+};
+
+/**
+ * 取出「我在这场里押过的队伍 id 列表」。
+ *
+ * 服务端下发的是 repeated string（数组）；这里额外容忍对象形态（键即队伍 id），
+ * 免得字段解码成 map 时整个场次被当成「没押」直接跳过。
+ * @param {unknown} v guessMap 里某场次的值
+ * @returns {Array<string|number>}
+ */
+const listBetIds = (v) => {
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === "object") return Object.keys(v);
+  return [];
+};
+
+/**
+ * 解析「待领取」的竞猜奖励。
+ *
+ * 判定严格对齐客户端 ApexGuessDialog 的领奖按钮（明文包里 `_renderVsItem`）：
+ *   `!(c = guessClaimMap.get(sid)) || (c.get(s) != null && c.get(s)) ? 隐藏 : 显示`
+ * 也就是：
+ *   · guessClaimMap 里没有该场次       → 隐藏（没结算 / 已清场），不领
+ *   · 该场次里我押的那支队是**真值**    → 隐藏（已领），不领
+ *   · 该场次里我押的那支队是**假值/空** → 显示（可领），要领
+ *
+ * ⚠️ 关键踩坑：**「服务端没给这支队伍写状态」不等于「可领」**。
+ *   一场可以押多支队（配置里的 advanceNum），服务端只给「中了且待发奖」的队写条目，
+ *   没中的队压根没有键。早期把「键缺失」也算作待领，结果 21 场里所有输掉的押注
+ *   全被算进来（一次 69 笔），再对着这些无效请求打 `apex_guessclaim` ——
+ *   服务端对无效领奖请求不回包，表现出来就是「请求超时」。
+ *   现在只认「键存在且为假值」，条数与游戏里领奖按钮完全一致。
+ *
+ * ⚠️ teamId 不是数字，而是 `A10000369` 这种带前缀的字符串（服务端真实下发形态），
+ *   只做字符串对齐，绝不 Number 化（会变 NaN 被丢光）；只有 scheduleId 是纯数字。
+ *
+ * ⚠️ 只能领「页签上还在的期」的奖励。已翻篇的期（过了末场 endDate）在游戏里连
+ *   入口都没有，硬发 `apex_guessclaim` 会被服务端用 200020「出了点小问题」拒掉。
+ *   传了 rounds（即使是空数组）就只保留属于这些期的场次；完全不传才不过滤（供纯解析 / 自测用）。
+ *
+ * @param {Record<string, Record<string, boolean>>|null|undefined} claimMap guessClaimMap
+ * @param {Record<string, Array<string|number>>|null|undefined} guessMap guessMap（我押过的场次 → 队伍 id）
+ * @param {object} [opt] 选项
+ * @param {number[]} [opt.rounds] 允许领奖的期号（一般传 getCurrentRounds 的结果）
+ * @returns {Array<{scheduleId: number, teamId: string}>} 待领列表，按场次升序
+ */
+export function collectClaimables(claimMap, guessMap, { rounds } = {}) {
+  const list = [];
+  if (!claimMap || typeof claimMap !== "object") return list;
+  if (!guessMap || typeof guessMap !== "object") return list;
+  const allowRounds = Array.isArray(rounds) ? new Set(rounds) : null;
+
+  for (const [sid, rawIds] of Object.entries(guessMap)) {
+    const scheduleId = Number(sid);
+    if (!Number.isFinite(scheduleId) || scheduleId <= 0) continue;
+    /* 只在「页签上还在的期」里领；配置里查不到的场次同样跳过（无从判断，不冒险） */
+    if (allowRounds) {
+      const conf = getScheduleConf(scheduleId);
+      if (!conf || !allowRounds.has(conf.round)) continue;
+    }
+    /* 客户端同款：整场没有下发 ⇒ 不显示领奖按钮 */
+    const claimedMap = claimMap[sid];
+    if (!claimedMap || typeof claimedMap !== "object") continue;
+
+    for (const rawId of listBetIds(rawIds)) {
+      // teamId 形如 "A10000369"：只做字符串归一，绝不 Number（会变 NaN 被丢光）
+      const raw = rawId === null || rawId === undefined ? "" : String(rawId).trim();
+      if (!raw || raw.startsWith("_")) continue;
+      // 服务端认哪种写法（带不带 A 前缀）就用哪种回传协议
+      const key = matchClaimKey(claimedMap, raw);
+      // 没有该键 ⇒ 这场没中 / 已清理，领了也是空请求
+      if (!key) continue;
+      if (claimedMap[key]) continue; // 真值 = 已领
+      list.push({ scheduleId, teamId: key });
+    }
+  }
+  return list.sort(
+    (a, b) => a.scheduleId - b.scheduleId || a.teamId.localeCompare(b.teamId),
+  );
+}
+
+/**
+ * 是否存在待领取的竞猜奖励（详情页 / 批量任务的状态提示用）。
+ * @param {Record<string, Record<string, boolean>>|null|undefined} claimMap guessClaimMap
+ * @param {Record<string, Array<string|number>>|null|undefined} guessMap guessMap
+ * @param {object} [opt] 同 collectClaimables（可传 { rounds }）
+ * @returns {boolean} 有待领时为 true
+ */
+export const hasClaimable = (claimMap, guessMap, opt) =>
+  collectClaimables(claimMap, guessMap, opt).length > 0;
+
 // ==================== 核心判定 ====================
 
 /**
@@ -589,27 +698,62 @@ export function getAvailableRounds(season, nowMs) {
   return result;
 }
 /**
- * 当前进行中的期（已开始且末场未结束），升序。
+ * 该期还留在「期号页签」里的截止时刻（末场 endDate 当日 0 点）。
+ *
+ * 客户端 ApexScheduleData.getAvailableRounds 判定一期是否还列在页签上，用的不是
+ * 末场 endTime，而是**末场的 endDate（行政截止日）**：
+ *
+ *   l = zero(首场 serverDate) + signStartTime;   // 该期报名开放时刻
+ *   r = zero(末场 endDate);                      // 该期彻底翻篇时刻
+ *   if (!(r < now)) { if (now < l) break; set.add(round) }
+ *
+ * 因此一期末场打完（决赛 22:15）之后，页签里仍会保留它约 19 天，用于领奖 / 回看。
+ * 这正是「游戏里同时能看到 3 期、我们只列出 2 期」的原因：只按 endTime 判 ended
+ * 会把这期末场刚打完的那一期直接踢出列表。
+ *
+ * @param {number} round
  * @param {number} season
- * @param {number} nowMs
- * @returns {number[]} 进行中的期号列表（升序）
+ * @returns {number} 无法解析时返回 NaN
  */
-export function getCurrentRounds(season, nowMs) {
-  return getAvailableRounds(season, nowMs).filter(
-    (round) => !isRoundEnded(round, season, nowMs),
-  );
+export function getRoundVisibleEndTime(round, season) {
+  const list = getRoundSchedules(round, season);
+  let max = -Infinity;
+  for (const conf of list) {
+    const zero = getDateZeroTime(conf.endDate);
+    if (Number.isFinite(zero)) max = Math.max(max, zero);
+  }
+  if (Number.isFinite(max)) return max;
+  // 兜底：endDate 全部不可解析时退回末场结束时刻
+  return getRoundEndTime(round, season);
 }
 
 /**
- * 历史期（已开过且末场已结束），升序。
+ * 期号页签上仍可见的期（等价客户端 getAvailableRounds 的可用期集合），升序。
+ *
+ * ⚠️ 与 isRoundEnded 的区别：末场打完但未到 endDate 的期**仍在这个列表里**
+ * （例如决赛昨晚结束、奖励还没领的第 6 期），只是它的 phase 已经是 Ended，
+ * 界面上按「历史期 · 已结束」只读展示。要用「是否还能操作」时请另判 phase。
+ *
  * @param {number} season
  * @param {number} nowMs
- * @returns {number[]} 已结束的历史期号列表（升序）
+ * @returns {number[]} 页签可见的期号列表（升序）
+ */
+export function getCurrentRounds(season, nowMs) {
+  return getAvailableRounds(season, nowMs).filter((round) => {
+    const end = getRoundVisibleEndTime(round, season);
+    return !Number.isFinite(end) || nowMs <= end;
+  });
+}
+
+/**
+ * 更早的期（已过 endDate，不再出现在期号页签里），升序。
+ * @param {number} season
+ * @param {number} nowMs
+ * @returns {number[]} 更早期号列表（升序）
  */
 export function getHistoryRounds(season, nowMs) {
-  return getAvailableRounds(season, nowMs).filter((round) =>
-    isRoundEnded(round, season, nowMs),
-  );
+  const live = new Set(getCurrentRounds(season, nowMs));
+  return getAvailableRounds(season, nowMs).filter((round) => !live.has(round));
 }
 
 /** 该期是否处于报名窗口内（等价客户端 checkDuringSignUp） */

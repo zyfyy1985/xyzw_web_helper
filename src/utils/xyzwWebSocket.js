@@ -419,6 +419,11 @@ export function registerDefaultCommands(reg) {
     .register("apex_getroleinfo")
     .register("apex_getguesslist", { scheduleId: 0, idx: 0 })
     .register("apex_guess", { teamId: "" })
+    /* 领奖：客户端 ApexGuessData.sendGuessClaim → ApexService.guessClaim({scheduleId, teamId})
+       （命令枚举 B.Apex_GuessClaim = "apex_guessclaim"）。
+       ★ 漏注册不会报错、也不会发包 —— registry.build 抛 Unknown cmd 后请求直接超时，
+         所以这里必须和 claim 代码一起出现。 */
+    .register("apex_guessclaim", { scheduleId: 0, teamId: "" })
     .register("apex_get64oppomap", { scheduleId: 0, groupId: 0 })
     // —— APEX 逐鹿盐山：按需注册，仅登记组件实际调用的命令 ——
     .register("apex_getvotelist")
@@ -1035,6 +1040,14 @@ export class XyzwWebSocketClient {
         if (task.sleep) await sleep(task.sleep);
       } catch (error) {
         wsLogger.error(`发送消息失败: ${task.cmd}`, error);
+        /* 报文没构造出来（最典型：命令没在 registry 注册 → Unknown cmd）时，
+           等待方原本只能干等满超时，还误报成「服务端没响应」。
+           这里直接把错误回连给 promise，日志里立刻能看出是「发送失败」。 */
+        const pending = this.promises[task.seq];
+        if (pending) {
+          delete this.promises[task.seq];
+          pending.reject(new Error(`发送失败: ${error.message}`));
+        }
       }
     }, 50);
   }
@@ -1091,6 +1104,9 @@ export class XyzwWebSocketClient {
       apex_getroleinforesp: "apex_getroleinfo",
       apex_getguesslistresp: "apex_getguesslist",
       apex_guessresp: "apex_guess",
+      // 领奖类响应不带 resp 序号字段，只能靠命令名回连（漏一条就表现为「请求超时」）
+      apex_guessclaimresp: "apex_guessclaim",
+      apex_taskclaimresp: "apex_taskclaim",
       apex_get64oppomapresp: "apex_get64oppomap",
       apex_getvotelistresp: "apex_getvotelist",
       apex_voteresp: "apex_vote",

@@ -1,16 +1,22 @@
 /**
  * 逐鹿盐山竞猜任务
- * 包含: 一键批量竞猜（自动选助威最高队伍）
+ * 包含: 一键批量竞猜（自动选助威最高队伍）/ 一键批量领奖（竞猜胜利后的奖励）
  *
  * 开放判定复用 utils/apexRules.js（1:1 移植客户端规则）：
  *   · 仅淘汰赛阶段（stage 4~10）且状态为 Unlocked / Locked 的场次可押；
  *   · 每阶段可押队伍数上限 = 该阶段 advanceNum（季军赛恒为 1）；
  *   · 分页 idx = 已加载条数，以响应 last 终止。
+ *
+ * 领奖判定同样走 apexRules.collectClaimables（对应的客户端实现是 ApexGuessDialog
+ * 的 m_btnClaim 判定 + ApexGuessRedDotData 的红点判定）：服务端只给「中了且待发奖」
+ * 的队写 guessClaimMap 条目，只有条目存在且为假值才算待领；没押中的队没有键，
+ * 不当成待领（否则一场多押时会把所有输掉的押注都算进来）。
  */
 
 import {
   ApexScheduleStatus,
   calibrateServerTime,
+  collectClaimables,
   getAdvanceNum,
   getCurrentRounds,
   getCurrentSeason,
@@ -43,6 +49,13 @@ const READ_MAX_RETRY = 1;
  * @returns {Promise<*>} 命令响应
  */
 const sendApex = (action, task, maxRetry) => runApexAction(action, task, { maxRetry });
+
+/**
+ * 等待时长文案（日志用）：保留一位小数，避免 200ms 被写成「1s」。
+ * @param {number} ms 毫秒
+ * @returns {string} 形如 "1.2s"
+ */
+const waitText = (ms) => `${(ms / 1000).toFixed(1)}s`;
 
 /**
  * 解析当前赛季「竞猜开放中」的阶段页签。
@@ -251,11 +264,14 @@ export function createTasksApex(deps) {
                   ),
                 {
                   // 等待服务器冷却时给出可见反馈，避免界面像卡死
-                  onWait: (ms) =>
+                  onWait: (ms, reason) =>
                     addLog({
                       time: new Date().toLocaleTimeString(),
-                      message: `${token.name} 竞猜遇到服务器限流，等待 ${Math.ceil(ms / 1000)}s 后重试`,
-                      type: "warning",
+                      message:
+                        reason === "rate-limit"
+                          ? `${token.name} 竞猜被服务器限流，退避 ${waitText(ms)} 后重试`
+                          : `${token.name} 竞猜按发送间隔等待 ${waitText(ms)}`,
+                      type: reason === "rate-limit" ? "warning" : "info",
                     }),
                 },
               );
@@ -326,7 +342,220 @@ export function createTasksApex(deps) {
     message.success("批量逐鹿盐山竞猜结束");
   };
 
+  /**
+   * 一键批量领取逐鹿盐山竞猜奖励
+   *
+   * 判定与客户端 ApexGuessDialog 的领奖按钮一致：以 guessMap（我押过的场次/队伍）
+   * 驱动，猜中且有奖的队伍在 guessClaimMap 里会有一条状态，值为假才表示待领；
+   * 没有条目的队伍是「没押中/已清理」，不发起请求（服务端对这类请求不回包）。
+   */
+  const batchApexClaim = async () => {
+    if (selectedTokens.value.length === 0) return;
+
+    isRunning.value = true;
+    shouldStop.value = false;
+
+    selectedTokens.value.forEach((id) => {
+      tokenStatus.value[id] = "waiting";
+    });
+
+    /** 拉一次角色信息，返回原始角色数据、待领列表与「已翻篇期被跳过的笔数」 */
+    const fetchPending = async (tokenId) => {
+      const roleResp = await sendApex(
+        ApexAction.READ,
+        (queuedMs) =>
+          tokenStore.sendMessageWithPromise(
+            tokenId,
+            "apex_getroleinfo",
+            {},
+            TIMEOUT_MS + queuedMs,
+          ),
+        READ_MAX_RETRY,
+      );
+      const apexInfo = roleResp?.apexRoleInfo;
+      /* 只有页签上还看得见的期能领：已翻篇的期游戏里没有入口，
+         硬发 apex_guessclaim 会被服务端用 200020 拒掉。 */
+      const nowMs = calibrateServerTime(
+        Date.now(),
+        apexInfo?.resetTime?.day,
+      );
+      const season = getCurrentSeason(nowMs);
+      const rounds = season > 0 ? getCurrentRounds(season, nowMs) : [];
+      const all = collectClaimables(apexInfo?.guessClaimMap, apexInfo?.guessMap);
+      const list = collectClaimables(apexInfo?.guessClaimMap, apexInfo?.guessMap, {
+        rounds,
+      });
+      return { apexInfo, list, skipped: all.length - list.length };
+    };
+
+    const taskPromises = selectedTokens.value.map(async (tokenId) => {
+      if (shouldStop.value) return;
+
+      tokenStatus.value[tokenId] = "running";
+      const token = tokens.value.find((t) => t.id === tokenId);
+
+      try {
+        await ensureConnection(tokenId);
+
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `=== 开始逐鹿盐山领奖: ${token.name} ===`,
+          type: "info",
+        });
+
+        const {
+          apexInfo,
+          list: pending,
+          skipped,
+        } = await fetchPending(tokenId);
+        if (!apexInfo) {
+          tokenStatus.value[tokenId] = "failed";
+          addLog({
+            time: new Date().toLocaleTimeString(),
+            message: `${token.name} 未取到角色信息（apex_getroleinfo 无 apexRoleInfo），无法判断待领奖`,
+            type: "error",
+          });
+          return;
+        }
+        /* 已翻篇的期（过了末场 endDate）游戏里连入口都没有，领不了，单独说明原因 */
+        const skippedText = skipped
+          ? `（另有 ${skipped} 笔属于已翻篇的期，游戏内已无法领取，已跳过）`
+          : "";
+        if (pending.length === 0) {
+          addLog({
+            time: new Date().toLocaleTimeString(),
+            message: `${token.name} 没有可领取的竞猜奖励${skippedText}`,
+            type: "info",
+          });
+          tokenStatus.value[tokenId] = "completed";
+          return;
+        }
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `${token.name} 待领取 ${pending.length} 笔竞猜奖励${skippedText}`,
+          type: "info",
+        });
+
+        let successCount = 0;
+        let failCount = 0;
+        /** 连续被 200400 打回后置位：中止该账号剩余领奖，避免持续轰炸服务器 */
+        let abortedByRateLimit = false;
+        /** 连续失败计数：服务端不认这条命令时没必要把几十笔全问一遍 */
+        let consecutiveFail = 0;
+
+        let abortReason = "";
+
+        for (const item of pending) {
+          if (shouldStop.value) break;
+          if (abortedByRateLimit || abortReason) break;
+
+          const confLabel = `场次 ${item.scheduleId} 队伍 ${item.teamId}`;
+          try {
+            await runApexAction(
+              ApexAction.CLAIM,
+              (queuedMs) =>
+                tokenStore.sendMessageWithPromise(
+                  tokenId,
+                  "apex_guessclaim",
+                  { scheduleId: item.scheduleId, teamId: item.teamId },
+                  TIMEOUT_MS + queuedMs,
+                ),
+              {
+                onWait: (ms, reason) =>
+                  addLog({
+                    time: new Date().toLocaleTimeString(),
+                    message:
+                      reason === "rate-limit"
+                        ? `${token.name} 领奖被服务器限流，退避 ${waitText(ms)} 后重试`
+                        : `${token.name} 领奖按发送间隔等待 ${waitText(ms)}`,
+                    type: reason === "rate-limit" ? "warning" : "info",
+                  }),
+              },
+            );
+            successCount++;
+            addLog({
+              time: new Date().toLocaleTimeString(),
+              message: `${token.name} ${confLabel} 领奖成功 ✓`,
+              type: "success",
+            });
+          } catch (err) {
+            failCount++;
+            consecutiveFail += 1;
+            addLog({
+              time: new Date().toLocaleTimeString(),
+              message: `${token.name} ${confLabel} 领奖失败: ${err.message}`,
+              type: "error",
+            });
+            if (isApexRateLimited(err)) {
+              abortedByRateLimit = true;
+              addLog({
+                time: new Date().toLocaleTimeString(),
+                message: `${token.name} 连续被服务器限流（200400），约 ${Math.ceil(apexCooldownLeft(ApexAction.CLAIM) / 1000)}s 后可继续，本次中止剩余领奖`,
+                type: "warning",
+              });
+            } else if (consecutiveFail >= 2) {
+              abortReason = /超时/.test(err.message)
+                ? "服务端没有响应 apex_guessclaim（请求超时）"
+                : `连续领取失败（${err.message}）`;
+            }
+          }
+        }
+
+        if (abortReason) {
+          addLog({
+            time: new Date().toLocaleTimeString(),
+            message: `${token.name} 已停止剩余领奖：${abortReason}。若游戏内仍显示可领，请把本段日志发给开发者`,
+            type: "warning",
+          });
+        }
+
+        // 复验：以服务端下发为准，避免「本地以为领完了」的假成功
+        let leftText = "";
+        if (abortReason) {
+          leftText = "，剩余项未处理（见上方原因）";
+        } else {
+          try {
+            const { list: left } = await fetchPending(tokenId);
+            leftText = left.length ? `，仍有 ${left.length} 笔待领` : "，已全部领完";
+          } catch {
+            leftText = "，复验失败（不影响已领取结果）";
+          }
+        }
+
+        tokenStatus.value[tokenId] = "completed";
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `=== ${token.name} 领奖完成: 成功${successCount} 失败${failCount}${leftText} ===`,
+          type: "success",
+        });
+      } catch (error) {
+        console.error(error);
+        tokenStatus.value[tokenId] = "failed";
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `${token.name} 逐鹿盐山领奖失败: ${error.message}`,
+          type: "error",
+        });
+      } finally {
+        tokenStore.closeWebSocketConnection(tokenId);
+        releaseConnectionSlot();
+        addLog({
+          time: new Date().toLocaleTimeString(),
+          message: `${token.name} 连接已关闭  (队列: ${connectionQueue.active}/${batchSettings.maxActive})`,
+          type: "info",
+        });
+      }
+    });
+
+    await Promise.all(taskPromises);
+
+    isRunning.value = false;
+    currentRunningTokenId.value = null;
+    message.success("批量逐鹿盐山领奖结束");
+  };
+
   return {
     batchApexGuess,
+    batchApexClaim,
   };
 }

@@ -21,6 +21,16 @@
         </n-tag>
       </div>
       <div class="right">
+        <n-button
+          size="small"
+          type="primary"
+          :loading="claimAllLoading"
+          :disabled="!isConnected || pendingClaims.length === 0 || pendingClaimKey !== ''"
+          :title="pendingClaims.length ? '领取全部竞猜奖励' : '暂无待领取的竞猜奖励'"
+          @click="doClaimAll"
+        >
+          一键领奖{{ pendingClaims.length ? ` (${pendingClaims.length})` : "" }}
+        </n-button>
         <n-button size="small" :loading="loading" :disabled="!isConnected" @click="fetchAllData">
           <template #icon><n-icon><RefreshOutline /></n-icon></template>
           刷新数据
@@ -58,7 +68,7 @@
         </template>
         <template v-else>该期当前没有进行中的阶段</template>
         <template v-if="otherCurrentRounds.length">
-          · 同期进行中还有第 {{ otherCurrentRounds.join("、") }} 期
+          · 页签上还有第 {{ otherCurrentRounds.join("、") }} 期
         </template>
       </template>
     </n-alert>
@@ -519,6 +529,7 @@ import {
   canGuessNow,
   checkNowInSeason,
   checkSupportInTime,
+  collectClaimables,
   getAdvanceNum,
   getAvailableRounds,
   getCurrentRounds,
@@ -681,13 +692,13 @@ const supportItemCnt = computed(() => {
 /** 当前选中的期号 */
 const selectedRound = ref(null);
 
-/** 当前期（已开始且末场未结束） */
+/** 页签上可见的期（末场打完但未到 endDate 的期仍在列表里，只是标为已结束） */
 const currentRounds = computed(() => {
   void clockTick.value;
   return season.value > 0 ? getCurrentRounds(season.value, serverNowMs.value) : [];
 });
 
-/** 历史期（末场已结束） */
+/** 更早的期（已过 endDate，不再出现在页签里） */
 const historyRounds = computed(() => {
   void clockTick.value;
   return season.value > 0 ? getHistoryRounds(season.value, serverNowMs.value) : [];
@@ -705,15 +716,21 @@ const selectedRoundEnded = computed(
   () => selectedRoundPhase.value === ApexRoundPhase.Ended,
 );
 
-/** 期号下拉：按「当前期 / 历史期」分组（全部由配置推导，无硬编码） */
+/** 期号下拉：按「可查看期号 / 更早的期」分组（全部由配置推导，无硬编码） */
 const roundOptions = computed(() => {
-  const toOption = (r) => ({ label: `第${r}期`, value: r });
+  const toOption = (r) => ({
+    label:
+      getRoundPhase(r, season.value, serverNowMs.value) === ApexRoundPhase.Ended
+        ? `第${r}期（已结束）`
+        : `第${r}期`,
+    value: r,
+  });
   const groups = [];
   if (currentRounds.value.length) {
     groups.push({
       type: "group",
       key: "current",
-      label: `当前期（${currentRounds.value.length}）`,
+      label: `可查看期号（${currentRounds.value.length}）`,
       children: currentRounds.value.map(toOption),
     });
   }
@@ -721,7 +738,7 @@ const roundOptions = computed(() => {
     groups.push({
       type: "group",
       key: "history",
-      label: `历史期 · 已结束（${historyRounds.value.length}）`,
+      label: `更早的期（${historyRounds.value.length}）`,
       children: historyRounds.value.map(toOption),
     });
   }
@@ -908,9 +925,9 @@ const voteMaxCnt = ref(0);
 
 /** 并发防护：当前进行中的押注队伍 ID（'' = 空闲） */
 const pendingGuessTeamId = ref("");
-/** 竞猜 / 助威的服务端冷却倒计时（秒，0 = 可操作） */
-const actionCooldown = reactive({ guess: 0, vote: 0 });
-const cooldownTimer = { guess: null, vote: null };
+/** 竞猜 / 领奖 / 助威的服务端冷却倒计时（秒，0 = 可操作） */
+const actionCooldown = reactive({ guess: 0, claim: 0, vote: 0 });
+const cooldownTimer = { guess: null, claim: null, vote: null };
 /** 正在分页中的阶段 scheduleId，避免轮询重建分组时重复拉取 */
 const fetchingStages = new Set();
 /** 数据版本号：防止乱序响应覆盖新数据 */
@@ -1623,6 +1640,157 @@ const doGuess = async (teamId, row, grp) => {
   }
 };
 
+// ==================== 领奖 ====================
+
+/**
+ * 待领取的竞猜奖励。
+ *
+ * 判定与客户端 ApexGuessDialog 的领奖按钮一致：以 guessMap（我押过的场次/队伍）
+ * 驱动，只有「该队在本场有状态且值为假」才可领（没押中的队没有键，不算待领）。
+ * 详见 apexRules.collectClaimables。
+ */
+const pendingClaims = computed(() =>
+  collectClaimables(roleInfo.value.guessClaimMap, roleInfo.value.guessMap, {
+    rounds: currentRounds.value,
+  }),
+);
+
+/** 已领 / 可领 / 已过期状态，供表格按最新 roleInfo 动态渲染（避免重拉历史记录） */
+const claimStateOf = (row) => {
+  const teamMap = roleInfo.value.guessClaimMap?.[row.scheduleId];
+  if (!teamMap) return "none";
+  const claimed = teamMap[row.myTeamId];
+  if (claimed === true) return "claimed";
+  if (!Object.prototype.hasOwnProperty.call(teamMap, row.myTeamId)) {
+    // 键不存在说明这队没中，服务端也不会给奖
+    return "none";
+  }
+  /* 已翻篇的期（不在页签列表里）游戏内没有领奖入口，服务端会回 200020，标成已过期 */
+  const conf = getScheduleConf(row.scheduleId);
+  if (!conf || !currentRounds.value.includes(conf.round)) return "expired";
+  return "claimable";
+};
+
+/** 并发防护：当前进行中的领奖项（`场次-队伍`，'' = 空闲） */
+const pendingClaimKey = ref("");
+/** 一键领奖进行中（按钮 loading） */
+const claimAllLoading = ref(false);
+
+/**
+ * 领取一笔竞猜奖励（真实接口 apex_guessclaim）。
+ * 参数与客户端 ApexGuessData.sendGuessClaim 一致：{ scheduleId, teamId }。
+ * @param {number} scheduleId 场次 id
+ * @param {number} teamId 我押的队伍 id
+ * @param {object} [opt] 选项
+ * @param {boolean} [opt.immediate] 用户单击立即发；批量时走排队等冷却
+ * @returns {Promise<boolean>} 是否领取成功
+ */
+const doClaim = async (scheduleId, teamId, { immediate = true } = {}) => {
+  if (pendingClaimKey.value) {
+    message.warning("上一笔领奖请求处理中，请稍候");
+    return false;
+  }
+  if (actionCooldown.claim > 0) {
+    message.warning(`领奖被服务器限流，请 ${actionCooldown.claim} 秒后再试`);
+    return false;
+  }
+  const token = tokenStore.selectedToken;
+  if (!token) return false;
+
+  pendingClaimKey.value = `${scheduleId}-${teamId}`;
+  try {
+    await runApexAction(
+      ApexAction.CLAIM,
+      (queuedMs) =>
+        tokenStore.sendMessageWithPromise(
+          token.id,
+          "apex_guessclaim",
+          { scheduleId, teamId },
+          TIMEOUT_ACTION + queuedMs,
+        ),
+      { immediate, onWait: (ms) => startActionCooldown("claim", ms) },
+    );
+    actionCooldown.claim = 0;
+    return true;
+  } catch (e) {
+    if (isApexRateLimited(e)) {
+      startActionCooldown("claim", apexCooldownLeft(ApexAction.CLAIM));
+      message.warning(`服务器限流（200400），请 ${actionCooldown.claim} 秒后再试`);
+    } else {
+      message.error(`领奖请求失败: ${e.message}`);
+    }
+    return false;
+  } finally {
+    pendingClaimKey.value = "";
+  }
+};
+
+/** 领取后刷新：角色信息（含 guessClaimMap）与当前竞猜分组 */
+const refreshAfterClaim = async () => {
+  await fetchRoleInfo();
+  refreshCurrentBets();
+};
+
+/** 单笔领取（表格按钮） */
+const claimOne = async (row) => {
+  const ok = await doClaim(row.scheduleId, row.myTeamId);
+  if (ok) {
+    message.success("奖励已领取");
+    await refreshAfterClaim();
+  }
+};
+
+/**
+ * 一键领取全部待领奖励。
+ * 串行发送（第 2 笔起走排队 + 自适应冷却），被 200400 打回即停下，避免硬撞服务器。
+ */
+const doClaimAll = async () => {
+  const list = pendingClaims.value;
+  if (!list.length) {
+    message.info("没有待领取的竞猜奖励");
+    return;
+  }
+  claimAllLoading.value = true;
+  let ok = 0;
+  let fail = 0;
+  let stopped = false;
+  let consecutiveFail = 0;
+  try {
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
+      const done = await doClaim(item.scheduleId, item.teamId, {
+        immediate: i === 0,
+      });
+      if (done) {
+        ok += 1;
+        consecutiveFail = 0;
+      } else {
+        fail += 1;
+        consecutiveFail += 1;
+        if (actionCooldown.claim > 0) break; // 限流
+        /* 连输两笔就停：服务端不认这条请求时，剩下的只会继续白等超时 */
+        if (consecutiveFail >= 2) {
+          stopped = true;
+          break;
+        }
+      }
+    }
+  } finally {
+    claimAllLoading.value = false;
+  }
+  await refreshAfterClaim();
+  const left = pendingClaims.value.length;
+  if (fail === 0 && left === 0) {
+    message.success(`已领取 ${ok} 笔竞猜奖励`);
+  } else if (stopped && ok === 0) {
+    message.warning("领奖请求服务端未响应，已停止（可稍后重试或到游戏内手动领取）");
+  } else {
+    message.warning(
+      `领取 ${ok} 笔，失败 ${fail} 笔，剩余 ${left} 笔未领（稍后再点一次即可续领）`,
+    );
+  }
+};
+
 /** 打开助威数量选择对话框 */
 const openVoteDialog = (teamId, name, round) => {
   voteTargetTeamId.value = teamId;
@@ -1825,9 +1993,39 @@ const betColumns = [
   {
     title: "结算",
     key: "claimed",
-    width: 70,
+    width: 80,
+    render: (row) => {
+      const st = claimStateOf(row);
+      if (st === "claimed") {
+        return h(NTag, { size: "small", type: "success", round: true }, () => "已领");
+      }
+      if (st === "claimable") {
+        return h(NTag, { size: "small", type: "warning", round: true }, () => "待领取");
+      }
+      if (st === "expired") {
+        return h(NTag, { size: "small", round: true }, () => "已过期");
+      }
+      return h(NTag, { size: "small", round: true }, () => (row.myWin ? "—" : "未中奖"));
+    },
+  },
+  {
+    title: "操作",
+    key: "claim",
+    width: 80,
     render: (row) =>
-      h(NTag, { size: "small", type: row.claimed ? "success" : "warning", round: true }, () => (row.claimed ? "已领" : "未领")),
+      claimStateOf(row) === "claimable"
+        ? h(
+            NButton,
+            {
+              size: "tiny",
+              type: "primary",
+              disabled: pendingClaimKey !== "" || actionCooldown.claim > 0,
+              loading: pendingClaimKey === `${row.scheduleId}-${row.myTeamId}`,
+              onClick: () => claimOne(row),
+            },
+            () => "领取",
+          )
+        : null,
   },
 ];
 
