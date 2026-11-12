@@ -249,10 +249,44 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => (toast.on = false), 2200);
 }
+/* ---------- 共享角色：连接前必须先「接入」 ----------
+ * 别人授权给我的角色，刚同步下来时只是个占位条目：id 是临时值 `shared:<gid>`、
+ * `token` 是空串、本地没有 bin（needCred=true）。直接拿去连，只会在
+ * createWebSocketConnection 里抛「Token无效: 解析失败: Token字符串无效」，
+ * 界面上什么都不会发生 —— 用户点多少次「连接账号」都一样。
+ * 接入（adoptSharedToken）会向服务端取凭证 + bin，把 id 换成真值 MD5(bin)，
+ * 之后与自己的号完全一致。首页 openGame / openMulti / Token 管理页早就在用，
+ * 壳里的三个入口（自动连、切换角色、重新连接）此前漏了这一步。 */
+async function ensureUsable(tk) {
+  if (!tk) return null;
+  if (!(tk.shared && tk.needCred)) return tk;
+  const res = await tokenStore.adoptSharedToken(tk.id);
+  if (!res || !res.ok) {
+    showToast((res && res.message) || "无法接入该共享角色，请稍后重试");
+    return null;
+  }
+  return res.token;
+}
+
+/* 建连失败必须有前端提示：以前这条路径只写一行控制台日志、界面停在「未连接」，
+   用户只会觉得「点了没反应」（共享角色未接入时的表现就是这样）。
+   错误文案来自 store 的 lastConnectError，已去掉 "Token无效: " 前缀。 */
+watch(
+  () => tokenStore.lastConnectError,
+  (e) => {
+    /* 只提示「当前账号」的失败：后台还有别的账号在重试，提示串台会莫名其妙 */
+    if (e && e.tokenId === selectedTokenId.value) showToast("连接失败：" + e.message);
+  },
+);
+
 function pickAccount(tk) {
-  tokenStore.selectToken(tk.id);
   acctSheet.value = false;
-  showToast("已切换到「" + tk.name + "」");
+  void (async () => {
+    const ready = await ensureUsable(tk);
+    if (!ready) return;
+    tokenStore.selectToken(ready.id);
+    showToast("已切换到「" + ready.name + "」");
+  })();
 }
 function goTokens() {
   acctSheet.value = false;
@@ -267,22 +301,26 @@ function goTokens() {
  *   · 只在壳挂载时触发一次 —— 用户手动断开后不会被反复重连（要连就点顶栏 → 连接账号）。 */
 function autoConnect() {
   const id = selectedTokenId.value;
-  if (id && gameTokens.value?.some((t) => t.id === id)) {
-    tokenStore.selectToken(id);
-    return;
-  }
-  /* 没有选中但本地有账号（刚导入 / 选中被清掉）→ 退回列表第一个 */
-  const first = gameTokens.value?.[0];
-  if (first) tokenStore.selectToken(first.id);
+  const tk =
+    gameTokens.value?.find((t) => t.id === id) || gameTokens.value?.[0] || null;
+  if (!tk) return;
+  /* 共享角色先接入再连（否则空 token 必然解析失败） */
+  void (async () => {
+    const ready = await ensureUsable(tk);
+    if (ready) tokenStore.selectToken(ready.id);
+  })();
 }
 
-/* 抽屉里的手动重连：forceReconnect 会先优雅关闭旧连接再新建 */
+/* 抽屉里的手动重连：forceReconnect 会先优雅关闭旧连接再新建。
+   共享角色同样要先接入 —— 这一条正是用户报「点连接账号毫无反应」的那条。 */
 function reconnect() {
-  const id = selectedTokenId.value;
-  if (!id) return;
   wsSheet.value = false;
-  tokenStore.selectToken(id, true);
-  showToast("正在重新连接…");
+  void (async () => {
+    const ready = await ensureUsable(selectedToken.value);
+    if (!ready) return;
+    tokenStore.selectToken(ready.id, true);
+    showToast("正在重新连接…");
+  })();
 }
 
 /* 顶栏三态图标点开的是抽屉，抽屉里那个按钮才是真正的「连接 / 重新连接」，

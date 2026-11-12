@@ -750,6 +750,16 @@ export const useTokenStore = defineStore("tokens", () => {
   // Token刷新尝试记录
   const tokenRefreshAttempts = ref<Record<string, number>>({});
 
+  /* 最近一次「建连失败」的原因（只在真正抛错时写，比如 token 解析不出来）。
+   * 之前这条路径只写了一行 wsLogger.error：界面上状态一直是「未连接」，
+   * 用户点几次「连接账号」都看不到任何反馈，只能去控制台翻日志。
+   * UI 侧 watch 这个值弹提示即可，不需要动 wsConnections 的结构（它要求有 client）。 */
+  const lastConnectError = ref<{
+    tokenId: string;
+    message: string;
+    at: number;
+  } | null>(null);
+
   // 尝试自动刷新Token
   const attemptTokenRefresh = async (
     tokenId: string,
@@ -1289,6 +1299,15 @@ export const useTokenStore = defineStore("tokens", () => {
       return wsClient;
     } catch (error) {
       wsLogger.error(`创建连接失败 [${tokenId}]:`, error);
+      /* 同步给 UI：谁在等这次连接，都能拿到原因。
+         典型是 token 解析不出来（空串 / 共享角色没接入 / 凭证缺失）。 */
+      const raw =
+        (error && (error as any).message) || String(error) || "未知错误";
+      lastConnectError.value = {
+        tokenId,
+        message: String(raw).replace(/^Token无效[:：]\s*/, ""),
+        at: Date.now(),
+      };
       updateCrossTabConnectionState(tokenId, "disconnected");
       releaseConnectionLock(tokenId, "connect");
       return null;
@@ -2055,6 +2074,7 @@ export const useTokenStore = defineStore("tokens", () => {
 
     // WebSocket方法
     createWebSocketConnection,
+    lastConnectError,
     closeWebSocketConnection,
     getWebSocketStatus,
     getWebSocketClient,
