@@ -2345,9 +2345,17 @@ const towerEnergy = computed(() => {
   return weirdTowerData.value?.energy || 0;
 });
 
-// 排序后的游戏角色Token列表
+/* ★ 共享角色（别人授权给我登录的）不进批量任务：批量会把账号托管给后台执行，
+   与「授权方自己同时在玩」是冲突的；而且执行期本来就只认这份白名单。
+   ★★ 这里是**唯一**的账号真相：UI 列表（sortedTokens）与执行期都必须从它派生。
+   历史教训：早期 only `tokens` 加了 filter，而 `sortedTokens` 直接读
+   `tokenStore.gameTokens` —— 结果界面上看得见、能勾选、能存进任务，
+   执行时却被 4013 行按白名单剔除，表现为「任务少跑一个号且不报错」。 */
+const tokens = computed(() => (tokenStore.gameTokens || []).filter((t) => !t.shared));
+
+// 排序后的游戏角色Token列表（基于上面的白名单，别再直接读 gameTokens）
 const sortedTokens = computed(() => {
-  return [...tokenStore.gameTokens].sort((tokenA, tokenB) => {
+  return [...tokens.value].sort((tokenA, tokenB) => {
     let valueA, valueB;
 
     // 根据排序字段获取比较值
@@ -2402,8 +2410,8 @@ const toggleSort = (field) => {
 
 /* ★ 共享角色（别人授权给我登录的）不进批量任务：它不是「我的账号」，
    批量跑日常等于替授权方操作他的号，责任边界不清；而且批量会长时间占用连接，
-   与授权方同时在线的概率极高（互相顶号）。用户明确要求排除。 */
-const tokens = computed(() => (tokenStore.gameTokens || []).filter((t) => !t.shared));
+   与授权方同时在线的概率极高（互相顶号）。用户明确要求排除。
+   （定义已上移到 `sortedTokens` 之前 —— UI 列表也要用它，见那里的说明。） */
 const ismengjingActivityOpen = computed(() => {
   const day = new Date().getDay();
   return day === 0 || day === 1 || day === 3 || day === 4;
@@ -5023,6 +5031,9 @@ const toggleGroupSelection = (groupId) => {
 
 /**
  * 根据选中的分组更新selectedTokens
+ * ★ 组的成员是按**全量** gameTokens 校验有效性的（store 里的通用逻辑），
+ *   所以这里必须再按批量白名单（`tokens`）过一遍：否则勾一个含共享角色的分组，
+ *   会把共享 id 也塞进 selectedTokens —— 计数显示得比实际能跑的多，执行时又被剔除。
  */
 const updateSelectedTokensFromGroups = () => {
   const tokenIds = new Set();
@@ -5032,7 +5043,9 @@ const updateSelectedTokensFromGroups = () => {
     validTokenIds.forEach((id) => tokenIds.add(id));
   });
 
-  selectedTokens.value = Array.from(tokenIds);
+  selectedTokens.value = Array.from(tokenIds).filter((id) =>
+    tokens.value.some((t) => t.id === id),
+  );
 };
 
 /**
