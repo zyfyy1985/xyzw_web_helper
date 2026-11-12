@@ -128,9 +128,11 @@ const { getArrayBuffer } = useIndexedDB();
    切磋 / 爬塔 / 闯关这些战斗命令要带它，取不到会带 null 被服务端拒。只取一次，已有值直接跳过。 */
 useBattleVersionWarmup();
 
-/* 首页直达某个玩法面板：先在历史里放一层宫格，系统返回键回到宫格而不是首页 */
-const openPanel = async (panel) => {
-  await router.push("/mobile/club");
+/* 首页直达某个玩法面板：一次点击 = 一层历史（[首页] → [首页, 玩法面板]）。
+ * 原来这里连着 push 两次（先 /mobile/club 再 ?panel=），只为让返回键落在宫格，
+ * 代价是历史栈里多一条用户根本没看见过的宫格 —— 连点几次首页快捷入口，返回键就要按好几次。
+ * 现在返回直接回首页；想去宫格点一下「玩法」tab 即可（它本来就是该 tab 的入口）。 */
+const openPanel = (panel) => {
   router.push({ path: "/mobile/club", query: { panel } });
 };
 

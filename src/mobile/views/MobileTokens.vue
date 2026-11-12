@@ -342,6 +342,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useDialog, useMessage } from "naive-ui";
 import { confirmDanger, confirmAction } from "@/mobile/utils/confirm";
+import { goTabRoot } from "@/mobile/utils/tabNav";
 import { storeToRefs } from "pinia";
 
 import WxQrcodeForm from "@/mobile/fork/views/TokenImport/wxqrcode.vue";
@@ -443,7 +444,9 @@ async function enterConsole(tk) {
   }
   if (selectedTokenId.value !== target.id) tokenStore.selectToken(target.id);
   message.success(`正在进入 ${target.name} 的控制台`);
-  router.push("/mobile/home");
+  /* 「回首页」= 回同一层，不是进下一层：上次就是从首页来的话直接退一格，
+     否则「首页→Token 管理→控制台→Token 管理…」每来回一次历史栈就长一格。 */
+  goTabRoot(router, "/mobile/home");
 }
 
 /* ============================================================

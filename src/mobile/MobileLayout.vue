@@ -138,6 +138,7 @@ import { computed, onBeforeUnmount, onMounted, provide, reactive, ref, watch } f
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import { useTokenStore } from "@/stores/tokenStore";
+import { goTabRoot } from "@/mobile/utils/tabNav";
 
 const route = useRoute();
 const router = useRouter();
@@ -212,8 +213,11 @@ const wsText = (id) => {
 const roleId = computed(() => gameData.value?.roleInfo?.role?.roleId || "");
 
 /* ---------- Tab 跳转 ----------
- * 已在同一模块时用 replace 回到入口（玩法→宫格），避免历史栈里出现两条 /mobile/club；
- * 每次都把 .m-scroll 复位到顶部（路由 scrollBehavior 作用于 window，壳内滚动容器是 .m-scroll）。 */
+ * 底部 tab 是「同一层的切换」，不是「进入下一层」：点 tab 不应该往历史里压新条目。
+ * 原来的写法只有「已在同一 tab」才 replace、跨 tab 走 push，于是 首页→玩法→首页 的历史栈
+ * 变成 [首页, 玩法, 首页]，来回切几次就得连按好几次返回才退得出去（用户实测报障）。
+ * 「退一格 / replace」的判定见 utils/tabNav.js（Token 管理页的「进入控制台」共用同一份）。
+ * 每次切完都把 .m-scroll 复位到顶部（路由 scrollBehavior 作用于 window，壳内滚动容器是 .m-scroll）。 */
 const scrollTop = () => {
   const el = document.querySelector(".m-scroll");
   if (el) el.scrollTop = 0;
@@ -228,11 +232,13 @@ const tabOn = (t) => {
   return false;
 };
 const goTab = (t) => {
-  if (tabOn(t)) {
-    router.replace(t.path);
-  } else {
-    router.push(t.path);
+  /* 已经停在这个 tab 的入口页（无 query）：连路由都不用发，只当「回到顶部」。
+     反过来说，从 ?panel= 深处点当前 tab 会走到下面的 goTabRoot —— 即「回宫格」。 */
+  if (tabOn(t) && route.path === t.path && !Object.keys(route.query).length) {
+    scrollTop();
+    return;
   }
+  goTabRoot(router, t.path);
   scrollTop();
 };
 
