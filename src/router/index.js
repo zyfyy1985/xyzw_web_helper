@@ -3,7 +3,7 @@ import * as autoRoutes from "vue-router/auto-routes";
 import { useTokenStore } from '@/stores/tokenStore'
 import { useAuthStore } from '@/stores/auth'
 import { isNowInLegionWarTime } from "@/utils/clubBattleUtils"
-import { isMobileMode } from "@/mobile/uiMode"
+import { isHandheldDevice, isMobileMode } from "@/mobile/uiMode"
 
 const generatedRoutes = autoRoutes.routes ?? [];
 
@@ -172,6 +172,19 @@ const my_routes = [
     path: '/mobile/multi',
     name: 'MobileMulti',
     component: () => import('@/mobile/views/MobileMulti.vue'),
+    /* ★ 电脑上改走旧版多开（2026-11-12 按用户要求）：
+       新版多开是为手指排的全屏窗格（顶部 chips + 底部抽屉 + 触控协同），
+       在鼠标 + 大屏上反而不如旧版那条工具条好用 —— 旧版 /multi 本来就是给桌面写的。
+       query 要带过去：旧版 /multi 也认 ?bin_id（入口那个账号直接占第 1 窗）。
+       手机 / 平板仍然进这一页，行为不变。
+       ★ 判据是「非手持 且 视口 ≥768」两条，只看 UA 不够：
+         电脑窗口拖到 390~700 时，旧版那条工具条会折行、协同/音效按钮被切在右边界外
+         （实测 390 宽下溢出），而 uiMode 的默认值本来就把 <768 当手机。 */
+    beforeEnter: to => {
+      const handheld = isHandheldDevice();
+      const narrow = (window.innerWidth || 9999) < 768;
+      return handheld || narrow ? true : { path: '/multi', query: to.query };
+    },
     meta: { title: '多开', requiresToken: true }
   },
   {

@@ -198,34 +198,47 @@ function onDeskClick(e) {
   resSheet.value = true;
 }
 
-/* ---------- 内置脚本 ----------
- * ★ 共享角色（别人授权给我登录的）不允许挂脚本：脚本会按启用的玩法长期托管这个号，
- *   等于替授权方操作他的角色，且与授权方同时在线的概率极高（互相顶号）。
- *   用户明确要求「共享角色不进多开 / 批量 / 脚本」——这里是脚本这一处的闸门。 */
-function openScripts() {
-  const token = tokenStore.selectedToken;
-  if (token && token.shared) {
-    message.warning("共享角色不支持内置脚本，只有自己的账号可以");
-    return;
+/* ---------- 共享角色（别人授权给我登录的）----------
+ * 早期版本把它们挡在多开 / 内置脚本之外（理由是会与授权方互相顶号）。现在按产品口径放开：
+ * 授权本来就是让人「能玩这个号」，而多开与脚本只是玩法入口，不是权限边界。
+ * ★ 但有一个共同前提：**必须先「接入」**。未接入的共享条目 id 还是临时值
+ *   （`shared:<gid>`）、`token` 是空串、本地也没有 bin —— 直接拿去开游戏或挂脚本
+ *   只会得到「未找到 BIN」或一条连不上的 WS。接入后 id 换成 MD5(bin)，一切都与自己的号一致。
+ * @returns 可用的 token（已接入）或 null（用户取消 / 接入失败，调用方直接 return） */
+async function ensureUsableToken(token) {
+  if (!token) return null;
+  if (!(token.shared && token.needCred)) return token;
+  const res = await tokenStore.adoptSharedToken(token.id);
+  if (!res || !res.ok) {
+    message.error((res && res.message) || "无法接入该共享角色，请稍后重试");
+    return null;
   }
+  return res.token;
+}
+
+/* ---------- 内置脚本 ---------- */
+async function openScripts() {
+  const token = tokenStore.selectedToken;
+  if (token && !(await ensureUsableToken(token))) return;
   showScriptDialog.value = true;
 }
 
 /* ---------- 多开 ----------
  * 独立全屏页（/mobile/multi），进去先用当前账号占住第 1 窗：
  * 传 bin_id 而不是在页面里读 store —— 多开页不套 MobileLayout，不依赖壳里的自动选号。
- * ★ 共享角色同样排除：多开是同源多 iframe 同连，会与授权方互相顶号。 */
-function openMulti() {
+ * 共享角色同样可以进，但传的必须是**接入后**的真 id（临时 id 在多开页里没有 bin）。 */
+async function openMulti() {
   const token = tokenStore.selectedToken;
-  if (token && token.shared) {
-    message.warning("共享角色不支持多开");
-    return;
+  let ready = token;
+  if (token && token.shared && token.needCred) {
+    ready = await ensureUsableToken(token);
+    if (!ready) return;
   }
-  router.push({ path: "/mobile/multi", query: token ? { bin_id: token.id } : {} });
+  router.push({ path: "/mobile/multi", query: ready ? { bin_id: ready.id } : {} });
 }
 
 async function openGame() {
-  const token = tokenStore.selectedToken;
+  let token = tokenStore.selectedToken;
   if (!token) {
     message.warning("请先选择一个 Token");
     return;
@@ -233,6 +246,17 @@ async function openGame() {
   /* ★★ 先开窗、再 await：await 之后再 window.open 会被拦。窄屏（真手机）返回 null ⇒ 页内跳转。
      key 传 bin_id：不同账号各开一个窗口，同一个账号再点只聚焦。 */
   const win = openGameWindow(null, { key: token.id });
+  /* 共享角色未接入时 id 还是临时值（`shared:<gid>`）、本地没有 bin ⇒ 先接入换真 id。
+     必须放在开窗**之后**：接入是网络请求，await 之后就开不出新窗口了。 */
+  if (token.shared && token.needCred) {
+    const res = await tokenStore.adoptSharedToken(token.id);
+    if (!res || !res.ok) {
+      if (win) win.close();
+      message.error((res && res.message) || "无法接入该共享角色，请稍后重试");
+      return;
+    }
+    token = res.token;
+  }
   const binData = await getArrayBuffer(token.id);
   if (!binData) {
     if (win) win.close();

@@ -181,7 +181,9 @@
         <i class="mm-ava">{{ (a.name || "?").charAt(0) }}</i>
         <span class="mm-atxt">
           <span class="mm-aname">{{ a.name }}</span>
-          <span v-if="a.remark" class="mm-aremark">{{ a.remark }}</span>
+          <span v-if="a.shared || a.remark" class="mm-aremark">
+            <i v-if="a.shared" class="mm-ashare">共享</i>{{ a.remark }}
+          </span>
         </span>
         <i v-if="pickBusy === a.id" class="mm-aused">准备中…</i>
         <i v-else-if="usedIds.has(a.id) && usedSlotOf(a.id) !== pickerSlot" class="mm-aused">
@@ -541,20 +543,34 @@ function startDbg() {  if (!dbgOn) return;
 
 /* ---------- 账号 ----------
    账号清单取自 gameTokens（账号的唯一真相），不是 bin_file_list（那只是「启动过」的缓存）。
-   ★ 共享角色（`shared: true`，别人授权给我的）不列出来：多开是同源多 iframe 同时在线，
-     每个窗格都要独立连同一个 ws 并广播输入，共享角色同连会与授权方互相顶号，
-     而且它不是「我的账号」，不该出现在多开的选择器里（用户明确要求）。
+   ★ 共享角色（`shared: true`，别人授权给我的）也列出来：授权就是让人能玩这个号，
+     多开只是玩法入口。但未接入的共享条目 id 还是临时值（`shared:<gid>`）、本地没有 bin，
+     必须在选中时先接入换真 id（见 resolveAccount），否则窗格只会是空的。
    选完账号再按「打开游戏」那条路现场准备 BIN：IndexedDB 取原始 bin → 转 lx →
    写 localStorage['bin_data_<id>']，游戏侧 game-bridge-local.js 只认这个键。 */
 const accounts = computed(() =>
-  (gameTokens.value || [])
-    .filter((t) => !t.shared)
-    .map((t) => ({
-      id: String(t.id),
-      name: t.name || "Token",
-      remark: t.remark || "",
-    }))
+  (gameTokens.value || []).map((t) => ({
+    id: String(t.id),
+    name: t.name || "Token",
+    remark: t.remark || "",
+    shared: !!t.shared,
+    needCred: !!(t.shared && t.needCred),
+  }))
 );
+
+/**
+ * 把选择器里的一条账号变成「可开窗」的形态：共享角色未接入时先接入。
+ * @returns {{id:string,name:string}|null} null = 接入失败（错误已写进 pickErr）
+ */
+async function resolveAccount(a) {
+  if (!a.needCred) return { id: String(a.id), name: a.name };
+  const res = await tokenStore.adoptSharedToken(String(a.id));
+  if (!res || !res.ok) {
+    pickErr.value = (res && res.message) || "无法接入该共享角色，请稍后重试";
+    return null;
+  }
+  return { id: String(res.token.id), name: res.token.name || a.name };
+}
 const usedIds = computed(() => {
   const m = new Map();
   slots.forEach((s, i) => {
@@ -629,12 +645,15 @@ async function pickAccount(a, i = pickerSlot.value) {
   pickErr.value = "";
   pickBusy.value = id;
   try {
-    const ok = await ensureBin(a);
+    /* 共享角色未接入 ⇒ 这里先接入，id 会从 `shared:<gid>` 换成 MD5(bin) */
+    const ready = await resolveAccount(a);
+    if (!ready) return; // 失败原因已写进 pickErr
+    const ok = await ensureBin({ id: ready.id, name: ready.name });
     if (!ok) {
-      pickErr.value = `「${a.name}」没有本地登录凭据（BIN），请先到 Token 管理里重新导入一次`;
+      pickErr.value = `「${ready.name}」没有本地登录凭据（BIN），请先到 Token 管理里重新导入一次`;
       return;
     }
-    slots[i] = { binId: id, name: a.name || "Token" };
+    slots[i] = { binId: ready.id, name: ready.name || "Token" };
     focus.value = i;
     pickerShow.value = false;
     persist();
@@ -1038,15 +1057,18 @@ onMounted(async () => {
   if (qid && !slots[0].binId) {
     const hit = accounts.value.find((a) => String(a.id) === qid);
     if (hit) {
-      await ensureBin(hit);
-      slots[0] = { binId: hit.id, name: hit.name };
-      persist();
+      /* 共享角色可能还没接入（首页只负责「选中」，不会自动接入）⇒ 这里补上：
+         未接入时 id 是临时值、本地没有 bin，直接用只会得到空窗格。 */
+      const ready = await resolveAccount(hit);
+      if (ready && (await ensureBin(ready))) {
+        slots[0] = { binId: ready.id, name: ready.name };
+        persist();
+      }
     }
     /* 未命中 ⇒ 什么都不做。
      * 早期这里有一句 `slots[0] = { binId: qid, name: qid }`，等于「URL 上写什么就开什么」：
-     * 共享角色本来由 `accounts` 的 !shared 过滤挡在门外（多开不允许用别人的号），
-     * 这个分支正好把过滤整个绕过去。现在落进这里的只剩「持久化里残留的已删除 / 已撤销
-     * 角色」—— 忽略即可，窗格留空让用户自己选。 */
+     * 这个分支能绕过 `accounts` 的任何过滤（当初共享角色正是被它绕过去的）。
+     * 现在落进这里的只剩「持久化里残留的已删除 / 已撤销角色」—— 忽略即可，窗格留空。 */
   }
   window.addEventListener("keydown", onKeyDown);
   /* 真全屏可能被系统手势 / 返回键 / Esc（浏览器自己处理）退出，
@@ -1688,6 +1710,12 @@ export default { name: "MobileMulti" };
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text3) !important;
+}
+/* 「共享」标记：只表达来源，不改变可点性 —— 它和普通账号一样能开窗 */
+.mm-ashare {
+  margin-right: 6px;
+  font-style: normal;
+  color: var(--m-primary) !important;
 }
 .mm-aused {
   flex: none;
