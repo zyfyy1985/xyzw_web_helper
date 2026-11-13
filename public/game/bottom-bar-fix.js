@@ -29,8 +29,9 @@
  *     所以只记 gap0 = 落点 - 容器高，之后永远用 容器高 + gap0 当目标，绝对几何一个都不猜。
  *
  * 画面内诊断面板（手机上没控制台）：
- *   · 进主城弹 5 秒读数；底栏偏了 2 秒没修好会钉住，带「重排 / 摆回 / 自测」三个按钮；
- *   · 左上角 72×72 内连点三下随时调出/收起（只点一两下不误触）—— 唯一入口，App 侧不再挂菜单；
+ *   · ★ 不主动弹：进主城、自愈动手时都只把数字安静地存着，玩家想看时自己连点三下；
+ *   · 左上角 72×72 内连点三下调出、再点三下收起（只点一两下不误触）—— 唯一入口；
+ *   · 打开后每拍跟着刷新，带「重排 / 摆回 / 自测」三个按钮；修不好时面板里会多一行 ⚠；
  *   · `window.__bbShow()` 是三连击的程序版（回归测试用），页面上没有按钮调它。
  *
  * 要整体停用：删掉 index.html 里引用本文件的那行 <script>。
@@ -230,8 +231,7 @@
       p.__bbG0 = origin > 0 ? origin - (H > 0 ? H : exp) : null;
       // 进场时栏就是显示着的 ⇒ 默认意图 = 要显示（钩子要等游戏下一次调用才有值）
       if (typeof p.__bbWant !== 'number' && shown) p.__bbWant = 1;
-      // 进主城第一次拿到真实数字：弹 5 秒读数（玩家不用做任何事就能确认它在跑）
-      note('已就绪（左上角连点3下可再调出）');
+      // ★ 进主城不再自动弹面板：数字照记，玩家想看时自己连点三下
       return;
     }
 
@@ -335,12 +335,13 @@
   }
 
   /* ============================================================
-   * 画面内诊断面板
+   * 画面内诊断面板（★ 不主动弹：只有左上角连点三下才出来）
    * ============================================================ */
   var box = null;
   var boxPin = false;
-  var boxTimer = 0;
   var stuck = 0;
+  var noteText = ''; // 最近一次自愈动作（面板关着也存着，开的时候一起显示）
+  var warn = '';     // 持续偏且自己修不回来时的告警行
 
   function makeBtn(label, fn) {
     var b = document.createElement('button');
@@ -387,7 +388,7 @@
       makeBtn('重排', function () {
         refitLeft = MAX_REFIT;
         refit();
-        setReadout('已重排');
+        note('已重排');
       })
     );
     row.appendChild(
@@ -426,14 +427,13 @@
     }
   }
 
-  function readout(extra) {
+  function readout() {
     var p = proxy;
     var bar = barOf(p);
     if (!p || !p.ui || !bar) {
       return '底栏监控 ' + VERSION + '\n尚未进入主城（等游戏加载 / 暖机 ' + warmTries + '）';
     }
     var H = Math.round(p.ui.height || 0);
-    var barH = Math.round(bar.height || 0);
     var origin = Math.round(p._originBottomY || 0);
     var barY = Math.round(bar.y || 0);
     var exp = expectedHeight();
@@ -451,46 +451,43 @@
       ' / 意图 ' + (want === 1 ? '显示' : want === 0 ? '收起' : '未知') +
       '\n修 ' + fires.refit + '/' + fires.shift + '/' + fires.align + '/' + fires.snap + '/' + fires.show +
       ' · 拍 ' + ticks;
-    if (extra) s += '\n' + extra;
+    if (warn) s += '\n' + warn;
+    if (noteText) s += '\n' + noteText;
     return s;
   }
 
-  function setReadout(extra) {
+  /** 重画面板（只在已经决定要显示时调，自己不会把面板拉出来） */
+  function paint() {
     var el = ensureBox();
-    if (!el) return;
+    if (!el) return false;
     var txt = document.getElementById('__bbtxt');
-    if (txt) txt.textContent = readout(extra);
+    if (txt) txt.textContent = readout();
     el.style.display = 'block';
+    return true;
   }
 
-  function showBox(pin, extra) {
-    var el = ensureBox();
-    if (!el) return;
-    setReadout(extra);
-    boxPin = !!pin;
-    el.style.display = 'block';
-    if (boxTimer) window.clearTimeout(boxTimer);
-    if (!boxPin) {
-      boxTimer = window.setTimeout(function () {
-        if (!boxPin) hideBox();
-      }, 5000);
-    }
+  function showBox() {
+    if (!paint()) return;
+    boxPin = true;
   }
 
   function hideBox() {
     boxPin = false;
-    if (boxTimer) window.clearTimeout(boxTimer);
     if (box && box.parentNode) box.style.display = 'none';
   }
 
-  /** 自愈动过手 → 弹 5 秒提示；钉住的面板只刷新数字 */
+  /**
+   * 记一条「最近动作」。★ 绝不主动弹面板：关着就只存着，等玩家自己连点三下看。
+   * 面板开着时顺手刷一次，让数字/文案立刻跟上（4 次/秒的 tick 也会刷）。
+   */
   function note(text) {
-    showBox(!!boxPin, text);
+    noteText = text || '';
+    if (boxPin) paint();
   }
 
   /** 三连击的程序版（页面上没有按钮调它，留给回归测试 / 排查时用） */
   window.__bbShow = function () {
-    showBox(true);
+    showBox();
   };
 
   /** 摆回：按进场基准把落点与按钮一起摆回去（健康时是空操作） */
@@ -498,7 +495,7 @@
     var p = homeProxy();
     var bar = barOf(p);
     if (!p || !p.ui || !bar) {
-      setReadout('还没进主城，摆回无效');
+      note('还没进主城，摆回无效');
       return;
     }
     refitLeft = MAX_REFIT;
@@ -509,9 +506,9 @@
     if (t2 > 0) {
       bar.y = t2;
       p._originBottomY = t2;
-      setReadout('已按进场基准摆回 ' + t2);
+      note('已按进场基准摆回 ' + t2);
     } else {
-      setReadout('还没学到基准（刚进主城再试一次）');
+      note('还没学到基准（刚进主城再试一次）');
     }
   }
 
@@ -521,7 +518,7 @@
     var ui = p && p.ui;
     var bar = barOf(p);
     if (!ui || !bar) {
-      setReadout('还没进主城，自测无效');
+      note('还没进主城，自测无效');
       return;
     }
     var h0 = Math.round(ui.height || 0);
@@ -529,7 +526,7 @@
     var origin0 = Math.round(p._originBottomY || 0);
     refitLeft = MAX_REFIT;
     ui.height = h0 + 80;
-    setReadout('自测中…（约 1 秒）');
+    note('自测中…（约 1 秒）');
     window.setTimeout(function () {
       var h1 = Math.round(ui.height || 0);
       var back = Math.abs(h1 - h0) <= TOLERANCE;
@@ -547,7 +544,7 @@
           bar.y = bar0;
         } catch (e) {}
       }
-      setReadout(intact ? '自测通过：容器能自己算回去' : '自测未通过，已还原原值');
+      note(intact ? '自测通过：容器能自己算回去' : '自测未通过，已还原原值');
     }, 1200);
   }
 
@@ -566,15 +563,19 @@
       if (hits.length === 3 && now - hits[0] <= 900) {
         hits.length = 0;
         if (box && boxPin) hideBox();
-        else showBox(true);
+        else showBox();
       }
     }
     document.addEventListener('ontouchstart' in window ? 'touchend' : 'click', onTap, true);
   })();
 
-  /** 偏了 2 秒还没修好（额度用完 / 差得离谱）→ 把面板钉在画面上等玩家点 */
+  /** 持续偏且自己修不回来 → 只准备一行告警；★ 不弹面板，玩家自己连点三下才看得到 */
   function status() {
-    if (!uiReady) return;
+    if (!uiReady) {
+      stuck = 0;
+      warn = '';
+      return;
+    }
     var p = proxy;
     var bar = barOf(p);
     if (!p || !p.ui || !bar) return;
@@ -585,17 +586,11 @@
     var off = origin - target;
     if (Math.abs(off) <= GAP_SLACK) {
       stuck = 0;
+      warn = '';
       return;
     }
     stuck += 1;
-    if (stuck === 8) {
-      setReadout('⚠ 底栏偏 ' + off + 'px，没自动修好\n可点「摆回」，或截图发给作者');
-      boxPin = true;
-      if (boxTimer) window.clearTimeout(boxTimer);
-    } else if (stuck > 8 && boxPin) {
-      var txt = document.getElementById('__bbtxt');
-      if (txt) txt.textContent = readout('⚠ 底栏偏 ' + off + 'px，没自动修好\n可点「摆回」，或截图发给作者');
-    }
+    if (stuck >= 8) warn = '⚠ 底栏偏 ' + off + 'px，没自动修好（可点「摆回」，或截图发给作者）';
   }
 
   function tick() {
@@ -608,6 +603,10 @@
     } catch (e) {}
     try {
       status();
+    } catch (e) {}
+    // 面板开着才跟着刷数字；关着就什么都不做，绝不自作主张弹出来
+    try {
+      if (boxPin) paint();
     } catch (e) {}
   }
 
