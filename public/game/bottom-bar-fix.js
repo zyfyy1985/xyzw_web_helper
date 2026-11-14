@@ -12,7 +12,10 @@
  * 这个补丁「看一步、干一步」：每拍最多只有一个分支动手，动完立刻 return，不会互相抢。
  * 日常真正干活的是 ② 和 ④，① 只是试探，③⑤ 是兜底。
  *
- *   ⓿ 记基准（进场只做一次）：gap0 = 落点 - 容器高。实测手机是 +4。
+ *   ⓿ 学基准：连续 3 拍「停住 + 自洽」才认，取中位数，并记进 localStorage（h5_bb_gap）。
+ *      学不到（落点本身被采坏了）就在 5 秒后接管：沿用记录里的基准，一次都没量到过才贴
+ *      容器底（0，会差 4px）。★ 记录必须跨页面：多开切窗格/刷新都算新页面，不记就退回 0。
+ *      gap0 = 落点 - 容器高。实测手机是 +4，正常绝不该超过 ±24。
  *   ① 重排：容器高与 UIFitScreen 按视口算出的期望高差 > 8px → 广播 onScreenResize，
  *      让游戏自己把容器算回去。每处漂移最多 3 次。（部分皮肤下 `t.height = m_container.height`，
  *      这时重排改不动，真正跟上的是 ②。）
@@ -28,6 +31,13 @@
  *     任何「容器高 - 按钮高」的公式都会把它往上推 160px，那正是错位的长相。
  *     所以只记 gap0 = 落点 - 容器高，之后永远用 容器高 + gap0 当目标，绝对几何一个都不猜。
  *
+ *   ★★ 但不能「进场第一拍就学」：点「最大化」的过渡里容器高每帧都在变，而游戏的落点是
+ *      更早一刻从按钮上抓的（`_originBottomY ||=` 只采一次，之后永不再采）。
+ *      两个不同时刻的数相减会得到 -150 这种垃圾（真值 +4），按钮被顶高 154px，
+ *      而且 ⑤ 会拿这个垃圾基准当真理去「纠正」，于是永远自愈不了。
+ *      ⇒ 三条闸：① 连续 3 拍容器高与按钮 y 都没动（停住了）② 按钮停在落点或收起位
+ *        （不在动画区间）③ |落点 - 容器高| ≤ 24（两个数自洽）。面板开着（意图=收起）时不学。
+ *
  * 画面内诊断面板（手机上没控制台）：
  *   · ★ 不主动弹：进主城、自愈动手时都只把数字安静地存着，玩家想看时自己连点三下；
  *   · 左上角 72×72 内连点三下调出、再点三下收起（只点一两下不误触）—— 唯一入口；
@@ -39,7 +49,7 @@
 (function () {
   'use strict';
 
-  var VERSION = 'v9';
+  var VERSION = 'v12';
   var TICK = 250;            // 轮询间隔：只读几个数字，开销可忽略
   var TOLERANCE = 8;         // 容器高度差超过这么多像素才算跑偏
   var MAX_REFIT = 3;         // 同一处漂移最多重排几次
@@ -47,6 +57,10 @@
   var MAX_ALIGN = 2;         // 一局最多「按基准重算落点」几次
   var GAP_SLACK = 16;        // 落点偏离基准超过这么多像素才算真的漂了
   var MAX_ALIGN_SHIFT = 300; // 一次最多挪这么多；再大说明基准不可信，只记不动
+  var GAP_BAND = 24;         // 基准（落点 - 容器高）超过这个数就算不可信 —— 真机是 +4
+  var LEARN_TICKS = 3;       // 连续几拍「静 + 自洽」才认基准
+  var LEARN_DEADLINE = 20;   // 5 秒还学不到就按兜底接管（20 × 250ms）
+  var GAP_KEY = 'h5_bb_gap'; // 量到的基准记在这 —— 页面重载/换窗格后不必从 0 重来
   var WARM_DELAY = 12000;    // 登录数据就绪后再等这么久才碰 UI 模块（同 战斗增强.js）
   var WARM_MAX = 240;        // 等登录数据最多等这么久（500ms × 240 = 2 分钟）就照常暖机
 
@@ -54,6 +68,7 @@
   var refitLeft = MAX_REFIT;
   var snapLeft = MAX_SNAP;
   var alignLeft = MAX_ALIGN;
+  var goodGap = loadGap();   // 上次量到的「合格」基准（跨页面），自己学不到时用它兜底
   var warmed = false;        // 暖机完成才允许调 __require
   var uiReady = false;       // UI 根与主面板都在（玩家真的进主城了）
   var warmTries = 0;
@@ -206,6 +221,58 @@
     }
   }
 
+  /** 三个样本取中位数（防单拍抖动） */
+  function med(a) {
+    var b = a.slice().sort(function (x, y) {
+      return x - y;
+    });
+    return b[(b.length / 2) | 0];
+  }
+
+  /** 上次量到的基准（越界/坏数据当没有） */
+  function loadGap() {
+    try {
+      var v = parseFloat(window.localStorage.getItem(GAP_KEY));
+      if (isFinite(v) && Math.abs(v) <= GAP_BAND) return Math.round(v);
+    } catch (e) {}
+    return null;
+  }
+
+  /** 记住这次量到的基准 */
+  function saveGap(g) {
+    try {
+      window.localStorage.setItem(GAP_KEY, String(g));
+    } catch (e) {}
+  }
+
+  /**
+   * 装基准 + 把落点和按钮摆到「容器高 + 基准」。
+   * forced = 兜底接管（样本不合格）：沿用 goodGap，一个都没量到过才贴容器底(0)。
+   */
+  function learnGap(p, gap, H, origin, barY, barH, forced) {
+    var had = goodGap;
+    p.__bbG0 = gap;
+    p.__bbH = H;
+    p.__bbS = null;
+    // 面板上标出来源：本次学的什么都不显示；沿用记录 / 无记录贴底各标一句
+    p.__bbGapSrc = forced ? (had === null ? '贴底' : '沿用') : '';
+    if (!forced) {
+      goodGap = gap;
+      saveGap(gap);
+    }
+    var to = H + gap;
+    if (Math.abs(origin - to) > 2) {
+      p._originBottomY = to;
+      // 收起态跟着摆到「落点 + 按钮高」，别让它浮出来；动画中途不碰
+      if (Math.abs(barY - (origin + barH)) <= 2) p.ui.m_bottomBar.y = to + barH;
+      else if (Math.abs(barY - origin) <= 2) p.ui.m_bottomBar.y = to;
+      note(
+        '基准重算 ' + (gap > 0 ? '+' : '') + gap + '（落点 ' + to +
+        (forced ? (had === null ? '，无记录先贴底' : '，沿用上次') : '') + '）'
+      );
+    }
+  }
+
   function check() {
     if (!gameReady()) return;
     var p = homeProxy();
@@ -224,14 +291,36 @@
     // 游戏意图：1 = 要显示，0 = 要收起，undefined = 钩子还没被调用过
     var want = p.__bbWant;
 
-    // ⓿ 进场第一拍先把基准记下来。必须排在 ① 之前：全屏下容器高与画面高本来就不一致，
-    //   ① 每拍都在重排并 return，基准写在它后面就永远学不到。
+    // ⓿ 学基准。必须排在 ① 之前（全屏下容器高与画面高本来就不一致，① 会一直重排 return）。
+    //   ★ 不能第一拍就学：点「最大化」/ 开面板 / 播动画时，容器高与落点不在同一时刻，
+    //     两个数相减毫无意义（实测学到 -150，真值 +4，按钮被顶高 154px）。
+    //   ⇒ 要求连续 LEARN_TICKS 拍「停住 + 自洽」才认，取中位数。
     if (!p.__bbH) {
-      p.__bbH = H;
-      p.__bbG0 = origin > 0 ? origin - (H > 0 ? H : exp) : null;
+      var gapRaw = origin > 0 ? origin - H : null;
+      var quiet = p.__bbLH === H && p.__bbLB === barY; // 这一拍布局没动
+      var settle = shown || hidden;                    // 停在落点或收起位（不在动画区间）
+      p.__bbLH = H;
+      p.__bbLB = barY;
+      p.__bbTries = (p.__bbTries || 0) + 1;
       // 进场时栏就是显示着的 ⇒ 默认意图 = 要显示（钩子要等游戏下一次调用才有值）
       if (typeof p.__bbWant !== 'number' && shown) p.__bbWant = 1;
-      // ★ 进主城不再自动弹面板：数字照记，玩家想看时自己连点三下
+      want = p.__bbWant;
+      // 面板开着（意图=收起）时容器高是面板写的，这时学一定错 ⇒ 只等不学
+      if (want !== 0 && quiet && settle && gapRaw !== null && Math.abs(gapRaw) <= GAP_BAND) {
+        p.__bbS = p.__bbS || [];
+        p.__bbS.push(gapRaw);
+        if (p.__bbS.length > LEARN_TICKS) p.__bbS.shift();
+        if (p.__bbS.length === LEARN_TICKS) {
+          learnGap(p, med(p.__bbS), H, origin, barY, barH, false);
+          return;
+        }
+      } else {
+        p.__bbS = null;
+      }
+      // 等满 5 秒还学不到 ⇒ 落点本身是坏的，按兜底接管（有上次合格的就用它）
+      if (p.__bbTries >= LEARN_DEADLINE && want !== 0 && quiet) {
+        learnGap(p, goodGap === null ? 0 : goodGap, H, origin, barY, barH, true);
+      }
       return;
     }
 
@@ -306,6 +395,8 @@
     if (!gameReady()) return;
     var p = proxy;
     if (!p || !p.ui) return;
+    // 基准还没装上 ⇒ 学习期只当旁观者，别抢布局（否则会把过渡态当成「被丢了」拽回去）
+    if (!p.__bbH) return;
     var bar = barOf(p);
     if (!bar) return;
     var origin = Math.round(p._originBottomY || 0);
@@ -427,6 +518,13 @@
     }
   }
 
+  function gapText(p) {
+    var g = p && typeof p.__bbG0 === 'number' ? p.__bbG0 : null;
+    if (g === null) return '?'; // 还没学到（过渡中 / 面板开着）
+    // 后缀写明来源：'' = 本次亲测，'沿用' = 记录里的，'贴底' = 无记录先贴容器底
+    return (g > 0 ? '+' : '') + g + (p && p.__bbGapSrc ? '(' + p.__bbGapSrc + ')' : '');
+  }
+
   function readout() {
     var p = proxy;
     var bar = barOf(p);
@@ -446,7 +544,7 @@
       '底栏监控 ' + VERSION +
       '\n' + viewInfo() +
       '\n根层 ' + rootH + ' / 容器 ' + H + ' / 根y ' + Math.round(p.ui.y || 0) +
-      '\n落点 ' + origin + ' / 目标 ' + target +
+      '\n落点 ' + origin + ' / 目标 ' + target + ' / 基准 ' + gapText(p) +
       '\n按钮 ' + barY + ' / 偏 ' + (off > 0 ? '+' : '') + off +
       ' / 意图 ' + (want === 1 ? '显示' : want === 0 ? '收起' : '未知') +
       '\n修 ' + fires.refit + '/' + fires.shift + '/' + fires.align + '/' + fires.snap + '/' + fires.show +
