@@ -402,7 +402,7 @@
               <canvas ref="legionWarMapDom"></canvas>
             </div>
           </div>
-          <p class="m-hint" style="margin-top: 8px">单指拖动平移 · 双指捏合缩放 · 双击 2x/1x 切换 · 滚轮缩放</p>
+          <p class="m-hint" style="margin-top: 8px">手机：单指拖动 · 双指缩放 · 双击切换 | 电脑：拖拽平移 · 滚轮缩放 · 双击切换</p>
         </div>
         <div class="m-card">
           <div class="m-card-h">
@@ -460,9 +460,9 @@
           </span>
         </div>
         <div class="m-seg" style="margin-bottom: 12px">
-          <button :class="{ on: statView === 'legion' }" @click="statView = 'legion'">俱乐部</button>
-          <button :class="{ on: statView === 'individual' }" @click="statView = 'individual'">本队成员</button>
-          <button :class="{ on: statView === 'all_individual' }" @click="statView = 'all_individual'">全部战况</button>
+          <button :class="{ on: statView === 'individual' }" @click="statView = 'individual'">本部成员</button>
+          <button :class="{ on: statView === 'all_individual' }" @click="statView = 'all_individual'">全场个人</button>
+          <button :class="{ on: statView === 'legion' }" @click="statView = 'legion'">俱乐部榜</button>
         </div>
         <!-- 战况卡片（照抄 LegionWarStatistics 移动端卡片视图：4 列网格） -->
         <template v-if="statView === 'legion'">
@@ -678,6 +678,7 @@ import { getHeroInfo } from "../components/heroInfo";
 import { formatPower } from "@/utils/legionWar";
 import { HexGraph, roadPointList } from "@/utils/legionWar";
 import { exportDomAsImage } from "@/mobile/utils/exportImage";
+import { downloadCanvasAsImage } from "@/utils/imageExport";
 
 const message = useMessage();
 const tokenStore = useTokenStore();
@@ -1724,7 +1725,7 @@ const exportMonthXlsx = () => {
 /* ============================================================
  * 四、地图 / 战况（legionWarStore，照抄 LegionWarMap/Statistics 生命周期）
  * ============================================================ */
-const statView = ref("legion");
+const statView = ref("individual");
 
 const warConnect = async () => {
   try {
@@ -1999,7 +2000,7 @@ const drawCanvasContent = () => {
     }
   });
 
-  // 俱乐部名称：【N红】名称 + 联盟色背景
+  // 俱乐部标签（两行）：第一行 [本部|所属联盟]+名称，第二行 红淬+战力；本俱乐部金色描边
   if (validData.value && validData.value.legionInfo) {
     Object.values(validData.value.legionInfo).forEach((legion) => {
       if (legion.strongholdId) {
@@ -2012,29 +2013,51 @@ const drawCanvasContent = () => {
           const detail = legionDetails.value[legion.id] || {};
           const redCount =
             detail.quenchNum !== undefined ? detail.quenchNum : legion.redCount || 0;
-          const nameStr = `【${redCount}红】${legion.name}`;
+          const power = detail.power !== undefined ? detail.power : legion.power;
           const alliance = detail.announcement
             ? allianceincludes(detail.announcement)
             : "未知联盟";
+          const isSelf = isCurrentClub(legion);
+          /* 本俱乐部显示「本部」，其余显示所属联盟 */
+          const line1 = `${isSelf ? "本部" : alliance} ${legion.name}`;
+          const line2 = `红淬 ${redCount} · 战力 ${formatPower(Number(power || 0))}`;
           const allianceColor = allianceColors[alliance] || allianceColors["未知联盟"];
-          ctx.font = "bold 12px Microsoft Yahei";
-          const textWidth = ctx.measureText(nameStr).width;
+          const font1 = "bold 12px Microsoft Yahei";
+          const font2 = "bold 10px Microsoft Yahei";
+          ctx.font = font1;
+          const w1 = ctx.measureText(line1).width;
+          ctx.font = font2;
+          const w2 = ctx.measureText(line2).width;
           const padding = 10;
-          const height = 24;
-          const bgX = x - textWidth / 2 - padding / 2;
-          const bgY = y - 32;
-          const bgWidth = textWidth + padding;
+          const lineH1 = 14;
+          const lineH2 = 12;
+          const height = lineH1 + lineH2 + 6;
+          const bgWidth = Math.max(w1, w2) + padding;
+          const bgX = x - bgWidth / 2;
+          const bgY = y - height - 12;
           ctx.fillStyle = allianceColor;
           const r = 4;
           ctx.beginPath();
           ctx.moveTo(bgX + r, bgY);
           ctx.arcTo(bgX + bgWidth, bgY, bgX + bgWidth, bgY + height, r);
           ctx.arcTo(bgX + bgWidth, bgY + height, bgX, bgY + height, r);
-          ctx.arcTo(bgX, bgY + height, bgX, bgY, r);
-          ctx.arcTo(bgX + bgWidth, bgY, bgX, bgY, r);
+          ctx.arcTo(bgX, bgY + height, bgX, bgY + height, r);
+          ctx.arcTo(bgX, bgY, bgX + bgWidth, bgY, r);
           ctx.closePath();
           ctx.fill();
-          drawText(x, bgY + height / 2, nameStr, "#fff", 12);
+          /* 本俱乐部金色描边 */
+          if (isSelf) {
+            ctx.save();
+            ctx.strokeStyle = "#FFD54A";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.restore();
+          }
+          /* 两行分色：第一行名称+身份白字，第二行红淬/战力淡青字 */
+          ctx.font = font1;
+          drawText(x, bgY + 3 + lineH1 / 2, line1, "#ffffff", 12);
+          ctx.font = font2;
+          drawText(x, bgY + 3 + lineH1 + lineH2 / 2, line2, "#BFE9FF", 10);
         }
       }
     });
@@ -2276,11 +2299,43 @@ const bindMapGestures = () => {
     applyMapTransform();
   };
 
+  /* 电脑端：鼠标左键拖拽平移 + 双击缩放（手机仍走 touch，互不干扰） */
+  let mouseDrag = null;
+  const onMouseDown = (e) => {
+    if (e.button !== 0) return;
+    mouseDrag = { x: e.clientX, y: e.clientY };
+    vp.style.cursor = "grabbing";
+  };
+  const onMouseMove = (e) => {
+    if (!mouseDrag) return;
+    const dx = e.clientX - mouseDrag.x;
+    const dy = e.clientY - mouseDrag.y;
+    mapPanX += dx;
+    mapPanY += dy;
+    mouseDrag = { x: e.clientX, y: e.clientY };
+    clampMapPan();
+    applyMapTransform();
+  };
+  const onMouseUp = () => {
+    if (!mouseDrag) return;
+    mouseDrag = null;
+    vp.style.cursor = "grab";
+  };
+  const onDblClick = (e) => {
+    setMapZoom(mapZoom.value >= 1.9 ? 1 : 2, e.clientX, e.clientY);
+  };
+
   vp.addEventListener("touchstart", onTouchStart, { passive: true });
   vp.addEventListener("touchmove", onTouchMove, { passive: false });
   vp.addEventListener("touchend", onTouchEnd, { passive: true });
   vp.addEventListener("touchcancel", onTouchEnd, { passive: true });
   vp.addEventListener("wheel", onWheel, { passive: false });
+  vp.addEventListener("mousedown", onMouseDown);
+  vp.addEventListener("dblclick", onDblClick);
+  /* move/up 挂 document：鼠标拖出视口也能持续跟随、松手能正确收尾 */
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+  vp.style.cursor = "grab";
   window.addEventListener("resize", onResize);
 
   mapViewCleanup = () => {
@@ -2289,6 +2344,11 @@ const bindMapGestures = () => {
     vp.removeEventListener("touchend", onTouchEnd);
     vp.removeEventListener("touchcancel", onTouchEnd);
     vp.removeEventListener("wheel", onWheel);
+    vp.removeEventListener("mousedown", onMouseDown);
+    vp.removeEventListener("dblclick", onDblClick);
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+    vp.style.cursor = "";
     window.removeEventListener("resize", onResize);
     mapViewBound = false;
     mapViewEl = null;
@@ -2449,26 +2509,38 @@ const exportMonth = () => {
   runExport(exportMonthDom.value, `${monthYear}月盐场战绩总览.png`);
 };
 
-/* 盐场地图（照抄 LegionWarMap 文件名；导出前临时复位缩放，避免 transform 比例拍进图片） */
+/* 盐场地图：直接导出地图 canvas 本身（100% 完整地图，不含连接卡/俱乐部榜）。
+   canvas 逻辑尺寸 920×1000、像素按 dpr 放大，CSS transform 不影响其像素，
+   故无需改 zoom/pan；canvas 透明底，合成一层主题背景色再导出。 */
 const exportMap = async () => {
-  const prevZoom = mapZoom.value;
-  const prevX = mapPanX;
-  const prevY = mapPanY;
-  mapZoom.value = 1;
-  mapPanX = 0;
-  mapPanY = 0;
-  applyMapTransform();
-  await runExport(exportMapDom.value, `盐场地图_${timeStamp()}.png`);
-  mapZoom.value = prevZoom;
-  mapPanX = prevX;
-  mapPanY = prevY;
-  clampMapPan();
-  applyMapTransform();
+  const src = legionWarMapDom.value;
+  if (!src || !src.width || !src.height) {
+    message.warning("地图尚未绘制，请稍候重试");
+    return;
+  }
+  try {
+    isExporting.value = true;
+    const out = document.createElement("canvas");
+    out.width = src.width;
+    out.height = src.height;
+    const octx = out.getContext("2d");
+    /* 与 exportDomAsImage 一致的主题背景：暗色 #171a21 / 亮色 #fff */
+    octx.fillStyle = document.documentElement.dataset.theme === "dark" ? "#171a21" : "#ffffff";
+    octx.fillRect(0, 0, out.width, out.height);
+    octx.drawImage(src, 0, 0);
+    await downloadCanvasAsImage(out, `盐场地图_${timeStamp()}.png`);
+    message.success("图片导出成功");
+  } catch (err) {
+    console.error("地图导出失败:", err);
+    message.error("导出图片失败，请重试");
+  } finally {
+    isExporting.value = false;
+  }
 };
 
 /* 盐场战况（照抄 LegionWarStatistics 文件名） */
 const exportStat = () => {
-  const modeName = statView.value === "legion" ? "俱乐部战况" : statView.value === "individual" ? "个人战况" : "全部战况";
+  const modeName = statView.value === "legion" ? "俱乐部榜" : statView.value === "individual" ? "本部成员" : "全场个人";
   runExport(exportStatDom.value, `盐场${modeName}_${timeStamp()}.png`);
 };
 
@@ -2517,7 +2589,7 @@ const exportStatXlsx = () => {
   let dataToExport = [];
   let fileNamePrefix = "";
   if (statView.value === "legion") {
-    fileNamePrefix = "俱乐部战况";
+    fileNamePrefix = "俱乐部榜";
     dataToExport = legionData.value.map((item, index) => ({
       排名: index + 1,
       俱乐部名称: item.name,
@@ -2531,7 +2603,7 @@ const exportStatXlsx = () => {
       四圣: `${item.blessingCount}个共${item.blessingScore}分`,
     }));
   } else if (statView.value === "individual") {
-    fileNamePrefix = "个人战况";
+    fileNamePrefix = "本部成员";
     dataToExport = individualData.value.map((item, index) => ({
       排名: index + 1,
       名称: item.name,
@@ -2544,7 +2616,7 @@ const exportStatXlsx = () => {
       "K/D": item.kd,
     }));
   } else {
-    fileNamePrefix = "全部战况";
+    fileNamePrefix = "全场个人";
     dataToExport = allIndividualData.value.map((item, index) => ({
       排名: index + 1,
       名称: item.name,
