@@ -1,7 +1,8 @@
 <template>
   <MyCard class="bottle-helper" :statusClass="{ active: state.isRunning }">
     <template #icon>
-      <img src="/icons/173746572831736.png" alt="盐罐图标" />
+      <!-- 设计稿 B：卡头图标统一线性图标（立方体=罐体/服务容器语义） -->
+      <MIcon name="cube" :size="14" />
     </template>
     <template #title>
       <h3>盐罐机器人</h3>
@@ -34,6 +35,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
+import MIcon from "@/mobile/components/MIcon.vue";
 
 const tokenStore = useTokenStore();
 const message = useMessage();

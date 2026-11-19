@@ -40,16 +40,34 @@
               </n-tag>
             </div>
             <div class="role-stats">
-              <span class="level-text">Lv.{{ roleInfo.level || 1 }}</span>
-              <span class="power-value"
-                >战力 {{ formatPower(roleInfo.power) }}</span
+              <!-- 服务器：来自当前 Token（与顶栏同一数据源），如「14000服」。
+                   用户口径：这一行显示 服务器 + ID，不显示等级。 -->
+              <span class="server-name" v-if="serverName">{{ serverName }}</span>
+              <span class="role-id" v-if="roleInfo.roleId"
+                >ID <b>{{ roleInfo.roleId }}</b></span
               >
             </div>
-            <div class="activity-week" v-if="getCurrentActivityWeek">
-              <span class="activity-label">本周活动：</span>{{ getCurrentActivityWeek }}
-            </div>
+          </div>
+          <!-- 战力单独成块、右对齐：它是这张卡最该被一眼看到的数据，
+               原来跟「Lv.612」并排挤在一行，两者互相稀释（12.8亿 比 Lv 重要得多）。
+               ★ 只放真实字段（roleInfo.power），不摆装饰性刻度。 -->
+          <div class="role-power">
+            <span>战力</span>
+            <b>{{ formatPower(roleInfo.power) }}</b>
           </div>
         </div>
+      </div>
+
+      <!-- 本周活动：从 role-info-section 里挪出来，做成一条独立的「数据带」。
+           挪出来的原因：它原来跟名字挤在同一行，390px 下要么被省略号切字、
+           要么把「战力」挤走；独立成行后可以给标签 / 值 / 剩余三段各自的位置。
+           WEEK chip + 「本周活动 · 黑市周」+ 剩余天数，与设计稿 02-minimal 同构。 -->
+      <div class="activity-week" v-if="getCurrentActivityWeek">
+        <span class="activity-label">WEEK</span>
+        <span class="activity-name">本周活动 · {{ getCurrentActivityWeek }}</span>
+        <span class="activity-remain" v-if="activityRemainDays">
+          剩余 {{ activityRemainDays }} 天
+        </span>
       </div>
 
       <div class="resources" :class="{ collapsed: !isExpanded }" v-if="hasRole">
@@ -59,8 +77,9 @@
         </div>
       </div>
       <div v-if="hasRole && showExpand" class="resources-toggle">
+        <span class="res-total">全部资产 {{ resList.length }} 项</span>
         <n-button text @click="isExpanded = !isExpanded">
-          {{ isExpanded ? "收起" : "展开全部" }}
+          {{ isExpanded ? "收起" : "查看全部 ›" }}
         </n-button>
       </div>
       <div v-else class="loading">正在获取角色信息...</div>
@@ -172,6 +191,10 @@ const roleInfo = computed(() => {
 });
 
 const hasRole = computed(() => Object.keys(roleInfo.value || {}).length > 0);
+
+/* 服务器名：来自当前 Token（顶栏同一数据源，如「14000服」）。
+ * 身份牌这一行用户口径是「服务器 + ID」，不显示等级。 */
+const serverName = computed(() => tokenStore.selectedToken?.server || "");
 
 const defaultAvatars = [
   "/icons/1733492491706148.png",
@@ -335,12 +358,12 @@ const getCurrentActivityWeek = computed(() => {
   const start = new Date('2025-12-12T12:00:00'); // 起始时间：黑市周开始
   const weekDuration = 7 * 24 * 60 * 60 * 1000; // 一周毫秒数
   const cycleDuration = 3 * weekDuration; // 三周期毫秒数
-  
+
   const elapsed = now - start;
   if (elapsed < 0) return null; // 活动开始前
-  
+
   const cyclePosition = elapsed % cycleDuration;
-  
+
   if (cyclePosition < weekDuration) {
     return '黑市周';
   } else if (cyclePosition < 2 * weekDuration) {
@@ -348,6 +371,35 @@ const getCurrentActivityWeek = computed(() => {
   } else {
     return '宝箱周';
   }
+});
+
+/* 今日活动还剩几天（每周五 12:00 切换）。
+ * ★ 与 getCurrentActivityWeek 同源：同一份 start（2025-12-12，正好是周五）与 WEEK。
+ * ★ 必须按**日历日**算，不能按 24h 时长取整：
+ *   周四 11:00 距周五 12:00 是 25 小时，ceil 会算成「剩 2 天」，
+ *   而用户心智是「周五才换」⇒ 周四就是「剩 1 天」。
+ *   做法：先求下一个切换时刻，再取两个「当地 0 点」的日差。 */
+const activityRemainDays = computed(() => {
+  const now = new Date();
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const start = new Date("2025-12-12T12:00:00"); // 周五 12:00
+  const elapsed = now - start;
+  if (elapsed < 0) return 0;
+
+  /* 本周内已过多久 → 还差多久到本周五 12:00。
+     pos 用取模回正，避免早于锚点时出现负数。 */
+  const pos = ((elapsed % WEEK) + WEEK) % WEEK;
+  const nextSwitch = new Date(now.getTime() + (WEEK - pos));
+
+  const d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const d1 = new Date(
+    nextSwitch.getFullYear(),
+    nextSwitch.getMonth(),
+    nextSwitch.getDate(),
+  );
+  const days = Math.round((d1 - d0) / (24 * 60 * 60 * 1000));
+  /* 0 = 今天就要切（周五 12:00 前）⇒ 显示「剩 1 天」，不显示「剩 0 天」 */
+  return days === 0 ? 1 : days;
 });
 
 // 兼容旧字段（fishing.*）作为回退

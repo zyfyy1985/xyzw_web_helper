@@ -199,7 +199,7 @@ const wsLabel = computed(() =>
   wsConnected.value ? "已连接" : wsStatus.value === "connecting" ? "连接中" : "未连接",
 );
 const wsColor = computed(() =>
-  wsConnected.value ? "var(--m-green)" : wsStatus.value === "connecting" ? "var(--m-amber)" : "var(--m-text3)",
+  wsConnected.value ? "var(--m-primary)" : wsStatus.value === "connecting" ? "var(--m-amber)" : "var(--m-text3)",
 );
 /* 顶栏第二行状态字的类名（on / busy / off）：颜色写在 mobile.css 里，
    亮暗两套各一段 —— 不在这里拼色值，换肤时才不会漏。 */

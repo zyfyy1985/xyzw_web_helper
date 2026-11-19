@@ -243,14 +243,15 @@ html[data-theme="dark"] {
    注意暗色必须 !important：App.vue 里 html[data-theme=dark] span{color:#fff!important}
    是 (0,1,2)+important，这里的 (0,3,0) 也压不过它（踩过一次）。 */
 .m-appbar .m-acct .m-ws-st { font-weight: 500; }
-.m-appbar .m-acct .m-ws-st.on { color: var(--m-green); }
+/* 已连接态跟随主题主色（用户 11-19 口径：链环图标颜色随换肤走）；连接中/未连接仍是语义色 */
+.m-appbar .m-acct .m-ws-st.on { color: var(--m-primary); }
 .m-appbar .m-acct .m-ws-st.busy { color: var(--m-amber); }
 .m-appbar .m-acct .m-ws-st.off { color: var(--m-red); }
 
 /* 右侧三态图标（方案 B）：同一个 32px 槽位 ——
-   已连接=绿链环 / 连接中=琥珀转圈（disabled）/ 未连接=灰断链 + 琥珀角点。
+   已连接=主色链环（随换肤）/ 连接中=琥珀转圈（disabled）/ 未连接=灰断链 + 琥珀角点。
    三种状态都点开抽屉，所以图标只表达状态、不表达动作，不会出现「同一个图标点下去结果不一样」。 */
-.m-appbar .m-iconbtn.on { color: var(--m-green); }
+.m-appbar .m-iconbtn.on { color: var(--m-primary); }
 .m-appbar .m-iconbtn.off { color: var(--m-text3); }
 .m-appbar .m-iconbtn.busy { color: var(--m-amber); cursor: default; }
 .m-appbar .m-iconbtn.busy:active { background: none; }
@@ -280,7 +281,7 @@ html[data-theme="dark"] {
 
 html[data-theme="dark"] .m-appbar .m-acct .m-nm { color: var(--m-text) !important; }
 html[data-theme="dark"] .m-appbar .m-acct .m-sv { color: var(--m-text3) !important; }
-html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.on { color: var(--m-green) !important; }
+html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.on { color: var(--m-primary) !important; }
 html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.busy { color: var(--m-amber) !important; }
 html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !important; }
 /* 左侧两行：名字在上、「服务器 · 连接状态」在下（方案 C）。

@@ -1,23 +1,22 @@
 <template>
   <div class="status-card daily-task">
     <div class="card-header">
-      <img
-        src="/icons/174023274867420.png"
-        alt="每日任务"
-        class="status-icon"
-      />
+      <!-- 设计稿 B：卡头图标统一为线性图标（勾选=任务完成语义），
+           原来的彩色游戏 PNG 与「一支行动色」语言冲突 -->
+      <span class="status-icon">
+        <MIcon name="check" :size="14" :stroke="2" />
+      </span>
       <div class="status-info">
         <h3>每日任务</h3>
         <p>当前进度</p>
       </div>
       <div class="header-right">
-        <div
-          class="status-badge"
-          :class="{ completed: isFull }"
-          @click="showTaskDetails = true"
-        >
+        <!-- 状态徽章：纯展示（设计稿 B 的卡头右侧是「进行中/已完成」）。
+             「任务详情」入口挪到底部按钮行，与「一键补差」并排 ——
+             原来它占着徽章位，点击目标却是个"chip"，既不像按钮也不像状态。 -->
+        <div class="status-badge" :class="{ completed: isFull }">
           <div class="status-dot" :class="{ completed: isFull }" />
-          <span>任务详情</span>
+          <span>{{ isFull ? "已完成" : "进行中" }}</span>
         </div>
 
         <button
@@ -54,14 +53,22 @@
         />
       </div>
 
-      <!-- 提示信息 -->
-      <div class="info-container">右上角小齿轮有惊喜</div>
+      <!-- 完成度读数（设计稿 B 的 pbar-meta：说明 + 百分比）。
+           原来的「右上角小齿轮有惊喜」是桌面端的引导文案 —— 移动端齿轮就在卡头上，
+           引导语失去指向，换成真实数据（dailyPoint 即 role.dailyTask.dailyPoint）。 -->
+      <div class="info-container">
+        <span>今日任务完成度</span>
+        <b>{{ dailyPoint }}%</b>
+      </div>
     </div>
 
-    <!-- 一键执行按钮 -->
+    <!-- 任务详情 + 一键补差：并排一行（设计稿 B 的双按钮行） -->
     <div class="card-actions">
+      <button class="action-button secondary" @click="showTaskDetails = true">
+        任务详情
+      </button>
       <button
-        class="action-button"
+        class="action-button primary"
         :disabled="busy || !isConnected"
         @click="runDailyFix"
       >
@@ -303,6 +310,7 @@ import {
 import { useTokenStore } from "@/stores/tokenStore";
 import { DailyTaskRunner } from "@/utils/dailyTaskRunner";
 import { useMessage } from "naive-ui";
+import MIcon from "@/mobile/components/MIcon.vue";
 import {
   Settings,
   Calendar,

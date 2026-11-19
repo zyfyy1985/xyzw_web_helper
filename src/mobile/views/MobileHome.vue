@@ -11,44 +11,47 @@
     <!-- ============ ② 快捷入口 ============
          六格全部指向真实可达目标。注意 mobile 模式下 /admin/* 会被路由守卫弹回
          ⇒ 旧版页面（消息测试等）不放这里，统一由「我的 → 切回旧版界面」兜底。 -->
+    <div class="m-home-sec">
+      <b>快捷入口</b><i>06</i><span class="rule"></span>
+    </div>
     <section class="m-quick">
       <!-- 这个格子是 div 不是 button：里面还要放一个齿轮按钮，button 不能嵌套 -->
       <div class="m-qa" role="button" tabindex="0" @click="openGame" @keydown.enter="openGame">
         <span class="m-gear" role="button" title="内置脚本" @click.stop="openScripts">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.2a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/></svg>
         </span>
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="game" />
         </span>
         <span class="m-lb">打开游戏</span>
       </div>
       <!-- 多开：与桌面 /multi 同样的协同内核，进去默认把当前账号放进第 1 窗 -->
       <button class="m-qa" @click="openMulti">
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="grid" />
         </span>
         <span class="m-lb">多开</span>
       </button>
       <button class="m-qa" @click="router.push('/mobile/batch')">
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="batch" />
         </span>
         <span class="m-lb">批量执行</span>
       </button>
       <button class="m-qa" @click="router.push('/mobile/schedule')">
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="calendar" />
         </span>
         <span class="m-lb">定时任务</span>
       </button>
       <button class="m-qa" @click="openPanel('salt')">
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="salt" />
         </span>
         <span class="m-lb">盐场</span>
       </button>
       <button class="m-qa" @click="openPanel('peach')">
-        <span class="m-ib" style="background: var(--m-primary)">
+        <span class="m-ib">
           <MIcon name="peach" />
         </span>
         <span class="m-lb">蟠桃园</span>
@@ -58,6 +61,9 @@
     <!-- ============ ③④⑤ 三张状态卡 ============
          桌面原组件零改动，靠 .m-desk 做变量重映射 + 卡片压平；
          三者都是 gameData 可选链取数，不需要就绪门。 -->
+    <div class="m-home-sec">
+      <b>运行状态</b><i>03</i><span class="rule"></span>
+    </div>
     <section class="m-desk">
       <DailyTaskStatus />
       <HangUpStatusCard />
@@ -296,259 +302,660 @@ async function openGame() {
 
 <style scoped lang="scss">
 /* ============================================================
- * 首页对托管组件的窄屏修正（.m-desk 已统一做了变量重映射 / 去投影 / 控件收口，
- * 这里只补 IdentityCard 与三张状态卡在 390px 下的具体版式）
+ * 首页 —— 方案 B「极简数据面板」落地（design/mobile-home/02-minimal.html）
+ *
+ * 照搬 mobile.css 顶部的三条硬约束：
+ *   1. 全站一支行动色 --m-primary（换肤自动跟随）；语义色只出现在数据徽章上。
+ *   2. 卡片 = --m-card 底 + 1px --m-border 描边，无阴影；层次靠底色差与描边。
+ *   3. 圆角封顶：卡片 11(--m-r-lg) / 控件 7(--m-r-md) / 徽章小块 --m-r-sm；无药丸。
+ *
+ * 主题适配（本轮的重点）：
+ *   - 不写死任何十六进制。半透明主色一律
+ *       color-mix(in srgb, var(--m-primary) x%, transparent)
+ *     —— skins.css 里没有 --m-primary-rgb 三元组（换肤只覆盖十六进制），
+ *       写 rgba(var(--m-primary-rgb)) 会在薄荷青/胭脂等皮肤下停在经典蓝。
+ *   - 深浅色全部由 token 自动成立：--m-card / --m-bg / --m-border / --m-band
+ *     在暗色下各有一档，亮色稿的结构原样搬到暗色不需要另写一套。
+ *   - App.vue 的 html[data-theme=dark] span,div,p,label{color:#fff!important}
+ *     是 (0,1,1)+important，会压平灰阶层级 ⇒ 下面所有文字色都是
+ *     「.m-home.m-home 双类抬特异性 + :deep 点名到叶子 + !important」。
  * ============================================================ */
 
-/* ---------- 身份牌（深色卡）：整张墨底，本周活动做视觉焦点 ----------
- * 一块饱和蓝 + 一堆平铺数字是最容易显「凑」的组合，所以整张卡换成深墨底：
- * 底色本身承担「这是一张主卡」的角色，亮蓝只留给「本周活动」一个焦点，
- * 其余信息（名字 / 等级 / 战力 / 资产）全部降级为白与灰。
- * 只展示前 3 项资产，其余 45 项进底部抽屉（见 template 里的 .m-home-sheet）。 */
+.m-page.m-home {
+  position: relative; /* 网格纸 ::before 的定位基准 */
+  /* 等宽数字：数据面板的「仪表读数」感全靠它 */
+  --m-mono: "SF Mono", "Roboto Mono", "JetBrains Mono", Consolas, monospace;
+}
+/* 极淡网格纸：主色 5%（color-mix 跟随换肤与深浅色），越往下越淡。
+ * z-index:-1 落在 .mobile-shell 的底色之上、所有卡片之下；
+ * 卡片自带 --m-card 底 ⇒ 网格只在卡片间隙露出，不会画到卡上。 */
+.m-page.m-home::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--m-primary) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--m-primary) 5%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 46%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 46%);
+}
+
+/* ---------- 分区标题：快捷入口 06 ———————— ---------- */
+.m-home-sec {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 3px;
+}
+.m-home-sec b {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: var(--m-text2) !important;
+}
+.m-home-sec i {
+  font-style: normal;
+  font-family: var(--m-mono);
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text3) !important;
+}
+.m-home-sec .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--m-band);
+}
+
+/* ============================================================
+ * ① 身份牌（托管 fork/IdentityCard，结构改动在该组件内：
+ *    活动带独立成行、战力单独成块右对齐、底部条加「全部资产 N 项」）
+ * ============================================================ */
 .m-home :deep(.identity-embedded) {
   grid-column: auto;
 }
-.m-home :deep(.identity-card.embedded) {
+.m-home.m-home :deep(.identity-card.embedded) {
   display: block;
-  background: var(--m-ink-bg);
-  border: none;
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
   border-radius: var(--m-r-lg);
   padding: 0;
   overflow: hidden;
 }
 /* 组件自带的「身份牌 / 角色与资源概览」卡头在移动端纯占高度 */
-.m-home :deep(.identity-card.embedded > .card-header) {
+.m-home.m-home :deep(.identity-card.embedded > .card-header) {
   display: none;
 }
-.m-home :deep(.identity-card.embedded > .loading) {
-  padding: 12.5px 14.5px;
-  color: var(--m-ink-t3);
+.m-home.m-home :deep(.identity-card.embedded > .loading) {
+  padding: 14.5px;
+  color: var(--m-text3) !important;
 }
 
-/* ===== ① 顶部：头像 + 名字｜本周活动（焦点） ===== */
-.m-home :deep(.identity-card .role-profile-header) {
-  background: none;
-  border-radius: 3.5px;
-  padding: 12.5px 14.5px 0;
+/* ===== 顶部：头像｜名字+门派+等级｜战力（右，大） ===== */
+.m-home.m-home :deep(.identity-card .role-profile-header) {
+  background: none !important; /* 压掉 fork 里 rank-* 的整段渐变底 */
+  border-radius: 0;
+  padding: 14.5px 14.5px 0;
 }
-.m-home :deep(.identity-card .role-profile-content) {
+.m-home.m-home :deep(.identity-card .role-profile-content) {
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
-  gap: 10px;
+  gap: 12px;
 }
-.m-home :deep(.identity-card .avatar-container),
-.m-home :deep(.identity-card .role-avatar) {
-  width: 39.5px;
-  height: 39.5px;
+.m-home.m-home :deep(.identity-card .avatar-container),
+.m-home.m-home :deep(.identity-card .role-avatar) {
+  width: 50px;
+  height: 50px;
   flex: none;
 }
-.m-home :deep(.identity-card .role-avatar) {
-  border-radius: var(--m-r-md);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
+.m-home.m-home :deep(.identity-card .role-avatar) {
+  border-radius: var(--m-r-lg);
+  border: 1px solid var(--m-border);
+  background: var(--m-band);
+  object-fit: cover;
 }
-/* 两列：第 1 行「名字 | 本周活动」，第 2 行「Lv · 战力」跨满。
- * 名字列按内容取宽（占优），活动列 1fr 让位并在不够时省略。 */
-.m-home :deep(.identity-card .role-info-section) {
+.m-home.m-home :deep(.identity-card .role-info-section) {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  align-items: center;
-  column-gap: 7px;
-  row-gap: 4.5px;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 5px;
+  align-content: center;
   min-width: 0;
   flex: 1;
-  padding-top: 1px;
 }
-.m-home :deep(.identity-card .role-name) {
-  grid-column: 1;
-  grid-row: 1;
+.m-home.m-home :deep(.identity-card .role-name) {
   display: flex;
   align-items: center;
   min-width: 0;
-  color: var(--m-ink-t1);
-  font-size: 14.5px;
-  font-weight: 500;
-  line-height: 1.2;
+  color: var(--m-text) !important;
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.25;
   letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
 }
-.m-home :deep(.identity-card .role-name .n-tag) {
-  height: 15.5px;
-  padding: 0 4.5px;
-  margin-left: 5.5px !important;
+/* 门派 tag：压成「浅主色底 + 深主色字」的小方块（随换肤走）。
+ * 组件给的是内联饱和色（inline style），必须 !important 才盖得过；
+ * 内部的 .n-tag__content 是 span，暗色下会被 App.vue 刷白，也要点名。 */
+.m-home.m-home :deep(.identity-card .role-name .n-tag) {
+  height: 17px;
+  padding: 0 6px;
+  margin-left: 6px !important;
   font-size: 9.5px;
-  line-height: 15.5px;
-  /* 门派色是组件内联的饱和红，压在深底上会和「本周活动」抢注意力 ⇒ 压一档 */
-  opacity: 0.8;
-  filter: saturate(0.62);
-}
-.m-home :deep(.identity-card .role-stats) {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  justify-content: flex-start;
-  gap: 7px;
-  color: var(--m-ink-t3);
-  font-size: 10.5px;
-}
-/* ★ 本周活动 = 全卡唯一焦点：亮蓝字 + 半透明蓝底胶囊，其余信息一律压成灰白 */
-/* 只留活动名（黑市周），「本周活动：」这四个字在移动端多余（胶囊本身就是标签） */
-.m-home :deep(.identity-card .activity-label) {
-  display: none;
-}
-.m-home :deep(.identity-card .activity-week) {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-  align-self: center;
-  margin: 0;
-  padding: 3.5px 8px;
-  max-width: 100%;
-  background: var(--m-ink-chip-bg);
-  border-radius: 7px;
-  color: var(--m-ink-chip-fg);
-  font-size: 11.5px;
+  line-height: 17px;
   font-weight: 500;
-  line-height: 1.35;
+  background: var(--m-primary-soft) !important;
+  border: none;
+  border-radius: var(--m-r-sm);
+  opacity: 1;
+  filter: none;
+}
+.m-home.m-home :deep(.identity-card .role-name .n-tag),
+.m-home.m-home :deep(.identity-card .role-name .n-tag .n-tag__content) {
+  color: var(--m-primary-deep) !important;
+}
+.m-home.m-home :deep(.identity-card .role-stats) {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  color: var(--m-text3) !important;
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+/* 服务器名（如「14000服」）：与 ID 同行的小灰字 */
+.m-home.m-home :deep(.identity-card .role-stats .server-name) {
+  flex: none;
+  color: var(--m-text3) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.m-home.m-home :deep(.identity-card .role-stats .role-id) {
+  min-width: 0;
+  color: var(--m-text3) !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.m-home.m-home :deep(.identity-card .role-stats .role-id b) {
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--m-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  color: var(--m-text2) !important;
+}
+/* 战力：这张卡唯一的大数字，右对齐、等宽、行动色 */
+.m-home.m-home :deep(.identity-card .role-power) {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  text-align: right;
+}
+.m-home.m-home :deep(.identity-card .role-power span) {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--m-text3) !important;
+}
+.m-home.m-home :deep(.identity-card .role-power b) {
+  font-family: var(--m-mono);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-primary) !important;
+}
 
-/* ≤359px（老款 5.0" / 320 逻辑宽）：8 字中文名 + 门派 tag 挤在同一列，
- * .role-name 的 overflow:hidden 会把 tag 切成一条红边（实测只剩「：」两笔）
- * ⇒ 这一档只留名字，tag 让位。 */
+/* ===== 本周活动：独立数据带（浅主色底，标签+值+剩余） ===== */
+.m-home.m-home :deep(.identity-card .activity-week) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12.5px 14.5px 0;
+  padding: 7.5px 10px;
+  background: var(--m-primary-soft);
+  border-radius: var(--m-r-md);
+  min-width: 0;
+}
+.m-home.m-home :deep(.identity-card .activity-label) {
+  flex: none;
+  padding: 2px 6px;
+  border-radius: var(--m-r-sm);
+  background: var(--m-primary);
+  font-family: var(--m-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  line-height: 1.3;
+  color: var(--m-on-primary) !important;
+}
+.m-home.m-home :deep(.identity-card .activity-name) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--m-primary-deep) !important;
+}
+.m-home.m-home :deep(.identity-card .activity-remain) {
+  margin-left: auto;
+  flex: none;
+  font-family: var(--m-mono);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text3) !important;
+}
+
+/* ≤359px：8 字长名 + 门派 tag 会把「战力」挤走 ⇒ 这一档收窄字号让位 */
 @media (max-width: 359px) {
-  .m-home :deep(.identity-card .role-name .n-tag) {
-    display: none;
+  .m-home.m-home :deep(.identity-card .role-name) {
+    font-size: 14px;
   }
 }
 
-/* ===== ② 三项关键资产：一列一条，竖向发丝线分隔 ===== */
-.m-home :deep(.identity-card .resources) {
+/* ===== 三项关键资产：一列一条，竖向发丝线分隔 ===== */
+.m-home.m-home :deep(.identity-card .resources) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 11.5px 14.5px 0;
-  padding: 11.5px 0 11px;
-  border-top: 1px solid var(--m-ink-line);
+  margin: 12.5px 14.5px 0;
+  padding: 11.5px 0;
+  border-top: 1px solid var(--m-band);
   background: none;
 }
 /* 卡片只留前 3 项，其余进抽屉（display:none 仍在 DOM 里，抽屉直接读文本） */
-.m-home :deep(.identity-card .resources .res-item:nth-child(n + 4)) {
+.m-home.m-home :deep(.identity-card .resources .res-item:nth-child(n + 4)) {
   display: none;
 }
-.m-home :deep(.identity-card .res-item) {
+.m-home.m-home :deep(.identity-card .res-item) {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 3.5px;
+  gap: 4px;
   min-height: 0;
   padding: 0;
   background: none;
   border: none;
-  border-radius: 3.5px;
 }
-.m-home :deep(.identity-card .resources .res-item + .res-item) {
-  padding-left: 11px;
-  border-left: 1px solid var(--m-ink-line);
+.m-home.m-home :deep(.identity-card .resources .res-item + .res-item) {
+  padding-left: 12px;
+  border-left: 1px solid var(--m-band);
 }
-.m-home :deep(.identity-card .res-item .label) {
+.m-home.m-home :deep(.identity-card .res-item .label) {
   max-width: 100%;
-  color: var(--m-ink-t3);
+  color: var(--m-text3) !important;
   font-size: 9.5px;
   font-weight: 400;
-  line-height: 1.4;
-  letter-spacing: 1px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.m-home :deep(.identity-card .res-item .value) {
+.m-home.m-home :deep(.identity-card .res-item .value) {
   max-width: 100%;
-  color: var(--m-ink-t1);
-  /* 14px 而非 15：数值太亮太大就会和「本周活动」抢焦点 */
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.35;
+  color: var(--m-text) !important;
+  font-family: var(--m-mono);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ===== ③ 底部：左「资产」右「全部 ›」 ===== */
-.m-home :deep(.identity-card .resources-toggle) {
+/* ===== 底部：左「全部资产 N 项」右「查看全部 ›」（点击整行开抽屉） ===== */
+.m-home.m-home :deep(.identity-card .resources-toggle) {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  padding: 9px 14.5px 11px;
-  border-top: 1px solid var(--m-ink-line);
-  background: none;
-  border-radius: 3.5px;
+  padding: 8.5px 14.5px 10px;
+  border-top: 1px solid var(--m-band);
+  /* 设计稿 #fafbfc：比白卡「浅一丁点」的同色调条，不是页面底色那么深。
+     2% 主色混入卡底，随换肤走；暗色下同理得到一条比卡底略浅的条 */
+  background: color-mix(in srgb, var(--m-primary) 2%, var(--m-card));
+  border-radius: 0;
+  cursor: pointer;
 }
-.m-home :deep(.identity-card .resources-toggle::before) {
-  content: "资产";
-  color: var(--m-ink-t3);
+.m-home.m-home :deep(.identity-card .res-total) {
   font-size: 10px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  color: var(--m-text3) !important;
 }
-/* 组件按钮文案是「展开全部 / 收起」（桌面 GameStatus 也在用，不能改组件），
- * 这里 font-size:0 藏掉原文字、用 ::before 换成「全部」，点击由 .m-desk 的捕获监听接管 */
-.m-home :deep(.identity-card .resources-toggle .n-button) {
-  width: auto;
-  height: 21.5px;
-  font-size: 0;
-  font-weight: 500;
-  color: var(--m-ink-t1) !important;
-  --n-text-color: var(--m-ink-t1) !important;
-  --n-text-color-hover:var(--m-primary-soft) !important;
-  --n-text-color-pressed:var(--m-primary-soft) !important;
-  --n-text-color-focus: var(--m-ink-t1) !important;
-}
-.m-home :deep(.identity-card .resources-toggle .n-button::before) {
-  content: "全部";
+.m-home.m-home :deep(.identity-card .resources-toggle .n-button) {
+  height: 22px;
+  padding: 0 2px;
   font-size: 11.5px;
+  font-weight: 600;
+  --n-text-color: var(--m-primary) !important;
+  --n-text-color-hover: var(--m-primary-deep) !important;
+  --n-text-color-pressed: var(--m-primary-deep) !important;
+  --n-text-color-focus: var(--m-primary) !important;
 }
-.m-home :deep(.identity-card .resources-toggle .n-button::after) {
-  content: "";
-  width: 5.5px;
-  height: 5.5px;
-  margin-left: 4.5px;
-  margin-top: -2px;
-  border-right: 1.4px solid currentColor;
-  border-bottom: 1.4px solid currentColor;
-  transform: rotate(-45deg);
+/* 按钮文字是 span，暗色下会被 App.vue 刷白 ⇒ 点名 */
+.m-home.m-home :deep(.identity-card .resources-toggle .n-button .n-button__content) {
+  color: var(--m-primary) !important;
 }
 
-/* ★ App.vue 的 html[data-theme="dark"] span/div{color:var(--m-on-primary)!important} 会把这套深色卡
- * 里的灰阶层级全压成纯白（标签和数值同色），必须抬特异性 + !important 拉回来。 */
-.m-home.m-home :deep(.identity-card .role-name) {
-  color: var(--m-ink-t1) !important;
+/* ============================================================
+ * ② 快捷入口：白卡 + 描边 + 浅主色图标块（与「玩法/工具」页的
+ *    .m-tile-ic 同一套语言，换肤后全站图标块同色）
+ * ============================================================ */
+.m-home .m-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
-.m-home.m-home :deep(.identity-card .role-stats) {
-  color: var(--m-ink-t3) !important;
+.m-home .m-qa {
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-r-lg);
+  padding: 13px 5.5px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  box-shadow: none;
+  font-family: inherit;
 }
-/* ★ 只设 .role-stats 不够：里面「Lv.6000」「战力 12.3亿」是两个 span，
- * 会被 App.vue 的 html[data-theme="dark"] span{color:var(--m-on-primary)!important} 直接命中，
- * 继承色永远输给直接命中 ⇒ 必须点名到 span 本身。 */
-.m-home.m-home :deep(.identity-card .role-stats .level-text),
-.m-home.m-home :deep(.identity-card .role-stats .power-value) {
-  color: var(--m-ink-t3) !important;
+/* 图标块：浅主色底 + 16% 主色描边 + 主色图标。
+ * --m-primary-soft 在白卡上对比不足（≈1.05），描边是它立得住的关键（同 .m-tile-ic）。 */
+.m-home .m-qa .m-ib {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--m-r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--m-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--m-primary) 16%, transparent);
+  color: var(--m-primary);
 }
-.m-home.m-home :deep(.identity-card .activity-week) {
-  color: var(--m-ink-chip-fg) !important;
+/* App.vue 的暗色 *{color:#fff} 比继承强，图标必须显式点名 */
+.m-home .m-qa .m-ib svg {
+  width: 18px;
+  height: 18px;
+  color: var(--m-primary);
 }
-.m-home.m-home :deep(.identity-card .res-item .label) {
-  color: var(--m-ink-t3) !important;
+.m-home .m-qa .m-lb {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--m-text2) !important;
 }
-.m-home.m-home :deep(.identity-card .res-item .value) {
-  color: var(--m-ink-t1) !important;
+/* 齿轮：白底圆 + 描边（内置脚本入口，与卡面同底色才不显脏） */
+.m-home .m-qa .m-gear {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  border: 1px solid var(--m-border);
+  background: var(--m-card);
+  color: var(--m-text3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
-.m-home.m-home :deep(.identity-card .resources-toggle::before) {
-  color: var(--m-ink-t3) !important;
+.m-home .m-qa .m-gear svg {
+  width: 11px;
+  height: 11px;
+}
+
+/* ============================================================
+ * ③ 三张状态卡（托管 MyCard / DailyTaskStatus）：白卡 + 描边，
+ *    图标块浅主色底，计时等宽大数字，动作键 32px
+ * ============================================================ */
+.m-home.m-home :deep(.status-card) {
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-r-lg);
+  padding: 13px 14.5px;
+  box-shadow: none;
+  min-height: 0;
+  transform: none;
+  transition: none;
+}
+.m-home.m-home :deep(.status-card .card-header) {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+/* 图标块：25px 浅主色底 + 线性图标（MIcon，currentColor 跟行动色，随换肤走） */
+.m-home.m-home :deep(.status-card .card-header .status-icon) {
+  flex: none;
+  box-sizing: border-box;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--m-r-md);
+  background: var(--m-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--m-primary) 16%, transparent);
+  color: var(--m-primary);
+  overflow: hidden;
+}
+/* App.vue 的暗色 *{color:#fff} 比继承强，svg 必须显式点名 */
+.m-home.m-home :deep(.status-card .card-header .status-icon svg) {
+  color: var(--m-primary);
+}
+.m-home.m-home :deep(.status-card .card-header .status-title h3),
+.m-home.m-home :deep(.status-card .card-header .status-info h3) {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--m-text) !important;
+}
+.m-home.m-home :deep(.status-card .card-header .status-title p),
+.m-home.m-home :deep(.status-card .card-header .status-info p) {
+  margin: 2px 0 0;
+  font-size: 9.5px;
+  line-height: 1.35;
+  color: var(--m-text3) !important;
+}
+/* 徽章：小块（--m-r-md），语义色仍由 MyCard 的 --bg-color/--font-color 提供 */
+.m-home.m-home :deep(.status-card .status-badge) {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4.5px;
+  padding: 3px 8px;
+  border-radius: var(--m-r-md);
+  font-size: 9.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  background: var(--m-band);
+  color: var(--m-text3) !important;
+}
+.m-home.m-home :deep(.status-card .status-badge .status-dot) {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--m-text4);
+}
+/* 传了 status-class 的卡片保留语义色（挂机中 / 运行中是数据语义，不能拍成灰块）。
+ * ★ 特异性必须压过上面那条灰色底：这里 (0,6,0) > 上面的 (0,5,0)。 */
+.m-home.m-home :deep(.status-card .status-badge.weekly),
+.m-home.m-home :deep(.status-card .status-badge.active),
+.m-home.m-home :deep(.status-card .status-badge.energy),
+.m-home.m-home :deep(.status-card .status-badge.completed) {
+  background: var(--bg-color);
+  color: var(--font-color) !important;
+}
+.m-home.m-home :deep(.status-card .status-badge .status-dot) {
+  background: currentColor;
+}
+
+/* ---------- 每日任务 ---------- */
+/* 组件给 .daily-task 挂了 4px 橘色左边线做「专用色」标记 —— 本体系里卡片一律无边框 */
+.m-home.m-home :deep(.status-card.daily-task) {
+  border-left: 1px solid var(--m-border);
+}
+.m-home.m-home :deep(.daily-task .card-header) {
+  flex-wrap: nowrap;
+  align-items: center;
+  margin-bottom: 11px;
+}
+.m-home.m-home :deep(.daily-task .header-right) {
+  width: auto;
+  margin-left: auto;
+  margin-top: 0;
+  gap: 5.5px;
+}
+.m-home.m-home :deep(.daily-task .settings-gear) {
+  width: 23.5px;
+  height: 23.5px;
+  /* 圆形，对齐六宫格里那颗「内置脚本」齿轮 */
+  border-radius: 50%;
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  color: var(--m-text3) !important;
+}
+.m-home.m-home :deep(.daily-task .progress-container) {
+  margin-bottom: 9px;
+}
+/* 进度条：Naive 把 rail/fill 颜色与高度写成内联（rail-color=var(--m-bg)、高度 8px），
+   只能 !important 压回 band + 5px 细条 */
+.m-home.m-home :deep(.daily-task .n-progress) {
+  --n-fill-color: var(--m-primary) !important;
+}
+.m-home.m-home :deep(.daily-task .n-progress-graph-line),
+.m-home.m-home :deep(.daily-task .n-progress-graph-line-rail),
+.m-home.m-home :deep(.daily-task .n-progress-graph-line-fill) {
+  height: 5px !important;
+}
+.m-home.m-home :deep(.daily-task .n-progress-graph-line-rail) {
+  background-color: var(--m-band) !important;
+  border-radius: var(--m-r-sm) !important;
+}
+.m-home.m-home :deep(.daily-task .n-progress-graph-line-fill) {
+  border-radius: var(--m-r-sm) !important;
+}
+.m-home.m-home :deep(.daily-task .info-container) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--m-text3) !important;
+}
+.m-home.m-home :deep(.daily-task .info-container span) {
+  color: var(--m-text3) !important;
+}
+.m-home.m-home :deep(.daily-task .info-container b) {
+  font-family: var(--m-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-primary) !important;
+}
+.m-home.m-home :deep(.daily-task .card-actions) {
+  margin-top: 0;
+  padding-top: 0;
+  display: flex;
+  gap: 8px;
+}
+/* 双按钮行：任务详情（次）+ 一键补差（主），等宽并排 */
+.m-home.m-home :deep(.daily-task .action-button) {
+  flex: 1;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--m-r-md);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--m-primary);
+  color: var(--m-on-primary) !important;
+  border: none;
+}
+.m-home.m-home :deep(.daily-task .action-button.secondary) {
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  color: var(--m-text2) !important;
+}
+.m-home.m-home :deep(.daily-task .action-button:disabled) {
+  background: var(--m-band);
+  color: var(--m-text3) !important;
+  border-color: transparent;
+}
+/* 卡头状态徽章：进行中 / 已完成 —— 设计稿 B 是绿点 + 绿字，
+ * 与挂机卡的「挂机中」同一语义色（fork 的 completed 只绿了完成态）。
+ * (0,5,0)/(0,6,0) 压过 fork 的 `.daily-task .status-badge.completed`(0,4,0) */
+.m-home.m-home :deep(.daily-task .status-badge) {
+  background: var(--m-green-soft);
+  color: var(--m-green) !important;
+}
+.m-home.m-home :deep(.daily-task .status-badge .status-dot) {
+  background: var(--m-green);
+}
+
+/* ---------- 挂机 / 盐罐 ---------- */
+.m-home.m-home :deep(.status-card .card-content) {
+  margin-bottom: 9px;
+}
+/* 计时：等宽大数字，整卡的数据焦点 */
+.m-home.m-home :deep(.status-card .time-display) {
+  font-family: var(--m-mono);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-text) !important;
+  text-align: center;
+  margin: 2px 0 10px;
+}
+/* MyCard 的 .status-card .active 会给动作行刷一层淡绿底，移动端只留按钮自己的语义 */
+.m-home.m-home :deep(.status-card .card-action) {
+  background: transparent;
+  gap: 8px;
+}
+/* 动作键：32px（全局基线 29px 是给行内小动作的，
+   这三处是整宽主 CTA，单独抬一档）；主键实心蓝、次键白底描边 */
+.m-home.m-home :deep(.card-action > button.action-button) {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--m-r-md);
+  font-size: 12px;
+  font-weight: 500;
+}
+.m-home.m-home :deep(.card-action > button.action-button.secondary) {
+  background: var(--m-card);
+  border: 1px solid var(--m-border);
+  color: var(--m-text2) !important;
+}
+.m-home.m-home :deep(.card-action > button.action-button.primary) {
+  background: var(--m-primary);
+  border: 1px solid transparent;
+  color: var(--m-on-primary) !important;
+}
+/* 盐罐卡是 Arco 的 type=primary secondary：背景收到行动蓝，字色也要点名
+   （暗色下 Arco 自带的白字会压在浅主色上） */
+.m-home.m-home :deep(.bottle-helper .card-action .arco-btn) {
+  height: 32px;
+  font-size: 12px;
+  border-radius: var(--m-r-md);
+  background: var(--m-primary);
+  border-color: var(--m-primary);
+  color: var(--m-on-primary) !important;
 }
 
 /* ---------- 全部资产抽屉 ----------
@@ -599,50 +1006,52 @@ async function openGame() {
 .m-home-sheet h4 {
   margin: 0;
   font-size: 15.5px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
-  color: var(--m-text);
+  color: var(--m-text) !important;
 }
 .m-home-sheet .m-as-sub {
   margin-top: 2.5px;
   font-size: 11px;
   line-height: 1.5;
-  color: var(--m-text3);
+  color: var(--m-text3) !important;
 }
-/* 主货币：band 灰底 + 1px 缝，缝本身就是分隔线（不描边、不卡片套卡片） */
+/* 主货币：2×2 分离小格（--m-bg 底），不再用 1px 缝拼网格 */
 .m-home-sheet .m-as-hero {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
+  gap: 8px;
   margin-bottom: 12.5px;
-  overflow: hidden;
-  border-radius: var(--m-r-lg);
-  background: var(--m-band);
 }
 .m-home-sheet .m-as-cell {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: 8px 11px;
-  background: var(--m-card);
+  padding: 9px 11px;
+  /* 设计稿 #f7f9fc 是「带一点主色调的极淡灰白」，不是中性灰；
+     用 3% 主色混入卡底，随换肤走（skins 没有 RGB 三元组，不能用 rgba(var(--m-primary-rgb))） */
+  background: color-mix(in srgb, var(--m-primary) 3%, var(--m-card));
+  border-radius: var(--m-r-md);
 }
 .m-home-sheet .m-as-k {
-  font-size: 10px;
-  line-height: 12.5px;
+  font-size: 9.5px;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
   color: var(--m-text3) !important;
 }
 .m-home-sheet .m-as-v {
   overflow: hidden;
-  font-size: 15.5px;
-  font-weight: 700;
-  line-height: 20px;
+  font-family: var(--m-mono);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text) !important;
 }
-/* 分组：节标题 = 3px 行动色竖线 + 12.5px 灰字 + 右侧项数 */
+/* 分组：节标题 = 2px 行动色竖线 + 11px 灰字 + 右侧项数 */
 .m-home-sheet .m-as-sec + .m-as-sec {
   margin-top: 12.5px;
 }
@@ -651,8 +1060,9 @@ async function openGame() {
   align-items: center;
   gap: 5.5px;
   margin-bottom: 2px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.5px;
   line-height: 16px;
   color: var(--m-text3) !important;
 }
@@ -661,7 +1071,7 @@ async function openGame() {
   flex: none;
   width: 2.5px;
   height: 9px;
-  border-radius: 3.5px;
+  border-radius: 1px;
   background: var(--m-primary);
 }
 .m-home-sheet .m-as-sec-k {
@@ -669,12 +1079,13 @@ async function openGame() {
 }
 .m-home-sheet .m-as-sec-n {
   margin-left: auto;
-  font-size: 10.5px;
+  font-family: var(--m-mono);
+  font-size: 9.5px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
 }
-/* 两列账目：标签左、数值右，行间发丝线 */
+/* 两列账目：标签左、数值右（等宽），行间发丝线 */
 .m-home-sheet .m-as-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -688,7 +1099,6 @@ async function openGame() {
   padding: 6.5px 0;
   border-bottom: 1px solid var(--m-band);
 }
-/* App.vue 暗色规则同样会压掉抽屉里的灰阶 */
 .m-home-sheet .m-as-row .m-as-label {
   overflow: hidden;
   font-size: 11.5px;
@@ -699,126 +1109,11 @@ async function openGame() {
 }
 .m-home-sheet .m-as-row .m-as-value {
   flex: none;
+  font-family: var(--m-mono);
   font-size: 11.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--m-text) !important;
-}
-.m-home-sheet h4 {
-  color: var(--m-text) !important;
-}
-.m-home-sheet .m-as-sub {
-  color: var(--m-text3) !important;
-}
-
-/* ---------- 每日任务 ---------- */
-/* 组件给 .daily-task 挂了 4px 橘色左边线做「专用色」标记 —— 本体系里卡片一律无边框 */
-.m-home :deep(.status-card.daily-task) {
-  border-left: none;
-}
-.m-home :deep(.daily-task .card-header) {
-  flex-wrap: nowrap;
-  align-items: center;
-  margin-bottom: 9px;
-}
-.m-home :deep(.daily-task .header-right) {
-  width: auto;
-  margin-left: auto;
-  margin-top: 0;
-  gap: 5.5px;
-}
-.m-home :deep(.daily-task .settings-gear) {
-  width: 23.5px;
-  height: 23.5px;
-  /* 圆形，对齐六宫格里那颗「内置脚本」齿轮 */
-  border-radius: 50%;
-  background: var(--m-band);
-  color: var(--m-text3);
-}
-.m-home :deep(.daily-task .settings-gear:hover) {
-  background: var(--m-primary);
-  color: var(--m-on-primary);
-  transform: none;
-}
-.m-home :deep(.daily-task .progress-container) {
-  margin-bottom: 9px;
-}
-/* 进度条：Naive 把 rail/fill 颜色写成内联（rail-color=var(--m-bg)、--n-fill-color=var(--m-primary)），
-   暗色下轨道几乎全白 —— 只能 !important 压回 band + 唯一行动蓝 */
-.m-home :deep(.daily-task .n-progress) {
-  --n-fill-color: var(--m-primary) !important;
-}
-.m-home :deep(.daily-task .n-progress-graph-line-rail) {
-  background-color: var(--m-band) !important;
-  border-radius: var(--m-r-sm) !important;
-}
-.m-home :deep(.daily-task .info-container) {
-  font-size: 10px;
-  color: var(--m-text3);
-}
-.m-home :deep(.daily-task .card-actions) {
-  margin-top: 0;
-  padding-top: 0;
-}
-.m-home :deep(.daily-task .action-button) {
-  min-height: 32.5px;
-  padding: 0 12.5px;
-  border-radius: var(--m-r-md);
-  font-size: 12.5px;
-  font-weight: 500;
-  background: var(--m-primary);
-  color: var(--m-on-primary);
-}
-.m-home :deep(.daily-task .action-button:disabled) {
-  background: var(--m-band);
-  color: var(--m-text3);
-}
-
-/* ---------- 挂机 / 盐罐 ---------- */
-.m-home :deep(.status-card .card-content) {
-  margin-bottom: 9px;
-}
-.m-home :deep(.status-card .time-display) {
-  font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--m-text);
-  text-align: center;
-  margin-bottom: 0;
-  font-variant-numeric: tabular-nums;
-}
-/* MyCard 的 .status-card .active 会给动作行刷一层淡绿底，移动端只留按钮自己的语义 */
-.m-home :deep(.status-card .card-action) {
-  background: transparent;
-}
-/* 三张卡的动作键统一 36px（卡内基线 32px 是给「行内小动作」的，
-   这三处是整宽主 CTA，跟登录页主按钮一样需要一眼看到，所以单独抬一档） */
-.m-home :deep(.card-action > button.action-button) {
-  min-height: 32.5px;
-  padding: 0 12.5px;
-  border-radius: var(--m-r-md);
-  font-size: 12.5px;
-  font-weight: 500;
-}
-/* 挂机卡两个原生 button（.action-button secondary / primary）——补齐配色 */
-.m-home :deep(.card-action > button.action-button.secondary) {
-  background: var(--m-band);
-  color: var(--m-text2);
-}
-.m-home :deep(.card-action > button.action-button.primary) {
-  background: var(--m-primary);
-  color: var(--m-on-primary);
-}
-/* 盐罐卡是 Arco 的 type=primary secondary：背景被收到行动蓝了，但 Arco 自己的字色还是白，
-   暗色下就是白字压在浅蓝上（实测 rgb(255,255,255) on rgb(107,192,255)） */
-.m-home :deep(.bottle-helper .card-action .arco-btn) {
-  height: 32.5px;
-  font-size: 12.5px;
-  border-radius: var(--m-r-md);
-  background: var(--m-primary);
-  border-color: var(--m-primary);
-  color: var(--m-on-primary);
 }
 </style>
 

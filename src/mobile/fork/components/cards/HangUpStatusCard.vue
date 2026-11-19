@@ -1,7 +1,8 @@
 <template>
   <MyCard class="hang-up" :statusClass="{ active: hangUp.isActive }">
     <template #icon>
-      <img src="/icons/174061875626614.png" alt="挂机图标" />
+      <!-- 设计稿 B：卡头图标统一线性图标（时钟=倒计时语义） -->
+      <MIcon name="clock" :size="14" />
     </template>
     <template #title>
       <h3>挂机时间</h3>
@@ -45,6 +46,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import MyCard from "../Common/MyCard.vue";
+import MIcon from "@/mobile/components/MIcon.vue";
 
 const tokenStore = useTokenStore();
 const message = useMessage();
