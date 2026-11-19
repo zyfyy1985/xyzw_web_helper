@@ -461,35 +461,26 @@ async function openGame() {
 .m-home.m-home :deep(.identity-card .role-stats) {
   display: flex;
   align-items: baseline;
+  /* ★ 必须显式压回左对齐：fork 里有一条 @media(max-width:768px)
+     .role-stats{justify-content:center}（桌面端居中版式残留），
+     手机宽度下生效 ⇒ ID 被推到中间偏右（用户真机截图就是这个） */
+  justify-content: flex-start;
   gap: 7px;
   min-width: 0;
   color: var(--m-text3) !important;
   font-size: 10.5px;
   line-height: 1.3;
 }
-/* 服务器名（如「14000服」）：与 ID 同行的小灰字 */
-.m-home.m-home :deep(.identity-card .role-stats .server-name) {
-  flex: none;
-  color: var(--m-text3) !important;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+/* 角色 ID 一行：整行同一字体字号（10.5px 灰字），不做等宽/加粗强调 ——
+   之前 ID 数字用 12px 等宽字，baseline 对齐后旁边的汉字看着就退后了几个像素 */
 .m-home.m-home :deep(.identity-card .role-stats .role-id) {
   min-width: 0;
+  font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.m-home.m-home :deep(.identity-card .role-stats .role-id b) {
-  margin-left: 2px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: var(--m-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3px;
-  color: var(--m-text2) !important;
+  cursor: pointer;
 }
 /* 战力：这张卡唯一的大数字，右对齐、等宽、行动色 */
 .m-home.m-home :deep(.identity-card .role-power) {

@@ -40,11 +40,15 @@
               </n-tag>
             </div>
             <div class="role-stats">
-              <!-- 服务器：来自当前 Token（与顶栏同一数据源），如「14000服」。
-                   用户口径：这一行显示 服务器 + ID，不显示等级。 -->
-              <span class="server-name" v-if="serverName">{{ serverName }}</span>
-              <span class="role-id" v-if="roleInfo.roleId"
-                >ID <b>{{ roleInfo.roleId }}</b></span
+              <!-- 角色 ID：真实字段（role.roleId）。
+                 ★ 整行同一字体字号（用户口径：这一排小字字体一样）——
+                 之前 ID 用 12px 等宽字，baseline 对齐后旁边的 10.5px 汉字看着就退后了几个像素。 -->
+              <span
+                class="role-id"
+                v-if="roleInfo.roleId"
+                title="点击复制"
+                @click.stop="copyRoleId"
+                >ID:{{ roleInfo.roleId }}</span
               >
             </div>
           </div>
@@ -155,6 +159,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useMessage } from "naive-ui";
 import { useTokenStore } from "@/stores/tokenStore";
 import { legacycolor as rawLegacyColor } from "@/utils/HeroList";
 
@@ -165,6 +170,45 @@ const tokenStore = useTokenStore();
 const props = defineProps<{ visible?: boolean; embedded?: boolean }>();
 const emit = defineEmits(["close"]);
 const isExpanded = ref(false);
+const message = useMessage();
+
+/* 点击「ID:xxx」复制角色 ID。
+ * 复制链：navigator.clipboard（https/localhost 专用）失败 ⇒ execCommand 降级
+ *   （局域网 http 部署下 clipboard API 是 undefined，execCommand 是唯一可用路径；
+ *    deprecated 但所有主流浏览器仍支持，且必须在用户手势内同步执行）。
+ * 两条都失败才报错。 */
+const copyRoleId = async () => {
+  const id = String((roleInfo.value as any).roleId || "").trim();
+  if (!id) return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(id);
+    } else {
+      throw new Error("no clipboard api");
+    }
+    message.success("ID 已复制");
+  } catch {
+    /* 降级：execCommand */
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = id;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      if (ok) {
+        message.success("ID 已复制");
+      } else {
+        message.error("复制失败，请长按手动复制");
+      }
+    } catch {
+      message.error("复制失败，请长按手动复制");
+    }
+  }
+};
 
 const wsStatus = computed(() => {
   if (!tokenStore.selectedToken) return "disconnected";
@@ -191,10 +235,6 @@ const roleInfo = computed(() => {
 });
 
 const hasRole = computed(() => Object.keys(roleInfo.value || {}).length > 0);
-
-/* 服务器名：来自当前 Token（顶栏同一数据源，如「14000服」）。
- * 身份牌这一行用户口径是「服务器 + ID」，不显示等级。 */
-const serverName = computed(() => tokenStore.selectedToken?.server || "");
 
 const defaultAvatars = [
   "/icons/1733492491706148.png",
