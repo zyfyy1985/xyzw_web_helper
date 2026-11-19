@@ -870,7 +870,8 @@ async function openGame() {
 .m-home.m-home :deep(.daily-task .info-container) {
   display: flex;
   align-items: baseline;
-  justify-content: center; /* 用户口径：居中显示「今日任务完成100%」 */
+  justify-content: center;
+  gap: 3px; /* 「完成」与百分比之间留一档，别贴字 */
   margin-top: 8px;
   font-size: 10px;
   color: var(--m-text3) !important;
@@ -881,7 +882,6 @@ async function openGame() {
 .m-home.m-home :deep(.daily-task .info-container b) {
   /* 与说明文字同字号（整行一句话），只用颜色区分 —— 之前 11.5px mono
      与 10px 汉字基线混排又会出现「退后几像素」的观感 */
-  margin-left: 1px;
   font-family: var(--m-mono);
   font-size: 10px;
   font-weight: 600;

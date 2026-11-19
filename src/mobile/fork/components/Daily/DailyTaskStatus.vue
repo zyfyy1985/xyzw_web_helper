@@ -41,6 +41,7 @@
           :border-radius="4"
           :color="progressColor"
           rail-color="var(--m-band)"
+          :show-indicator="false"
         />
       </div>
 
