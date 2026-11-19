@@ -288,19 +288,19 @@ watch(
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
-  margin-bottom: 10px;
+  gap: 3.5px 9px;
+  margin-bottom: 9px;
 }
 
 .challenge-count {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text) !important;
   font-variant-numeric: tabular-nums;
 }
 
 .daily-target {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3) !important;
 }
 .daily-target.ended {
@@ -313,8 +313,8 @@ watch(
 .boss-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 7px;
+  margin-bottom: 11px;
 }
 
 /* 活动过期时不再整块 50% 透明度：那样连「未开放」三个字都看不清，
@@ -328,8 +328,8 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
-  padding: 9px 10px;
+  gap: 5.5px;
+  padding: 8px 9px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
@@ -357,12 +357,12 @@ watch(
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 6px;
+  gap: 5.5px;
 }
 
 .boss-title {
   margin: 0;
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text3) !important;
@@ -371,7 +371,7 @@ watch(
 
 .boss-level {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text) !important;
@@ -385,9 +385,9 @@ watch(
 
 .status-text {
   display: block;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
-  line-height: 30px;
+  line-height: 27px;
   color: var(--m-text3) !important;
 
   &.cleared {
@@ -406,13 +406,13 @@ watch(
 
 .challenge-btn {
   width: 100%;
-  height: 30px;
+  height: 27px;
   border: none;
   border-radius: var(--m-r-sm);
   background: var(--m-primary);
   color: var(--m-on-primary) !important;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
 
@@ -425,12 +425,12 @@ watch(
 
 /* 活动已结束：语义软底红条，不用高饱和整块红 */
 .expired-mask {
-  margin-bottom: 10px;
-  padding: 9px 10px;
+  margin-bottom: 9px;
+  padding: 8px 9px;
   border-radius: var(--m-r-md);
   background: var(--m-red-soft);
   color: var(--m-red) !important;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   text-align: center;
 }
@@ -443,13 +443,13 @@ watch(
 /* 刷新进度：描边按钮（灰底在手机上会被当成禁用态） */
 .action-button {
   width: 100%;
-  height: 40px;
+  height: 36px;
   border: 1px solid var(--m-hairline);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   color: var(--m-primary-deep) !important;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
 
@@ -465,10 +465,10 @@ html[data-theme="dark"] .action-button {
 @media (max-width: 360px) {
   /* 320：两列仍保留，只把层数字号收一档，避免「第 10 层」挤压 BOSS 序号 */
   .boss-level {
-    font-size: 12.5px;
+    font-size: 11.5px;
   }
   .boss-title {
-    font-size: 10px;
+    font-size: 9px;
   }
 }
 </style>

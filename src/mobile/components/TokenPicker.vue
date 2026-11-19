@@ -197,38 +197,38 @@ const onUpdate = (value) => emit("update:modelValue", value);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 7px;
+  margin-bottom: 11px;
 }
 .tk-title {
   min-width: 0;
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 700;
-  line-height: 20px;
+  line-height: 18px;
   color: var(--m-text) !important;
 }
 .tk-head-right {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .tk-count {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 11px;
+  line-height: 16px;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
 .tk-manage {
-  height: 24px;
-  padding: 0 8px;
+  height: 21.5px;
+  padding: 0 7px;
   border: 0;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
-  line-height: 24px;
+  line-height: 21.5px;
   color: var(--m-on-primary) !important;
   cursor: pointer;
 }
@@ -238,8 +238,8 @@ const onUpdate = (value) => emit("update:modelValue", value);
 
 /* 分组快选：带底色的一块，和账号列表之间靠 band 分区（不用边框） */
 .tk-groups {
-  margin-bottom: 12px;
-  padding: 10px 12px;
+  margin-bottom: 11px;
+  padding: 9px 11px;
   background: var(--m-band);
   border-radius: var(--m-r-md);
 }
@@ -247,13 +247,13 @@ const onUpdate = (value) => emit("update:modelValue", value);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 9px;
 }
 .tk-groups-title {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-text2) !important;
 }
 .tk-groups-clear {
@@ -262,25 +262,25 @@ const onUpdate = (value) => emit("update:modelValue", value);
   border: 0;
   background: none;
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-red) !important;
   cursor: pointer;
 }
 .tk-groups-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 /* 分组胶囊：未选是「描边 + 同色字」，选中是「同色实底 + 白字」—— 颜色由 --tk-group-color 传进来 */
 .tk-group {
-  padding: 7px 12px;
+  padding: 6.5px 11px;
   border: 2px solid var(--tk-group-color, var(--m-border));
   border-radius: var(--m-r-md);
   background: transparent;
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--tk-group-color, var(--m-text2)) !important;
   cursor: pointer;
 }
@@ -300,17 +300,17 @@ const onUpdate = (value) => emit("update:modelValue", value);
 .tk-sort {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
-  margin-bottom: 10px;
+  gap: 3.5px;
+  margin-bottom: 9px;
 }
 .tk-sort-btn {
-  min-height: 34px;
+  min-height: 30.5px;
   padding: 0 2px;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-sm);
   background: var(--m-card);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text2);
   white-space: nowrap;
@@ -328,7 +328,7 @@ const onUpdate = (value) => emit("update:modelValue", value);
 .tk-all {
   display: flex;
   width: 100%;
-  padding: 2px 0 4px;
+  padding: 2px 0 3.5px;
 }
 
 .tk-list {
@@ -339,15 +339,15 @@ const onUpdate = (value) => emit("update:modelValue", value);
 .tk-grid {
   display: grid;
   grid-template-columns: repeat(var(--tk-cols, 1), minmax(0, 1fr));
-  column-gap: 12px;
+  column-gap: 11px;
 }
 .tk-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
-  min-height: 34px;
-  padding: 3px 0;
+  min-height: 30.5px;
+  padding: 2.5px 0;
   /* 账号行之间不画分隔线 —— 原「账号列表」就是靠间距分条，加线反而比原来多一层结构 */
 }
 .tk-cb {
@@ -357,20 +357,20 @@ const onUpdate = (value) => emit("update:modelValue", value);
 /* 名字颜色/字号：App.vue 暗色下有一条 span{color:var(--m-on-primary)!important}，
  * 所以这里必须 !important 才压得住（否则暗色名字会变纯白）。 */
 .tk-grid :deep(.n-checkbox__label) {
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.45;
   color: var(--m-text2) !important;
 }
 .tk-all :deep(.n-checkbox__label) {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text2) !important;
 }
 /* 行尾状态点：与顶栏账号头像上那颗同款（6px 方点 + 4px 圆角，规范里没有正圆）。
  * 颜色只借用语义色，不新起色相。 */
 .tk-dot {
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: 5.5px;
+  height: 5.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-text3);
 }
@@ -390,8 +390,8 @@ const onUpdate = (value) => emit("update:modelValue", value);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 30.5px;
+  height: 30.5px;
   padding: 0;
   border: 0;
   border-radius: var(--m-r-md);
@@ -403,10 +403,10 @@ const onUpdate = (value) => emit("update:modelValue", value);
   background: var(--m-band);
 }
 .tk-empty {
-  padding: 20px 0;
+  padding: 18px 0;
   text-align: center;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text3);
 }
 

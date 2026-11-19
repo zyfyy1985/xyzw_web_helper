@@ -36,7 +36,7 @@ const $props = defineProps<{
   padding: var(--spacing-lg);
 
   transition: all var(--transition-normal);
-  min-height: 200px;
+  min-height: 180px;
 
   &:hover {
 
@@ -98,14 +98,14 @@ const $props = defineProps<{
   margin-bottom: var(--spacing-lg);
 
   .status-icon {
-    width: 32px;
-    height: 32px;
+    width: 29px;
+    height: 29px;
     flex-shrink: 0;
     object-fit: contain;
 
     > img {
-      width: 32px;
-      height: 32px;
+      width: 29px;
+      height: 29px;
       object-fit: contain;
     }
   }
@@ -140,8 +140,8 @@ const $props = defineProps<{
   }
 
   .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: var(--m-r-sm);
     background: currentColor;
   }
@@ -264,7 +264,7 @@ const $props = defineProps<{
     margin-bottom: var(--spacing-md);
 
     .status-title {
-      min-width: 100px;
+      min-width: 90px;
     }
 
     .status-badge {

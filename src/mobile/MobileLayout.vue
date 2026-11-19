@@ -101,10 +101,10 @@
           </span>
         </div>
       </template>
-      <p v-else class="m-hint" style="margin: 8px 0 14px">
+      <p v-else class="m-hint" style="margin: 7px 0 12.5px">
         还没有导入任何账号，请先到「Token 管理」导入。
       </p>
-      <button class="m-btn m-btn-p m-btn-block" style="margin-top: 12px" @click="goTokens">
+      <button class="m-btn m-btn-p m-btn-block" style="margin-top: 11px" @click="goTokens">
         管理 Token / 导入新账号
       </button>
     </div>
@@ -120,7 +120,7 @@
       <button
         v-if="selectedToken"
         class="m-btn m-btn-g m-btn-block"
-        style="margin-top: 12px"
+        style="margin-top: 11px"
         :disabled="wsStatus === 'connecting'"
         @click="reconnect"
       >

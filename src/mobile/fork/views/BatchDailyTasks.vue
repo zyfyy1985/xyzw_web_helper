@@ -132,7 +132,7 @@
         </div>
 
         <!-- Function List -->
-        <n-card title="功能列表" style="margin-top: 16px" v-if="mode !== 'schedule'">
+        <n-card title="功能列表" style="margin-top: 14.5px" v-if="mode !== 'schedule'">
           <!-- 日志弹窗关掉后还得能再打开：卡片标题行右侧留一个小入口 -->
           <template #header-extra>
             <n-button size="tiny" class="log-entry-btn" @click="openLogModal">
@@ -539,7 +539,7 @@
             ? `正在执行: ${currentRunningTokenName}`
             : '执行日志'
         "
-        style="width: 92%; max-width: 460px"
+        style="width: 92%; max-width: 414px"
       >
         <template #header-extra>
           <div class="log-header-controls">
@@ -589,7 +589,7 @@
       preset="card"
       :title="`任务设置 - ${currentSettingsTokenName}`"
       class="m-setmodal"
-      style="width: 90%; max-width: 400px"
+      style="width: 90%; max-width: 360px"
     >
       <div class="sm-body">
         <section class="sm-sec">
@@ -671,7 +671,7 @@
       preset="card"
       :title="currentTemplateId ? '编辑任务模板' : '任务模板设置'"
       class="m-setmodal"
-      style="width: 90%; max-width: 400px"
+      style="width: 90%; max-width: 360px"
     >
       <div class="sm-body">
         <section class="sm-sec">
@@ -765,7 +765,7 @@
       preset="card"
       title="应用任务模板"
       class="m-setmodal m-tplap"
-      style="width: 90%; max-width: 600px"
+      style="width: 90%; max-width: 540px"
     >
       <div class="sm-body">
         <section class="sm-sec">
@@ -842,7 +842,7 @@
       preset="card"
       title="任务模板管理"
       class="m-tplm"
-      style="width: 90%; max-width: 800px"
+      style="width: 90%; max-width: 720px"
     >
       <div class="tm-body">
         <n-input
@@ -911,7 +911,7 @@
       preset="card"
       title="账号模板引用查看"
       class="m-tplref"
-      style="width: 90%; max-width: 800px"
+      style="width: 90%; max-width: 720px"
     >
       <div class="tr-body">
         <div class="tr-head">
@@ -951,7 +951,7 @@
       v-model:show="showLegacyGiftModal"
       preset="card"
       title="批量功法残卷赠送"
-      style="width: 90%; max-width: 600px"
+      style="width: 90%; max-width: 540px"
     >
       <div class="settings-content">
         <div class="settings-grid">
@@ -964,14 +964,14 @@
                 placeholder="ID"
                 :show-button="false"
                 @update:value="clearRecipientError"
-                style="width: 180px"
+                style="width: 162px"
               />
               <n-input
                 v-model:value="securityPassword"
                 placeholder="请输入安全密码"
                 type="password"
                 @input="clearRecipientError"
-                style="width: 180px"
+                style="width: 162px"
               />
               <n-button
                 type="primary"
@@ -986,7 +986,7 @@
             <n-text
               v-if="recipientIdError"
               type="error"
-              style="margin-top: 5px; display: block"
+              style="margin-top: 4.5px; display: block"
             >
               {{ recipientIdError }}
             </n-text>
@@ -999,12 +999,12 @@
               class="recipient-info"
               style="
                 background: var(--m-bg);
-                padding: 16px;
-                border-radius: 8px;
+                padding: 14.5px;
+                border-radius: 7px;
                 border: 1px solid var(--m-border);
                 display: flex;
                 align-items: flex-start;
-                gap: 16px;
+                gap: 14.5px;
                 transition: all 0.3s ease;
               "
             >
@@ -1013,8 +1013,8 @@
                 class="avatar-container"
                 style="
                   position: relative;
-                  width: 80px;
-                  height: 80px;
+                  width: 72px;
+                  height: 72px;
                   border-radius: var(--m-r-md);
                   overflow: hidden;
                   background: linear-gradient(135deg, var(--m-primary) 0%, var(--m-primary-deep) 100%);
@@ -1048,7 +1048,7 @@
                     width: 100%;
                     height: 100%;
                     color: white;
-                    font-size: 24px;
+                    font-size: 21.5px;
                     font-weight: bold;
                     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
                   "
@@ -1075,8 +1075,8 @@
                   <div
                     class="loading-spinner"
                     style="
-                      width: 30px;
-                      height: 30px;
+                      width: 27px;
+                      height: 27px;
                       border: 3px solid rgba(255, 255, 255, 0.3);
                       border-top: 3px solid white;
                       border-radius: var(--m-r-md);
@@ -1090,8 +1090,8 @@
               <div class="role-info" style="flex: 1; min-width: 0">
                 <div
                   style="
-                    margin-bottom: 12px;
-                    font-size: 18px;
+                    margin-bottom: 11px;
+                    font-size: 16px;
                     font-weight: bold;
                     color: var(--m-text);
                     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -1104,14 +1104,14 @@
                   style="
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 12px;
+                    gap: 11px;
                   "
                 >
                   <div class="info-item">
                     <div
                       class="info-label"
                       style="
-                        font-size: 12px;
+                        font-size: 11px;
                         color: var(--m-text3);
                         margin-bottom: 2px;
                       "
@@ -1120,7 +1120,7 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 14px; font-weight: 500; color: var(--m-text)"
+                      style="font-size: 12.5px; font-weight: 500; color: var(--m-text)"
                     >
                       {{ recipientInfo.roleId }}
                     </div>
@@ -1129,7 +1129,7 @@
                     <div
                       class="info-label"
                       style="
-                        font-size: 12px;
+                        font-size: 11px;
                         color: var(--m-text3);
                         margin-bottom: 2px;
                       "
@@ -1138,7 +1138,7 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 14px; font-weight: 500; color: var(--m-text)"
+                      style="font-size: 12.5px; font-weight: 500; color: var(--m-text)"
                     >
                       {{ recipientInfo.serverName }}
                     </div>
@@ -1147,7 +1147,7 @@
                     <div
                       class="info-label"
                       style="
-                        font-size: 12px;
+                        font-size: 11px;
                         color: var(--m-text3);
                         margin-bottom: 2px;
                       "
@@ -1156,7 +1156,7 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 16px; font-weight: 600; color: var(--m-primary)"
+                      style="font-size: 14.5px; font-weight: 600; color: var(--m-primary)"
                     >
                       {{ recipientInfo.power }} {{ recipientInfo.powerUnit }}
                     </div>
@@ -1165,7 +1165,7 @@
                     <div
                       class="info-label"
                       style="
-                        font-size: 12px;
+                        font-size: 11px;
                         color: var(--m-text3);
                         margin-bottom: 2px;
                       "
@@ -1174,7 +1174,7 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 14px; font-weight: 500; color: var(--m-text)"
+                      style="font-size: 12.5px; font-weight: 500; color: var(--m-text)"
                     >
                       {{ recipientInfo.legionName || "无" }}
                     </div>
@@ -1183,7 +1183,7 @@
                     <div
                       class="info-label"
                       style="
-                        font-size: 12px;
+                        font-size: 11px;
                         color: var(--m-text3);
                         margin-bottom: 2px;
                       "
@@ -1192,7 +1192,7 @@
                     </div>
                     <div
                       class="info-value"
-                      style="font-size: 14px; font-weight: 500; color: var(--m-text)"
+                      style="font-size: 12.5px; font-weight: 500; color: var(--m-text)"
                     >
                       {{ recipientInfo.legionId || "无" }}
                     </div>
@@ -1216,10 +1216,10 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div class="modal-actions" style="margin-top: 20px; text-align: right">
+        <div class="modal-actions" style="margin-top: 18px; text-align: right">
           <n-button
             @click="showLegacyGiftModal = false"
-            style="margin-right: 12px"
+            style="margin-right: 11px"
             >取消</n-button
           >
           <n-button
@@ -1238,7 +1238,7 @@
       v-model:show="showHelperModal"
       preset="card"
       :title="helperModalTitle"
-      style="width: 90%; max-width: 400px"
+      style="width: 90%; max-width: 360px"
     >
       <div class="settings-content">
         <div class="settings-grid">
@@ -1272,7 +1272,7 @@
           <n-alert
             v-if="helperType === 'pointsBox'"
             type="info"
-            style="margin-bottom: 12px"
+            style="margin-bottom: 11px"
           >
             开箱优先级: 木质宝箱(保留200个) → 青铜宝箱 → 黄金宝箱 → 铂金宝箱<br />
             积分: 木质=1分, 青铜=10分, 黄金=20分, 铂金=50分
@@ -1288,8 +1288,8 @@
             />
           </div>
         </div>
-        <div class="modal-actions" style="margin-top: 20px; text-align: right">
-          <n-button @click="showHelperModal = false" style="margin-right: 12px"
+        <div class="modal-actions" style="margin-top: 18px; text-align: right">
+          <n-button @click="showHelperModal = false" style="margin-right: 11px"
             >取消</n-button
           >
           <n-button type="primary" @click="executeHelper">开始执行</n-button>
@@ -1306,7 +1306,7 @@
       preset="card"
       title="梦境商品购买配置"
       class="m-setmodal m-dreambuy"
-      style="width: 90%; max-width: 600px"
+      style="width: 90%; max-width: 540px"
     >
       <div class="db-body">
         <p class="db-note">
@@ -1352,18 +1352,18 @@
       v-model:show="showTasksModal"
       preset="card"
       title="定时任务列表"
-      style="width: 90%; max-width: 800px"
+      style="width: 90%; max-width: 720px"
     >
-      <div class="tasks-list" style="max-height: 600px; overflow-y: auto">
+      <div class="tasks-list" style="max-height: 540px; overflow-y: auto">
         <div
           v-for="task in scheduledTasks"
           :key="task.id"
           class="task-item"
           style="
-            margin-bottom: 16px;
-            padding: 12px;
+            margin-bottom: 14.5px;
+            padding: 11px;
             border: 1px solid var(--m-border);
-            border-radius: 8px;
+            border-radius: 7px;
           "
         >
           <div
@@ -1371,7 +1371,7 @@
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-bottom: 8px;
+              margin-bottom: 7px;
             "
           >
             <div style="font-weight: bold">{{ task.name }}</div>
@@ -1381,19 +1381,19 @@
             >
             </n-switch>
           </div>
-          <div style="margin-bottom: 4px">
+          <div style="margin-bottom: 3.5px">
             <span style="color: var(--m-text3)">运行类型：</span>
             <span>{{
               task.runType === "daily" ? "每天固定时间" : "Cron表达式"
             }}</span>
           </div>
-          <div style="margin-bottom: 4px">
+          <div style="margin-bottom: 3.5px">
             <span style="color: var(--m-text3)">运行时间：</span>
             <span>{{
               task.runType === "daily" ? task.runTime : task.cronExpression
             }}</span>
           </div>
-          <div style="margin-bottom: 4px">
+          <div style="margin-bottom: 3.5px">
             <span style="color: var(--m-text3)">下次执行：</span>
             <span
               :style="{
@@ -1410,15 +1410,15 @@
               }}
             </span>
           </div>
-          <div style="margin-bottom: 4px">
+          <div style="margin-bottom: 3.5px">
             <span style="color: var(--m-text3)">选中账号：</span>
             <span>{{ task.selectedTokens.length }} 个</span>
           </div>
-          <div style="margin-bottom: 8px">
+          <div style="margin-bottom: 7px">
             <span style="color: var(--m-text3)">选中任务：</span>
             <span>{{ task.selectedTasks.length }} 个</span>
           </div>
-          <div style="display: flex; gap: 8px">
+          <div style="display: flex; gap: 7px">
             <n-button size="tiny" @click="editTask(task)"> 编辑 </n-button>
             <n-button size="tiny" type="error" @click="deleteTask(task.id)">
               删除
@@ -1428,7 +1428,7 @@
         </div>
         <div
           v-if="scheduledTasks.length === 0"
-          style="text-align: center; padding: 24px; color: var(--m-text3)"
+          style="text-align: center; padding: 21.5px; color: var(--m-text3)"
         >
           暂无定时任务
         </div>
@@ -1443,7 +1443,7 @@
       preset="card"
       :title="editingTask ? '编辑定时任务' : '新增定时任务'"
       class="m-task-wizard"
-      style="width: 90%; max-width: 600px"
+      style="width: 90%; max-width: 540px"
     >
       <div class="tw-steps">
         <button
@@ -1595,21 +1595,21 @@
               v-model:value="scheduleState.dayOfMonth"
               :options="dayOfMonthOptions"
               size="small"
-              style="width: 110px"
+              style="width: 99px"
             />
           </template>
           <n-select
             v-model:value="scheduleState.hour"
             :options="hourOptions"
             size="small"
-            style="width: 82px"
+            style="width: 74px"
           />
           <span class="schedule-colon">:</span>
           <n-select
             v-model:value="scheduleState.minute"
             :options="minuteOptions"
             size="small"
-            style="width: 82px"
+            style="width: 74px"
           />
           <span class="schedule-links schedule-time-presets">
             <span class="schedule-inline-label">常用</span>
@@ -1643,7 +1643,7 @@
               v-model:value="scheduleState.minute"
               :options="minuteOptions"
               size="small"
-              style="width: 82px"
+              style="width: 74px"
             />
             <span class="schedule-inline-label">分执行（从 0 点起算）</span>
           </div>
@@ -1715,7 +1715,7 @@
       preset="card"
       title="任务设置"
       class="m-setmodal m-bset"
-      style="width: 90%; max-width: 700px"
+      style="width: 90%; max-width: 630px"
     >
       <n-tabs v-model:value="batchSettingsTab" type="line" animated>
         <n-tab-pane name="count" tab="数量">
@@ -1980,25 +1980,25 @@
       v-model:show="showWarGuessModal"
       preset="card"
       title="月赛助威"
-      style="width: 90%; max-width: 800px"
+      style="width: 90%; max-width: 720px"
     >
       <div class="settings-content">
         <div class="settings-grid" style="display: block">
           <div
             style="
-              margin-bottom: 16px;
+              margin-bottom: 14.5px;
               display: flex;
               align-items: center;
-              gap: 12px;
+              gap: 11px;
             "
           >
-            <span style="font-size: 16px">拍手器:</span>
+            <span style="font-size: 14.5px">拍手器:</span>
             <n-input-number
               v-model:value="warGuessCoin"
               placeholder="拍手器"
               :min="1"
               :max="20"
-              style="width: 120px"
+              style="width: 108px"
             >
             </n-input-number>
             <n-button
@@ -2025,11 +2025,11 @@
               (keys) => (selectedWarGuessLegionId = keys[0])
             "
             :row-props="warGuessRowProps"
-            style="height: 400px; flex: 1"
+            style="height: 360px; flex: 1"
             flex-height
           />
         </div>
-        <div class="modal-actions" style="margin-top: 20px; text-align: right">
+        <div class="modal-actions" style="margin-top: 18px; text-align: right">
           <n-button @click="showWarGuessModal = false">关闭</n-button>
         </div>
       </div>
@@ -2042,7 +2042,7 @@
       preset="card"
       title="分组管理"
       class="m-group-modal"
-      style="width: 90%; max-width: 560px"
+      style="width: 90%; max-width: 504px"
     >
       <div class="gm-body">
         <!-- ── 创建新分组 ── -->
@@ -5691,7 +5691,7 @@ const stopBatch = () => {
 
 <style scoped>
 .batch-daily-tasks {
-  padding: 20px;
+  padding: 18px;
   height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
@@ -5699,7 +5699,7 @@ const stopBatch = () => {
 
 .main-layout {
   display: flex;
-  gap: 20px;
+  gap: 18px;
   height: 100%;
   overflow: hidden;
 }
@@ -5708,22 +5708,22 @@ const stopBatch = () => {
   flex: 1;
   overflow-y: auto;
   min-width: 0;
-  padding-right: 8px;
+  padding-right: 7px;
 }
 
 .right-column {
-  width: 400px;
+  width: 360px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  height: 700px;
+  height: 630px;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .token-item {
@@ -5741,11 +5741,11 @@ const stopBatch = () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -5755,7 +5755,7 @@ const stopBatch = () => {
 .log-header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   justify-content: flex-end;
   flex-wrap: nowrap;
 }
@@ -5771,9 +5771,9 @@ const stopBatch = () => {
 .schedule-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 /* 「运行时间」和右边「每天 08:00」徽标必须同一水平线：
@@ -5784,22 +5784,22 @@ const stopBatch = () => {
 }
 
 .schedule-summary {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-primary-deep);
   background: var(--m-primary-soft);
   border-radius: var(--m-r-sm);
-  padding: 2px 8px;
+  padding: 2px 7px;
 }
 
 .schedule-freqs {
   display: flex;
   gap: 2px;
-  padding: 3px;
+  padding: 2.5px;
   background: var(--m-bg);
   border-radius: var(--m-r-md);
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .schedule-freq {
@@ -5807,8 +5807,8 @@ const stopBatch = () => {
   border: 0;
   background: transparent;
   border-radius: var(--m-r-sm);
-  padding: 7px 2px;
-  font-size: 12.5px;
+  padding: 6.5px 2px;
+  font-size: 11.5px;
   color: var(--m-text4);
   cursor: pointer;
   white-space: nowrap;
@@ -5824,10 +5824,10 @@ const stopBatch = () => {
 .schedule-weekdays,
 .schedule-intervals {
   display: flex;
-  gap: 6px;
+  gap: 5.5px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .schedule-weekday,
@@ -5836,8 +5836,8 @@ const stopBatch = () => {
   background: var(--m-card);
   color: var(--m-text2);
   border-radius: var(--m-r-md);
-  padding: 4px 11px;
-  font-size: 12px;
+  padding: 3.5px 10px;
+  font-size: 11px;
   cursor: pointer;
   font-family: inherit;
   line-height: 1.6;
@@ -5853,10 +5853,10 @@ const stopBatch = () => {
 
 .schedule-links {
   display: inline-flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
   align-items: center;
-  margin-left: 4px;
+  margin-left: 3.5px;
 }
 
 .schedule-links button {
@@ -5864,8 +5864,8 @@ const stopBatch = () => {
   background: transparent;
   color: var(--m-primary);
   border-radius: var(--m-r-sm);
-  padding: 2px 5px;
-  font-size: 12px;
+  padding: 2px 4.5px;
+  font-size: 11px;
   cursor: pointer;
   font-family: inherit;
   line-height: 1.6;
@@ -5874,9 +5874,9 @@ const stopBatch = () => {
 .schedule-time-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 /* 常用时间另起一行且不缩进：
@@ -5892,7 +5892,7 @@ const stopBatch = () => {
   border-color: var(--m-border);
   background: var(--m-card);
   color: var(--m-text2);
-  padding: 4px 10px;
+  padding: 3.5px 9px;
 }
 
 .schedule-time-presets button.active {
@@ -5908,7 +5908,7 @@ const stopBatch = () => {
 }
 
 .schedule-inline-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 
@@ -5916,56 +5916,56 @@ const stopBatch = () => {
 .schedule-custom {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 /* cron 表达式保留等宽：它是「代码字符串」，等宽帮助对齐 * 与数字，不属于排版系统的第二字族 */
 .schedule-cron-samples button {
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-  font-size: 11.5px;
+  font-size: 10.5px;
 }
 
 .schedule-error {
-  padding: 8px 10px;
+  padding: 7px 9px;
   background: var(--m-red-soft);
   border-radius: var(--m-r-sm);
-  font-size: 12.5px;
+  font-size: 11.5px;
 }
 
 /* 下次执行预览：用 band 底分组，而不是「浅蓝白 + 1px 边框」 */
 .schedule-preview {
-  padding: 10px 12px;
+  padding: 9px 11px;
   background: var(--m-bg);
   border: 0;
   border-radius: var(--m-r-md);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5.5px;
 }
 
 .schedule-preview-main {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 .schedule-preview-tag {
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--m-text3);
   background: var(--m-band);
   border-radius: var(--m-r-sm);
-  padding: 1px 6px;
+  padding: 1px 5.5px;
 }
 
 .schedule-preview-time {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-primary);
 }
 
 .schedule-preview-rel {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text2);
 }
 
@@ -5973,8 +5973,8 @@ const stopBatch = () => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 7px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 
@@ -5988,23 +5988,23 @@ const stopBatch = () => {
 .log-header-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .log-container {
   flex: 1;
   overflow-y: auto;
   background:var(--m-bg);
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 10px;
+  padding: 9px;
+  border-radius: 3.5px;
+  margin-top: 9px;
   font-family: monospace;
-  min-height: 200px;
+  min-height: 180px;
 }
 
 .log-item {
-  margin-bottom: 4px;
-  font-size: 12px;
+  margin-bottom: 3.5px;
+  font-size: 11px;
 }
 
 .log-item.error {
@@ -6025,45 +6025,45 @@ const stopBatch = () => {
 
 .time {
   color:var(--m-text3);
-  margin-right: 8px;
+  margin-right: 7px;
 }
 
 .token-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 8px;
+  padding-right: 7px;
 }
 
 /* Settings Modal Styles */
 .settings-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14.5px;
 }
 
 .setting-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .setting-label {
-  font-size: 14px;
+  font-size: 12.5px;
   color:var(--m-text3);
 }
 
 .setting-switches {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .switch-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 7px 0;
   border-bottom:1px solid var(--m-band);
 }
 
@@ -6072,27 +6072,27 @@ const stopBatch = () => {
 }
 
 .switch-label {
-  font-size: 14px;
+  font-size: 12.5px;
   color:var(--m-text3);
 }
 
 .weird-tower-count-input {
-  width: 86px;
+  width: 77.5px;
   flex-shrink: 0;
 }
 
 .weird-tower-count-unit {
   display: inline-flex;
   align-items: center;
-  height: 28px;
+  height: 25px;
   color:var(--m-text3);
-  font-size: 14px;
+  font-size: 12.5px;
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
   .right-column {
-    width: 380px;
+    width: 342px;
   }
 }
 
@@ -6120,14 +6120,14 @@ const stopBatch = () => {
   }
 
   .log-container {
-    height: 300px;
-    min-height: 300px;
+    height: 270px;
+    min-height: 270px;
   }
 }
 
 @media (max-width: 768px) {
   .batch-daily-tasks {
-    padding: 12px;
+    padding: 11px;
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
@@ -6154,13 +6154,13 @@ const stopBatch = () => {
 
   .page-header {
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
     align-items: stretch;
   }
 
   .page-header .actions {
     display: flex;
-    gap: 8px;
+    gap: 7px;
   }
 
   .log-card {
@@ -6174,15 +6174,15 @@ const stopBatch = () => {
   }
 
   .log-container {
-    height: 300px;
-    min-height: 300px;
+    height: 270px;
+    min-height: 270px;
     flex: none !important;
   }
 
   .log-header-controls {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 3.5px;
   }
 
   /* 批量功法残卷赠送样式 */
@@ -6210,8 +6210,8 @@ const stopBatch = () => {
 
   /* Token分组管理样式 */
   .group-tag {
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 7px 11px;
+    border-radius: 7px;
     cursor: pointer;
     transition: all 0.3s ease;
     user-select: none;
@@ -6238,7 +6238,7 @@ const stopBatch = () => {
     }
 
     .avatar-container {
-      margin-bottom: 12px;
+      margin-bottom: 11px;
     }
   }
 }
@@ -6250,13 +6250,13 @@ const stopBatch = () => {
   .page-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
+    gap: 9px;
   }
 
   /* 标题 + 状态条 一组：内部允许换行 */
   .page-header-title-row {
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 9px;
   }
 
   .page-header-title-row h2 {
@@ -6294,17 +6294,17 @@ const stopBatch = () => {
 /* 更窄屏（手机竖屏）进一步压缩间距 */
 @media (max-width: 480px) {
   .batch-daily-tasks {
-    padding: 8px !important;
+    padding: 7px !important;
   }
 
   .page-header-title-row h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .page-header-info,
   .page-header-actions {
-    padding: 6px 8px !important;
-    gap: 8px !important;
+    padding: 5.5px 7px !important;
+    gap: 7px !important;
   }
 
   /* token 长名称允许在任意位置断行，避免单字竖排 */
@@ -6326,12 +6326,12 @@ const stopBatch = () => {
 
   /* 日志头部控件在窄屏下换行 */
   .custom-card-header {
-    gap: 6px;
+    gap: 5.5px;
   }
 
   .log-header-controls {
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5.5px;
   }
 }
 </style>

@@ -1180,7 +1180,7 @@ export default { name: "MobileMulti" };
   overscroll-behavior: none;
   background: var(--m-bg);
   color: var(--m-text);
-  font-size: 13px;
+  font-size: 11.5px;
 }
 
 /* PC 上收成「手机壳」宽度：这页刻意不套 .mobile-shell（真机上要铺满整屏），
@@ -1206,17 +1206,17 @@ export default { name: "MobileMulti" };
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4.5px;
   flex: none;
-  padding: 6px 8px;
-  padding-top: calc(6px + env(safe-area-inset-top));
+  padding: 5.5px 7px;
+  padding-top: calc(5.5px + env(safe-area-inset-top));
   background: var(--m-card);
   border-bottom: 1px solid var(--m-band);
 }
 .mm-slots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -1232,27 +1232,27 @@ export default { name: "MobileMulti" };
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 6px;
+  gap: 3.5px;
+  height: 29px;
+  padding: 0 5.5px;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
 }
 .mm-chip-i {
   flex: none;
-  width: 14px;
-  height: 14px;
+  width: 12.5px;
+  height: 12.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   color: var(--m-text3);
-  font-size: 10px;
+  font-size: 9px;
   font-style: normal;
-  line-height: 14px;
+  line-height: 12.5px;
   text-align: center;
 }
 /* 名字固定两个字宽；空间不够时由 CSS 再收一点（JS 已经切到 2 字 + …，这里只兜底） */
@@ -1296,10 +1296,10 @@ export default { name: "MobileMulti" };
   background: none;
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
-  height: 26px;
-  padding: 0 7px;
+  height: 23.5px;
+  padding: 0 6.5px;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -1310,14 +1310,14 @@ export default { name: "MobileMulti" };
 }
 .mm-bar-more {
   flex: none;
-  width: 28px;
-  height: 32px;
+  width: 25px;
+  height: 29px;
   padding: 0;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   color: var(--m-text2);
-  font-size: 16px;
+  font-size: 14.5px;
   line-height: 1;
   cursor: pointer;
 }
@@ -1334,11 +1334,11 @@ export default { name: "MobileMulti" };
 }
 .mm-pop {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 8px;
+  top: calc(100% + 5.5px);
+  right: 7px;
   z-index: 31;
-  width: 190px;
-  padding: 10px 12px;
+  width: 171px;
+  padding: 9px 11px;
   border: 1px solid var(--m-band);
   border-radius: var(--m-r-lg);
   background: var(--m-card);
@@ -1348,15 +1348,15 @@ export default { name: "MobileMulti" };
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 9px;
 }
 .mm-pop-t {
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text) !important;
 }
 .mm-pop-hint {
-  margin: 6px 0 0;
-  font-size: 11px;
+  margin: 5.5px 0 0;
+  font-size: 10px;
   line-height: 1.45;
   color: var(--m-text3) !important;
 }
@@ -1368,11 +1368,11 @@ export default { name: "MobileMulti" };
 .mm-sync {
   position: relative;
   flex: none;
-  width: 38px;
-  height: 22px;
+  width: 34px;
+  height: 20px;
   padding: 0;
   border: 1px solid var(--m-border);
-  border-radius: 999px;
+  border-radius: 899px;
   background: var(--m-band);
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
@@ -1385,14 +1385,14 @@ export default { name: "MobileMulti" };
   position: absolute;
   left: 2px;
   top: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14.5px;
+  height: 14.5px;
   border-radius: 50%;
   background: #fff;
   transition: transform 0.15s;
 }
 .mm-sync.on .mm-k {
-  transform: translateX(16px);
+  transform: translateX(14.5px);
 }
 
 /* ---------- ③ 舞台 / 窗格 ---------- */
@@ -1454,21 +1454,21 @@ export default { name: "MobileMulti" };
 /* 回落全屏的退出钮：只有没进真全屏（iPhone）时才出现 */
 .mm-fs-exit {
   position: absolute;
-  top: calc(8px + env(safe-area-inset-top));
-  right: 10px;
+  top: calc(7px + env(safe-area-inset-top));
+  right: 9px;
   z-index: 6;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   padding: 0;
   border: 0;
-  border-radius: 15px;
+  border-radius: 13.5px;
   background: rgba(0, 0, 0, 0.42);
   color: #fff !important;
   cursor: pointer;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(5.5px);
+  backdrop-filter: blur(5.5px);
 }
 /* 真全屏（documentElement 进 top layer）：UA 会给 :fullscreen 加黑底并可能带 8px 边距，
    body/html 在这里对齐一次，免得画面缩一圈、四周露黑边。
@@ -1490,12 +1490,12 @@ export default { name: "MobileMulti" };
 .mm-head {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3.5px;
   flex: none;
-  height: 24px;
-  padding: 0 2px 0 6px;
+  height: 21.5px;
+  padding: 0 2px 0 5.5px;
   background: var(--m-card);
-  font-size: 11px;
+  font-size: 10px;
   user-select: none;
   cursor: pointer;
   /* 头部的横向拖动是翻页手势，不能被浏览器当成滚动/长按 */
@@ -1503,23 +1503,23 @@ export default { name: "MobileMulti" };
 }
 /* 单窗：头部同时是翻页手柄（横向拖动），高度抬到 32 才够手指按 */
 .mm-head.is-single {
-  height: 32px;
-  padding: 0 4px 0 10px;
-  font-size: 12px;
+  height: 29px;
+  padding: 0 3.5px 0 9px;
+  font-size: 11px;
 }
 .mm-head.is-single .mm-name {
   max-width: 52%;
 }
 .mm-head.is-single .mm-more {
-  width: 28px;
-  height: 26px;
-  font-size: 16px;
-  line-height: 24px;
+  width: 25px;
+  height: 23.5px;
+  font-size: 14.5px;
+  line-height: 21.5px;
 }
 .mm-dot {
   flex: none;
-  width: 5px;
-  height: 5px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
   background: var(--m-border);
 }
@@ -1535,13 +1535,13 @@ export default { name: "MobileMulti" };
 }
 .mm-tag {
   flex: none;
-  padding: 0 4px;
-  height: 13px;
-  line-height: 13px;
+  padding: 0 3.5px;
+  height: 11.5px;
+  line-height: 11.5px;
   border-radius: 2px;
   background: var(--m-primary-soft);
   color: var(--m-primary-deep) !important;
-  font-size: 9px;
+  font-size: 8px;
 }
 .mm-tag.is-off {
   background: var(--m-amber-soft);
@@ -1552,15 +1552,15 @@ export default { name: "MobileMulti" };
 }
 .mm-more {
   flex: none;
-  width: 22px;
-  height: 20px;
+  width: 20px;
+  height: 18px;
   padding: 0;
   border: none;
-  border-radius: 3px;
+  border-radius: 2.5px;
   background: none;
   color: var(--m-text3);
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 12.5px;
+  line-height: 16px;
   cursor: pointer;
 }
 .mm-more.on {
@@ -1574,18 +1574,18 @@ export default { name: "MobileMulti" };
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 22px;
+  width: 21.5px;
+  height: 20px;
   padding: 0;
   border: none;
-  border-radius: 3px;
+  border-radius: 2.5px;
   background: none;
   color: var(--m-text3);
   cursor: pointer;
 }
 .mm-head.is-single .mm-zoom {
-  width: 28px;
-  height: 26px;
+  width: 25px;
+  height: 23.5px;
 }
 /* 全屏中：按钮保持高亮，提示「再点一下退出」 */
 .mm-zoom.on {
@@ -1606,12 +1606,12 @@ export default { name: "MobileMulti" };
 }
 .mm-empty {
   position: absolute;
-  inset: 3px;
+  inset: 2.5px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3.5px;
   border: 1px dashed var(--m-border);
   border-radius: var(--m-r-sm);
   background: var(--m-card);
@@ -1620,13 +1620,13 @@ export default { name: "MobileMulti" };
   cursor: pointer;
 }
 .mm-empty-plus {
-  font-size: 17px;
+  font-size: 15.5px;
   font-style: normal;
   line-height: 1;
 }
 .mm-empty-t {
   color: inherit !important;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 /* ---------- 落点圈 ---------- */
@@ -1639,9 +1639,9 @@ export default { name: "MobileMulti" };
 }
 .mm-ripple {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
   border-radius: 50%;
   border: 1.5px solid var(--m-primary);
   background: transparent;
@@ -1664,10 +1664,10 @@ export default { name: "MobileMulti" };
 .mm-arow {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  min-height: 46px;
-  padding: 6px 2px;
+  min-height: 41.5px;
+  padding: 5.5px 2px;
   border: none;
   border-bottom: 1px solid var(--m-band);
   background: none;
@@ -1680,14 +1680,14 @@ export default { name: "MobileMulti" };
 }
 .mm-ava {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
   color: var(--m-on-primary);
-  font-size: 12px;
+  font-size: 11px;
   font-style: normal;
-  line-height: 30px;
+  line-height: 27px;
   text-align: center;
 }
 .mm-atxt {
@@ -1699,27 +1699,27 @@ export default { name: "MobileMulti" };
 }
 .mm-aname {
   overflow: hidden;
-  font-size: 13px;
+  font-size: 11.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text) !important;
 }
 .mm-aremark {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text3) !important;
 }
 /* 「共享」标记：只表达来源，不改变可点性 —— 它和普通账号一样能开窗 */
 .mm-ashare {
-  margin-right: 6px;
+  margin-right: 5.5px;
   font-style: normal;
   color: var(--m-primary) !important;
 }
 .mm-aused {
   flex: none;
-  font-size: 11px;
+  font-size: 10px;
   font-style: normal;
   color: var(--m-text3) !important;
 }
@@ -1728,22 +1728,22 @@ export default { name: "MobileMulti" };
   color: var(--m-text3);
 }
 .mm-err {
-  margin: 8px 0 0;
-  font-size: 11px;
+  margin: 7px 0 0;
+  font-size: 10px;
   line-height: 1.5;
   color: var(--m-red) !important;
 }
 .mm-sheet-ft {
-  margin-top: 12px;
+  margin-top: 11px;
 }
 
 /* ---------- ⑤ 窗格菜单行 ---------- */
 .mm-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   width: 100%;
-  min-height: 44px;
+  min-height: 39.5px;
   padding: 0 2px;
   border: none;
   border-bottom: 1px solid var(--m-band);
@@ -1760,12 +1760,12 @@ export default { name: "MobileMulti" };
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--m-r-sm);
   background: #5f6470;
   color: #fff;
-  font-size: 10px;
+  font-size: 9px;
   font-style: normal;
 }
 .mm-ri.is-script {
@@ -1775,23 +1775,23 @@ export default { name: "MobileMulti" };
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 11.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text2) !important;
 }
 .mm-rlabel {
-  padding: 10px 2px 4px;
-  font-size: 11px;
+  padding: 9px 2px 3.5px;
+  font-size: 10px;
   color: var(--m-text3) !important;
 }
 .mm-rsep {
-  height: 8px;
-  margin: 6px -16px;
+  height: 7px;
+  margin: 5.5px -14.5px;
   background: var(--m-bg);
 }
 .mm-hint-in {
-  margin: 8px 0 4px;
+  margin: 7px 0 3.5px;
   color: var(--m-text3) !important;
 }
 
@@ -1806,24 +1806,24 @@ export default { name: "MobileMulti" };
 /* 窄屏（≤359px）：顶栏更紧，chip 与视图切换各收一档，别把 ⋮ 挤出去 */
 @media (max-width: 359px) {
   .mm-bar {
-    gap: 4px;
-    padding-left: 6px;
-    padding-right: 6px;
+    gap: 3.5px;
+    padding-left: 5.5px;
+    padding-right: 5.5px;
   }
   .mm-slots {
-    gap: 4px;
+    gap: 3.5px;
   }
   .mm-chip {
-    gap: 4px;
-    padding: 0 6px;
-    font-size: 11px;
+    gap: 3.5px;
+    padding: 0 5.5px;
+    font-size: 10px;
   }
   .mm-seg > button {
-    padding: 0 6px;
-    font-size: 11px;
+    padding: 0 5.5px;
+    font-size: 10px;
   }
   .mm-bar-more {
-    width: 26px;
+    width: 23.5px;
   }
 }
 
@@ -1832,7 +1832,7 @@ export default { name: "MobileMulti" };
  * 页面底边就是键盘上沿 ⇒ 抽屉照旧 bottom:0 就贴在键盘上，不需要任何偏移量。
  * 这里只把抽屉的高度上限收一收，别让它把整个可视区占满（留 12px 露出一点游戏）。 */
 .mm-page.is-ime :deep(.m-sheet.on) {
-  max-height: calc(100% - 12px);
+  max-height: calc(100% - 11px);
 }
 
 /* ---------- 没打开的抽屉：靠「藏」而不是靠「挪」 ----------
@@ -1855,18 +1855,18 @@ export default { name: "MobileMulti" };
    用 absolute 而不是 fixed：PC 上页面只占手机壳那一条，fixed 会跑到窗口最左边去。 */
 .mm-dbg {
   position: absolute;
-  top: 56px;
-  left: 6px;
+  top: 50.5px;
+  left: 5.5px;
   z-index: 60;
   margin: 0;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 5.5px 7px;
+  border-radius: 5.5px;
   background: rgba(0, 0, 0, 0.72);
   color: #7cff8a;
-  font: 10px/1.35 ui-monospace, Menlo, monospace;
+  font: 9px/1.35 ui-monospace, Menlo, monospace;
   white-space: pre;
   overflow: hidden;
-  max-width: calc(100vw - 12px);
+  max-width: calc(100vw - 11px);
   pointer-events: none;
 }
 </style>

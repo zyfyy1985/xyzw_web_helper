@@ -37,7 +37,7 @@
          数据未到时工具卡会抛 "reading 'heroes' of null" 并冒泡到根、整页白屏。
          桌面端靠 v-show 分区少踩到，移动端必须挡住。 -->
     <div class="m-card" v-show="!!active && !dataReady">
-      <div class="m-empty" style="padding: 32px 0">
+      <div class="m-empty" style="padding: 29px 0">
         <div class="m-logo">◌</div>
         <h3>等待账号数据</h3>
         <p>{{ hasToken ? "正在读取角色信息，连上后工具会自动出现。" : "尚未选择账号，请先在「我的 → 管理 Token」里导入。" }}</p>
@@ -163,14 +163,14 @@ export default { name: "MobileTools" };
 .m-tools-grid .m-tools-note {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 12px 14px;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 11px 12.5px;
   border-radius: var(--m-r-md);
 }
 .m-tools-bar {
-  width: 3px;
-  height: 14px;
+  width: 2.5px;
+  height: 12.5px;
   flex: none;
   margin-top: 2px;
   border-radius: 2px;
@@ -188,12 +188,12 @@ export default { name: "MobileTools" };
 .m-tools.m-tools :deep(.auto-form) {
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 7px;
 }
 .m-tools.m-tools :deep(.form-item) {
   width: 100%;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 7px;
 }
 .m-tools.m-tools :deep(.form-item .form-label) {
   flex: none;
@@ -210,10 +210,10 @@ export default { name: "MobileTools" };
 /* 二级密码行：label + 输入框 + 验证按钮，挤一行会压字 */
 .m-tools.m-tools :deep(.password-info) {
   flex-wrap: wrap;
-  row-gap: 8px;
+  row-gap: 7px;
 }
 .m-tools.m-tools :deep(.password-info .n-input) {
-  flex: 1 1 140px;
+  flex: 1 1 126px;
   width: auto !important;
   min-width: 0;
 }
@@ -225,19 +225,19 @@ export default { name: "MobileTools" };
 /* 淬炼按钮组：4 个按钮 + 次数信息，允许换行 */
 .m-tools.m-tools :deep(.actions) {
   flex-wrap: wrap;
-  row-gap: 8px;
+  row-gap: 7px;
 }
 
 /* 武将列表：桌面靠宽屏铺开，窄屏给个上限省纵向空间（仍可内部滚动） */
 .m-tools.m-tools :deep(.hero-list) {
-  max-height: 260px;
+  max-height: 234px;
 }
 
 /* 属性小行（竞技场 / 洗练等工具还在用 .stat-row）：窄屏允许换行，别把「攻/防/速」截断 */
 .m-tools.m-tools :deep(.stat-row),
 .m-tools.m-tools :deep(.stat-row-small) {
   flex-wrap: wrap;
-  gap: 4px 6px;
+  gap: 3.5px 5.5px;
 }
 
 /* ---------- 消耗活动进度：这张卡没走 MyCard，自带一套桌面样式 ---------- */
@@ -258,13 +258,13 @@ export default { name: "MobileTools" };
 /* 一行里塞「使用数量: + 数字框 + 说明」，窄屏必然压字，改为可换行 */
 .m-tools.m-tools :deep(.consumption-progress .setting-item) {
   flex-wrap: wrap;
-  row-gap: 8px;
+  row-gap: 7px;
 }
 .m-tools.m-tools :deep(.consumption-progress .setting-item .n-input-number) {
   width: 100%;
 }
 .m-tools.m-tools :deep(.consumption-progress .header-left .title) {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--m-text);
 }
@@ -273,6 +273,6 @@ export default { name: "MobileTools" };
 .m-tools.m-tools :deep(.consumption-progress .item-values),
 .m-tools.m-tools :deep(.consumption-progress .item-footer) {
   flex-wrap: wrap;
-  row-gap: 4px;
+  row-gap: 3.5px;
 }
 </style>

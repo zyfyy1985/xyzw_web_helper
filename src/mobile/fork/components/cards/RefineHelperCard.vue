@@ -1049,8 +1049,8 @@ const resetCount = () => {
  * 文字用 em/b 而不是 span —— 暗色下 App.vue 的 `span{color:#fff!important}` 会把颜色刷白。 */
 .jade-info {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 9px;
 }
 
 .jade {
@@ -1059,8 +1059,8 @@ const resetCount = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  padding: 7px 10px;
+  gap: 5.5px;
+  padding: 6.5px 9px;
   border-radius: var(--m-r-md);
   background: var(--bg-tertiary);
 
@@ -1072,7 +1072,7 @@ const resetCount = () => {
   }
 
   b {
-    font-size: 14px;
+    font-size: 12.5px;
     font-weight: 700;
     line-height: 1.2;
     color: var(--primary-color);
@@ -1104,12 +1104,12 @@ h4 {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   align-content: start;
-  gap: 6px;
+  gap: 5.5px;
   /* ★ 刷新阵容的瞬间 heroes 被清空、只剩「加载中」，没有这个下限框会塌成一行高再弹回来。
      上限交给宿主页（MobileTools 里 .m-tools.m-tools :deep(.hero-list){max-height:260px}）。 */
-  min-height: 92px;
+  min-height: 83px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 7px;
   background: var(--bg-tertiary);
   border-radius: var(--m-r-md);
 }
@@ -1123,7 +1123,7 @@ h4 {
   grid-column: 1 / -1;
   align-self: center;
   height: auto !important;
-  min-height: 60px;
+  min-height: 54px;
   box-sizing: border-box;
 }
 
@@ -1131,8 +1131,8 @@ h4 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 3px 7px;
+  gap: 3.5px;
+  padding: 7px 2.5px 6.5px;
   background: var(--bg-primary);
   border: 2px solid transparent;
   border-radius: var(--m-r-md);
@@ -1157,8 +1157,8 @@ h4 {
 }
 
 .hero-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32.5px;
+  height: 32.5px;
   border-radius: var(--m-r-md);
   background: var(--bg-tertiary);
   display: flex;
@@ -1201,7 +1201,7 @@ h4 {
 }
 
 .hero-level {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.2;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
@@ -1220,12 +1220,12 @@ h4 {
 .equip-tabs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
   margin-bottom: var(--spacing-md);
 }
 
 .equip-tab {
-  padding: 8px 4px;
+  padding: 7px 3.5px;
   min-width: 0;
   background: var(--bg-tertiary);
   border: 2px solid transparent;
@@ -1377,7 +1377,7 @@ h4 {
 .slot-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  min-width: 40px;
+  min-width: 36px;
   font-weight: var(--font-weight-medium);
 }
 
@@ -1430,8 +1430,8 @@ h4 {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 9px;
 
   h4 {
     margin: 0;
@@ -1449,17 +1449,17 @@ h4 {
 .conditions-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 9px;
 }
 
 .condition-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 10px 92px auto;
+  grid-template-columns: minmax(0, 1fr) 9px 83px auto;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   margin: 0;
-  padding: 8px;
+  padding: 7px;
   background: var(--bg-tertiary);
   border-radius: var(--m-r-md);
   border: 0;
@@ -1471,11 +1471,11 @@ h4 {
   /* 条件行一行放不下：属性下拉独占首行，≥ / 数值 / 删除落到第二行，
      否则数字框被压到只剩一个字符宽 */
   .condition-item {
-    grid-template-columns: 10px minmax(0, 1fr) auto;
+    grid-template-columns: 9px minmax(0, 1fr) auto;
     grid-template-areas:
       "attr attr attr"
       "op val del";
-    row-gap: 6px;
+    row-gap: 5.5px;
   }
 
   .cf-attr {
@@ -1496,26 +1496,26 @@ h4 {
   }
 
   .hero-item {
-    padding: 6px 2px 5px;
+    padding: 5.5px 2px 4.5px;
   }
 
   .hero-avatar {
-    width: 30px;
-    height: 30px;
+    width: 27px;
+    height: 27px;
   }
 
   .hero-name {
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .hero-level {
-    font-size: 9px;
+    font-size: 8px;
   }
 
   .actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 7px;
   }
 
   .count-info {
@@ -1532,7 +1532,7 @@ h4 {
 /* 两个控件高度对齐（Naive 下拉 28 / 数字框 34，摆在同一行会明显一高一矮） */
 .cf-attr :deep(.n-base-selection),
 .cf-val :deep(.n-input) {
-  height: 32px;
+  height: 29px;
 }
 
 .cf-op {
@@ -1545,8 +1545,8 @@ h4 {
 /* 删除降级为纯文字按钮：实心红块会和「淬炼」主操作抢视线。
  * Naive 的按钮配色是内联 CSS 变量，规则压不住 ⇒ 这里按站内惯例用 !important 收。 */
 .cf-del {
-  height: 28px;
-  padding: 0 4px !important;
+  height: 25px;
+  padding: 0 3.5px !important;
   font-size: var(--font-size-xs) !important;
   background: transparent !important;
   border: 0 !important;
@@ -1565,12 +1565,12 @@ h4 {
 .add-condition {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .add-condition .n-button {
-  height: 30px !important;
-  padding: 0 12px !important;
+  height: 27px !important;
+  padding: 0 11px !important;
   font-size: var(--font-size-xs) !important;
   font-weight: var(--font-weight-medium) !important;
   background: var(--bg-tertiary) !important;
@@ -1582,21 +1582,21 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
+  padding-top: 9px;
   border-top: 1px dashed var(--border-light);
 }
 
 .cf-delay {
-  width: 108px;
+  width: 97px;
   flex: none;
 }
 
 /* 密码区：原来 rgba(0,0,0,.05) + 1px 边框 = 又一层「卡片套卡片」，统一降成 band 条 */
 .password-section {
   margin-bottom: var(--spacing-md);
-  padding: 10px 12px;
+  padding: 9px 11px;
   background: var(--bg-tertiary);
   border-radius: var(--m-r-md);
   border: 0;
@@ -1606,14 +1606,14 @@ h4 {
 .password-validated {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 /* 密码框：原来是内联 width:150px，320 宽下和标签、验证按钮挤成两行且宽度参差，
    改成可伸缩（标签固定、按钮固定、输入吃剩余宽度）。 */
 .pw-input {
-  flex: 1 1 96px;
+  flex: 1 1 86.5px;
   min-width: 0;
 }
 

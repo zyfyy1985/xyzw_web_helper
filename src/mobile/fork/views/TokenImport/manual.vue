@@ -157,28 +157,28 @@ const handleImport = () => {
 <style lang="scss" scoped>
 .optional-fields {
   display: flex;
-  gap: 16px;
+  gap: 14.5px;
   flex-wrap: wrap;
 
   n-form-item {
     flex: 1 1 45%;
-    min-width: 200px;
+    min-width: 180px;
   }
 }
 
 .form-actions {
-  margin-top: 24px;
+  margin-top: 21.5px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .form-tips {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-  font-size: 12px;
+  gap: 3.5px;
+  margin-top: 3.5px;
+  font-size: 11px;
   color:var(--m-text3);
 }
 

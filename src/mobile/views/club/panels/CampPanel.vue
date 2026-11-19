@@ -18,7 +18,7 @@
         </span>
       </div>
       <div class="m-camp-t">营地挑战（30人俱乐部对决）</div>
-      <div class="m-seg" style="margin-top: 10px">
+      <div class="m-seg" style="margin-top: 9px">
         <button :class="{ on: selectedSide === 'own' }" @click="selectedSide = 'own'">我方阵营阵容</button>
         <button :class="{ on: selectedSide === 'opponent' }" @click="selectedSide = 'opponent'">敌方阵营阵容</button>
       </div>
@@ -65,14 +65,14 @@
           <span class="m-t">当周对战信息</span>
           <span class="m-more">周更新制 · 第 {{ weeklyStats.phase }} 期</span>
         </div>
-        <p class="m-hint" style="margin: 0 0 10px">周期: {{ weeklyStats.cycleRange }} (每周一刷新重置)</p>
+        <p class="m-hint" style="margin: 0 0 9px">周期: {{ weeklyStats.cycleRange }} (每周一刷新重置)</p>
         <div class="m-stats">
           <div class="m-stat"><span class="m-stat-k">公会本周总积分</span><span class="m-stat-v">{{ weeklyStats.weekScore }} 分</span></div>
           <div class="m-stat"><span class="m-stat-k">公会排位段位</span><span class="m-stat-v">{{ weeklyStats.danText }}</span></div>
           <div class="m-stat"><span class="m-stat-k">个人本周战功</span><span class="m-stat-v">{{ weeklyStats.personalScore }} 分 <small>Lv.{{ weeklyStats.personalLevel }}</small></span></div>
           <div class="m-stat"><span class="m-stat-k">个人本周战绩</span><span class="m-stat-v">{{ weeklyStats.weekAttackCnt }}战{{ weeklyStats.weekWinCnt }}胜 ({{ weeklyStats.weekWinRate }}%)</span></div>
         </div>
-        <div v-if="matchDayList.length > 0" class="m-csub" style="margin-top: 12px">赛程速览</div>
+        <div v-if="matchDayList.length > 0" class="m-csub" style="margin-top: 11px">赛程速览</div>
         <div class="m-chiprow" v-if="matchDayList.length > 0">
           <button
             v-for="item in matchDayList"
@@ -94,13 +94,13 @@
           <span class="m-tag" :class="isMatchDay ? 'done' : 'wait'">{{ isMatchDay ? "今日交战中" : "非排位日" }}</span>
         </div>
         <div class="m-kv"><span class="m-k">今日对决对手</span><span class="m-v">{{ weeklyStats.todayOpponentName }}</span></div>
-        <div class="m-stats" style="margin-top: 10px">
+        <div class="m-stats" style="margin-top: 9px">
           <div class="m-stat"><span class="m-stat-k">我方总体出手胜率</span><span class="m-stat-v">{{ todayCombatStats.ourClub.winRate }}%</span><span class="m-stat-d">{{ todayCombatStats.ourClub.wins }}胜 / {{ todayCombatStats.ourClub.totalAttacks }}刀</span></div>
           <div class="m-stat"><span class="m-stat-k">对手总体出手胜率</span><span class="m-stat-v">{{ todayCombatStats.oppClub.winRate }}%</span><span class="m-stat-d">{{ todayCombatStats.oppClub.wins }}胜 / {{ todayCombatStats.oppClub.totalAttacks }}刀</span></div>
           <div class="m-stat"><span class="m-stat-k">今日公会比分</span><span class="m-stat-v">{{ weeklyStats.dayScore }} vs {{ currentOppoDayScore }}</span></div>
           <div class="m-stat"><span class="m-stat-k">据点攻防态势</span><span class="m-stat-v">攻破 {{ weeklyStats.defeatedCount }}/{{ weeklyStats.totalDefenders }}</span><span class="m-stat-d">我方被破 {{ ownDefendDefeatedCount }}/{{ ownMembers.length }}</span></div>
         </div>
-        <div class="m-pbar-wrap" style="margin-top: 12px">
+        <div class="m-pbar-wrap" style="margin-top: 11px">
           <div class="m-pbar-t">{{ weeklyStats.todayOpponentName }} 阵型击破进度 · 已攻破敌方 {{ weeklyStats.defeatedCount }} / {{ weeklyStats.totalDefenders }} 据点 ({{ weeklyStats.defeatedRate }}%)</div>
           <div class="m-pbar"><i :style="{ width: (Number(weeklyStats.defeatedRate) || 0) + '%' }"></i></div>
           <span class="m-pct">{{ weeklyStats.defeatedRate }}%</span>
@@ -220,7 +220,7 @@
             <span class="m-t">催刀台</span>
             <span class="m-tag" :class="attendanceStats.unattackedCount === 0 && attendanceStats.incompleteCount === 0 ? 'done' : 'wait'">满刀率 {{ attendanceStats.completedRate }}% ({{ attendanceStats.completedCount }}/{{ attendanceStats.total }})</span>
           </div>
-          <div style="display: flex; gap: 8px; margin-bottom: 10px">
+          <div style="display: flex; gap: 7px; margin-bottom: 9px">
             <button class="m-btn m-btn-gr" style="flex: 1" :disabled="attendanceStats.unattackedCount === 0" @click="copyUnattackedList">
               复制未动刀名单 (0/3次 · {{ attendanceStats.unattackedCount }}人)
             </button>
@@ -301,7 +301,7 @@
                 <span v-else class="m-scard-val is-muted">0刀</span>
               </div>
               <div class="m-scard-foot">
-                <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" @click="openDuelModal(m)">战报流水</button>
+                <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" @click="openDuelModal(m)">战报流水</button>
               </div>
             </div>
             <p v-if="!sortedTodayMembers.length" class="m-hint" style="text-align: center; margin: 0">暂无数据</p>
@@ -322,7 +322,7 @@
               </span>
               <span class="m-ds">{{ c.serverName || (c.serverId ? c.serverId + "服" : "跨服") }}</span>
             </span>
-            <span class="m-rt"><b style="font-size: 14px">{{ c.score || 0 }}</b><small class="m-hint">本周积分</small></span>
+            <span class="m-rt"><b style="font-size: 12.5px">{{ c.score || 0 }}</b><small class="m-hint">本周积分</small></span>
           </div>
         </div>
 
@@ -375,7 +375,7 @@
                 </div>
               </div>
               <div class="m-scard-foot">
-                <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" @click="openDuelModal(m)">对战详情</button>
+                <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" @click="openDuelModal(m)">对战详情</button>
               </div>
             </div>
             <p v-if="!sortedWeeklyRoster.length" class="m-hint" style="text-align: center; margin: 0">暂无数据</p>
@@ -458,14 +458,14 @@
 
     <!-- 加载态（照抄） -->
     <div v-if="loading" class="m-card">
-      <p class="m-hint" style="text-align: center; padding: 24px 0">
+      <p class="m-hint" style="text-align: center; padding: 21.5px 0">
         正在加载{{ selectedSide === "opponent" ? "敌方" : "我方" }}真实营地布阵数据 ({{ progressText }})…
       </p>
     </div>
 
     <!-- 空态（照抄）：仅当确实没有对阵数据时才整屏空态，避免与上方内容并存 -->
     <div v-if="!loading && !battleInfo" class="m-card">
-      <div class="m-empty" style="padding: 30px 0">
+      <div class="m-empty" style="padding: 27px 0">
         <div class="m-logo">⛺</div>
         <h3>{{ emptyHint }}</h3>
         <button class="m-btn m-btn-p" @click="fetchCampChallengeData">点击重新查询</button>
@@ -484,19 +484,19 @@
         <div class="m-sh-sub">ID: {{ targetPlayer.id }}</div>
         <div class="m-kv"><span class="m-k">真实战力 | 总红淬</span><span class="m-v">{{ formatPower(targetPlayer.power) }} | {{ targetPlayer.redQuench || 0 }}</span></div>
         <div class="m-kv"><span class="m-k">玩具 | 流派</span><span class="m-v">{{ targetPlayer.toyName || "无" }} | {{ targetPlayer.lineupType || "常规" }}</span></div>
-        <div class="m-seg" style="margin: 12px 0">
+        <div class="m-seg" style="margin: 11px 0">
           <button :class="{ on: duelTab === 'atk' }" @click="duelTab = 'atk'">进攻流水</button>
           <button :class="{ on: duelTab === 'def' }" @click="duelTab = 'def'">防守流水</button>
         </div>
-        <p v-if="modalLoading" class="m-hint" style="text-align: center; padding: 18px 0">正在拉取对战战报流水…</p>
+        <p v-if="modalLoading" class="m-hint" style="text-align: center; padding: 16px 0">正在拉取对战战报流水…</p>
         <template v-else-if="duelTab === 'atk'">
-          <div class="m-stats" style="margin-bottom: 10px">
+          <div class="m-stats" style="margin-bottom: 9px">
             <div class="m-stat"><span class="m-stat-k">进攻总场次</span><span class="m-stat-v">{{ targetPlayerOffenseList.length }}</span></div>
             <div class="m-stat"><span class="m-stat-k">进攻成功</span><span class="m-stat-v" style="color: var(--m-green)">{{ targetPlayerOffenseWinCount }}</span></div>
             <div class="m-stat"><span class="m-stat-k">进攻失败</span><span class="m-stat-v" style="color: var(--m-red)">{{ targetPlayerOffenseLossCount }}</span></div>
             <div class="m-stat"><span class="m-stat-k">进攻胜率</span><span class="m-stat-v">{{ targetPlayerOffenseWinRate }}%</span></div>
           </div>
-          <p v-if="!targetPlayerOffenseList.length" class="m-hint" style="text-align: center; padding: 12px 0">当前日期暂无进攻流水记录</p>
+          <p v-if="!targetPlayerOffenseList.length" class="m-hint" style="text-align: center; padding: 11px 0">当前日期暂无进攻流水记录</p>
           <div class="m-trow" v-for="(r, i) in targetPlayerOffenseList" :key="'a' + i">
             <span class="m-ib" :style="{ background: avatarBg(r.targetRoleInfo) }">
               <img v-if="r.targetRoleInfo?.headImg" :src="r.targetRoleInfo.headImg" alt="" @error="onImgError" />
@@ -510,13 +510,13 @@
           </div>
         </template>
         <template v-else>
-          <div class="m-stats" style="margin-bottom: 10px">
+          <div class="m-stats" style="margin-bottom: 9px">
             <div class="m-stat"><span class="m-stat-k">防守总场次</span><span class="m-stat-v">{{ targetPlayerDefenseList.length }}</span></div>
             <div class="m-stat"><span class="m-stat-k">防守成功</span><span class="m-stat-v" style="color: var(--m-green)">{{ targetPlayerDefenseWinCount }}</span></div>
             <div class="m-stat"><span class="m-stat-k">防守失败</span><span class="m-stat-v" style="color: var(--m-red)">{{ targetPlayerDefenseLossCount }}</span></div>
             <div class="m-stat"><span class="m-stat-k">防守胜率</span><span class="m-stat-v">{{ targetPlayerDefenseWinRate }}%</span></div>
           </div>
-          <p v-if="!targetPlayerDefenseList.length" class="m-hint" style="text-align: center; padding: 12px 0">当前日期暂无防守流水记录</p>
+          <p v-if="!targetPlayerDefenseList.length" class="m-hint" style="text-align: center; padding: 11px 0">当前日期暂无防守流水记录</p>
           <div class="m-trow" v-for="(r, i) in targetPlayerDefenseList" :key="'d' + i">
             <span class="m-ib" :style="{ background: avatarBg(r.targetRoleInfo) }">
               <img v-if="r.targetRoleInfo?.headImg" :src="r.targetRoleInfo.headImg" alt="" @error="onImgError" />
@@ -1758,33 +1758,33 @@ export default { name: "MobileCampPanel" };
 </script>
 
 <style scoped>
-.m-camp-t { font-size: 13.5px; font-weight: 700; color: var(--m-text); margin-top: 4px; }
+.m-camp-t { font-size: 12px; font-weight: 700; color: var(--m-text); margin-top: 3.5px; }
 /* VS 看板 */
-.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 7px; align-items: center; }
 .m-vs-c { min-width: 0; }
-.m-vs-id { font-size: 10.5px; color: var(--m-text3); font-weight: 700; }
-.m-vs-row { display: flex; align-items: center; gap: 6px; margin: 4px 0 3px; min-width: 0; }
-.m-clogo-s { width: 26px; height: 26px; border-radius: 8px; flex: none; }
-.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-.m-vs-nm { font-size: 13px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-vs-st { font-size: 11px; color: var(--m-text2); font-weight: 700; }
-.m-vs-anno { font-size: 10.5px; color: var(--m-text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vs-id { font-size: 9.5px; color: var(--m-text3); font-weight: 700; }
+.m-vs-row { display: flex; align-items: center; gap: 5.5px; margin: 3.5px 0 2.5px; min-width: 0; }
+.m-clogo-s { width: 23.5px; height: 23.5px; border-radius: 7px; flex: none; }
+.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+.m-vs-nm { font-size: 11.5px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vs-st { font-size: 10px; color: var(--m-text2); font-weight: 700; }
+.m-vs-anno { font-size: 9.5px; color: var(--m-text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .m-vs-badge {
-  width: 34px; height: 34px; border-radius: var(--m-r-md); flex: none;
+  width: 30.5px; height: 30.5px; border-radius: var(--m-r-md); flex: none;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11.5px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 10.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary);
 }
-.m-ranktext { text-align: center; font-size: 11px; font-weight: 700; color: var(--m-primary); margin-top: 10px; }
+.m-ranktext { text-align: center; font-size: 10px; font-weight: 700; color: var(--m-primary); margin-top: 9px; }
 /* 赛程 chip */
 .m-dayc {
   display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px;
   border: 1px solid var(--m-border); background: var(--m-bg); color: var(--m-text);
-  border-radius: 8px; padding: 6px 10px; font-family: inherit; cursor: pointer; text-align: left; min-width: 0;
+  border-radius: 7px; padding: 5.5px 9px; font-family: inherit; cursor: pointer; text-align: left; min-width: 0;
 }
-.m-dayc b { font-size: 11.5px; font-weight: 700; }
-.m-dayc span { font-size: 10px; color: var(--m-text2); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-dayc i { font-style: normal; font-size: 10px; color: var(--m-text3); }
+.m-dayc b { font-size: 10.5px; font-weight: 700; }
+.m-dayc span { font-size: 9px; color: var(--m-text2); max-width: 108px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-dayc i { font-style: normal; font-size: 9px; color: var(--m-text3); }
 .m-dayc.on { border-color: var(--m-primary); background: var(--m-blue-soft); }
 .m-dayc.on b { color: var(--m-primary); }
 /* 顶部日程 tag：「今日周六（非排位日，开放日：周二、周三、周四）」在 390 视口放不下，
@@ -1792,63 +1792,63 @@ export default { name: "MobileCampPanel" };
 .m-sched { flex: 1 1 auto; min-width: 0; margin-top: 0; }
 .m-sched-tag { white-space: normal; line-height: 1.35; text-align: left; align-self: flex-start; }
 /* 赛程速览：三个 chip 均分一行，俱乐部名允许折行（原来 max-width:120px + ellipsis 会把名字吃掉） */
-.m-dayc--sched { flex: 1 1 calc(33.333% - 4px); }
+.m-dayc--sched { flex: 1 1 calc(33.333% - 3.5px); }
 .m-dayc--sched span { max-width: none; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; }
 /* 据点卡：编号 + 头像 + 三行（名字/战力/遭遇），头像必须显式定性尺寸，
    否则 <img> 按原图渲染成上百像素（10-31 实拍过：头像占满半张卡、战力折行） */
 .m-slot {
-  display: flex; align-items: flex-start; gap: 10px; padding: 12px 0;
+  display: flex; align-items: flex-start; gap: 9px; padding: 11px 0;
   border-bottom: 1px solid var(--m-border); cursor: pointer;
 }
 .m-slot:last-child { border-bottom: none; }
 .m-slot-no {
-  flex: none; width: 24px; padding-top: 13px;
-  font-size: 12px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums;
+  flex: none; width: 21.5px; padding-top: 11.5px;
+  font-size: 11px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums;
 }
 .m-slot .m-mava {
-  flex: none; width: 44px; height: 44px; overflow: hidden;
+  flex: none; width: 39.5px; height: 39.5px; overflow: hidden;
   border-radius: var(--m-r-md);
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: var(--m-on-primary);
+  font-size: 12.5px; font-weight: 700; color: var(--m-on-primary);
 }
-.m-slot .m-mava img { width: 44px; height: 44px; object-fit: cover; border-radius: var(--m-r-md); display: block; }
-.m-slot .m-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.m-nmline { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.m-slot .m-mava img { width: 39.5px; height: 39.5px; object-fit: cover; border-radius: var(--m-r-md); display: block; }
+.m-slot .m-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2.5px; }
+.m-nmline { display: flex; align-items: center; gap: 5.5px; min-width: 0; }
 .m-nmline .m-nm {
-  min-width: 0; font-size: 13px; font-weight: 700; color: var(--m-text);
+  min-width: 0; font-size: 11.5px; font-weight: 700; color: var(--m-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.m-nmline .m-nm small { font-weight: 700; font-size: 11px; color: var(--m-text3); }
-.m-rt { margin-left: auto; flex: none; font-size: 11px; font-weight: 700; color: var(--m-primary); }
+.m-nmline .m-nm small { font-weight: 700; font-size: 10px; color: var(--m-text3); }
+.m-rt { margin-left: auto; flex: none; font-size: 10px; font-weight: 700; color: var(--m-primary); }
 .m-slot .m-ds {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
-  font-size: 11px; line-height: 1.45; color: var(--m-text3);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4.5px;
+  font-size: 10px; line-height: 1.45; color: var(--m-text3);
 }
-.m-ds-v { font-size: 12px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
-.m-slot .m-lu { margin-top: 0; font-size: 10.5px; padding: 1px 6px; }
+.m-ds-v { font-size: 11px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
+.m-slot .m-lu { margin-top: 0; font-size: 9.5px; padding: 1px 5.5px; }
 .m-rdtag {
-  display: inline-block; font-style: normal; font-size: 10px; font-weight: 700;
-  color: var(--m-red); background: var(--m-red-soft); border-radius: 4px;
-  padding: 1px 6px; font-variant-numeric: tabular-nums;
+  display: inline-block; font-style: normal; font-size: 9px; font-weight: 700;
+  color: var(--m-red); background: var(--m-red-soft); border-radius: 3.5px;
+  padding: 1px 5.5px; font-variant-numeric: tabular-nums;
 }
 /* 比分横幅 */
-.m-score { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+.m-score { display: grid; grid-template-columns: 1fr auto 1fr; gap: 7px; align-items: center; }
 .m-score-c { min-width: 0; }
-.m-score-nm { display: block; font-size: 12px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-score-v { display: block; font-size: 24px; font-weight: 700; color: var(--m-primary); line-height: 1.2; font-variant-numeric: tabular-nums; }
-.m-score-ds { display: block; font-size: 10.5px; color: var(--m-text3); margin-top: 2px; }
-.m-score-mid { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.m-score-lead { font-size: 10.5px; font-weight: 700; border-radius: var(--m-r-sm); padding: 3px 9px; white-space: nowrap; }
+.m-score-nm { display: block; font-size: 11px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-score-v { display: block; font-size: 21.5px; font-weight: 700; color: var(--m-primary); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.m-score-ds { display: block; font-size: 9.5px; color: var(--m-text3); margin-top: 2px; }
+.m-score-mid { display: flex; flex-direction: column; align-items: center; gap: 5.5px; }
+.m-score-lead { font-size: 9.5px; font-weight: 700; border-radius: var(--m-r-sm); padding: 2.5px 8px; white-space: nowrap; }
 .m-score-lead.lead { color: var(--m-green); background: var(--m-green-soft); }
 .m-score-lead.lag { color: var(--m-red); background: var(--m-red-soft); }
 /* 双对比条 */
-.m-cmp { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-.m-cmp-r { display: flex; align-items: center; gap: 8px; }
-.m-cmp-l { font-size: 11px; color: var(--m-text2); font-weight: 700; flex: none; width: 76px; }
+.m-cmp { margin-top: 11px; display: flex; flex-direction: column; gap: 7px; }
+.m-cmp-r { display: flex; align-items: center; gap: 7px; }
+.m-cmp-l { font-size: 10px; color: var(--m-text2); font-weight: 700; flex: none; width: 68.5px; }
 .m-cmp-r .m-pbar { flex: 1; }
-.m-cmp-r b { font-size: 11.5px; font-weight: 700; color: var(--m-text); min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
+.m-cmp-r b { font-size: 10.5px; font-weight: 700; color: var(--m-text); min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
 /* 催刀预览盒 */
-.m-preview { border: 1px dashed var(--m-border); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; }
+.m-preview { border: 1px dashed var(--m-border); border-radius: 7px; padding: 7px 9px; margin-bottom: 9px; }
 .m-preview:last-child { margin-bottom: 0; }
 .rate-hi { color: var(--m-green); }
 .rate-lo { color: var(--m-amber); }
@@ -1857,16 +1857,16 @@ export default { name: "MobileCampPanel" };
 /* 布阵小卡 */
 /* 布阵五张武将卡：改固定两列 —— 原来 flex-wrap 按内容宽度排，5 张卡落在 3 行且宽度参差；
    固定两列后始终 2+2+1，配合下面「鱼灵仅在有名字时占行」把整卡从 ~470px 压到 ~270px */
-.m-pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 5px; }
+.m-pgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4.5px; margin-top: 4.5px; }
 .m-pcard {
   display: flex; flex-direction: column; gap: 1px;
-  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 8px;
-  padding: 4px 8px; min-width: 0;
+  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 7px;
+  padding: 3.5px 7px; min-width: 0;
 }
-.m-pcard-n { font-size: 11px; font-weight: 700; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-pcard-n { font-size: 10px; font-weight: 700; color: var(--m-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-pcard-r { font-style: normal; color: var(--m-red); margin-left: 2px; }
-.m-pcard-hb { font-style: normal; color: var(--m-green); margin-left: 4px; font-size: 10px; }
-.m-pcard-p { font-size: 10px; color: var(--m-text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-pcard-hb { font-style: normal; color: var(--m-green); margin-left: 3.5px; font-size: 9px; }
+.m-pcard-p { font-size: 9px; color: var(--m-text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ============================================================
  * 10-31 营地四 tab 收口（据点沙盘 / 催刀督战 / 当周大表 / 布阵）
@@ -1876,28 +1876,28 @@ export default { name: "MobileCampPanel" };
    「今日战绩」「当周战绩」的排序 chip 会和第一张卡直接贴住（用户 10-31 反馈「tab 跟下方都挨在一起了」）。
    用相邻兄弟选择器而不是给 .m-chiprow 统一加 margin —— 流派分布卡里 chip 行本就是最后一个子元素，
    加了下边距等于给卡片底部白塞 10px。 */
-.m-card > .m-chiprow + .m-scards { margin-top: 10px; }
+.m-card > .m-chiprow + .m-scards { margin-top: 9px; }
 /* 筛选行 → 排序行：同一区域里的两组，留一口气但不脱开 */
-.m-card > .m-chiprow + .m-chiprow { margin-top: 6px; }
+.m-card > .m-chiprow + .m-chiprow { margin-top: 5.5px; }
 /* 筛选/排序 chip 收小一档：默认尺寸下「全部 (20) 仅坚守 (17) 仅击破 (3)」在 320 视口差一点排不下，
    折成两行；字号 12.5 + 内边距 5/9 后三个一行（390 上也更精致，不再显得笨重） */
-.m-card > .m-chiprow .m-dayc { font-size: 12.5px; padding: 5px 9px; }
+.m-card > .m-chiprow .m-dayc { font-size: 11.5px; padding: 4.5px 8px; }
 /* 卡末脚注（据点沙盘的「点击成员可查看…」，从两排 chip 中间下沉到底部） */
-.m-foothint { margin: 10px 0 0; text-align: center; }
+.m-foothint { margin: 9px 0 0; text-align: center; }
 
 /* 名单 chip（催刀台 0 刀未动 / 未打满）：横排「名字 + 次数」，一行能落 2~3 个。
    原来是 .m-dayc 的 column 方向 + 括号里的战力，每个 chip 占满整行（30 人 = 30 行）。 */
 .m-dayc--mem {
   flex-direction: row;
   align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  font-size: 12px;
+  gap: 4.5px;
+  padding: 4.5px 8px;
+  font-size: 11px;
   line-height: 1.25;
   max-width: 100%;
   border-radius: var(--m-r-sm);
 }
-.m-dayc--mem em { font-style: normal; font-size: 10.5px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-dayc--mem em { font-style: normal; font-size: 9.5px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 
 /* 卡片头右侧的文字入口（布阵卡的「对战详情 ›」，取代独占一行的底部按钮） */
 .m-headlink {
@@ -1907,7 +1907,7 @@ export default { name: "MobileCampPanel" };
   background: none;
   padding: 0;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--m-primary);
   cursor: pointer;
@@ -1917,7 +1917,7 @@ export default { name: "MobileCampPanel" };
 .m-scard-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* 「出战布阵」后面的站位范围说明 */
-.m-lcard-tip { font-style: normal; font-size: 10px; color: var(--m-text3); margin-left: 2px; }
+.m-lcard-tip { font-style: normal; font-size: 9px; color: var(--m-text3); margin-left: 2px; }
 /* 流派/标签的前景色：内联 color 会被 App.vue 暗色全局 span{color:#fff!important} 刷白，
    这里用 (0,2,0)+!important 压回去（见 lineupStyle 里 --lu-fg 的说明） */
 .m-lu--fg,
@@ -1926,12 +1926,12 @@ export default { name: "MobileCampPanel" };
 
 <style scoped>
 /* 比分横幅俱乐部 logo 行 */
-.m-score-row { display: flex; align-items: center; gap: 6px; }
-.m-score-row .m-clogo-s { width: 22px; height: 22px; border-radius: 4px; flex: none; }
-.m-score-row .m-clogo-s img { width: 100%; height: 100%; border-radius: 4px; object-fit: cover; }
+.m-score-row { display: flex; align-items: center; gap: 5.5px; }
+.m-score-row .m-clogo-s { width: 20px; height: 20px; border-radius: 3.5px; flex: none; }
+.m-score-row .m-clogo-s img { width: 100%; height: 100%; border-radius: 3.5px; object-fit: cover; }
 /* 击破进度条标题行（照抄旧版 progress-info） */
-.m-pbar-t { display: block; font-size: 11px; color: var(--m-text2); margin-bottom: 5px; }
+.m-pbar-t { display: block; font-size: 10px; color: var(--m-text2); margin-bottom: 4.5px; }
 /* 布阵英雄卡鱼灵行（照抄旧版 hero-card-pearl） */
-.m-pcard-fish { display: block; font-size: 10px; color: var(--m-text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-pcard-fish { display: block; font-size: 9px; color: var(--m-text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 

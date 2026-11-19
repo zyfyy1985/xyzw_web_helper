@@ -20,8 +20,8 @@ import MonthlyTasksCard from "@/mobile/fork/components/cards/MonthlyTasksCard.vu
 /* 进度行：桌面 justify-content:space-between 单行，窄屏允许换行不截断 */
 .m-monthly :deep(.monthly-row) {
   flex-wrap: wrap;
-  gap: 2px 8px;
-  font-size: 13px;
+  gap: 2px 7px;
+  font-size: 11.5px;
 }
 .m-monthly :deep(.monthly-row .row-title) {
   color: var(--m-text2);
@@ -35,8 +35,8 @@ import MonthlyTasksCard from "@/mobile/fork/components/cards/MonthlyTasksCard.vu
 .m-monthly :deep(.action-row) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 12px;
+  gap: 7px;
+  margin-top: 11px;
 }
 .m-monthly :deep(.action-row > .action-button.secondary) {
   grid-column: 1 / -1;
@@ -53,12 +53,12 @@ import MonthlyTasksCard from "@/mobile/fork/components/cards/MonthlyTasksCard.vu
 
 /* 统一按钮高度与圆角（桌面按字号自己算，手机上 30px 太矮点不准） */
 .m-monthly :deep(.action-button) {
-  min-height: 40px;
+  min-height: 36px;
   border: none;
   border-radius: var(--m-r-md);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
-  padding: 0 10px;
+  padding: 0 9px;
 }
 /* 刷新进度：次要动作，但**不能画成灰底**——灰底在手机上和禁用态长得一样
    （用户第一反应就是「这按钮为什么是灰的」）。走规范 button-outline：
@@ -76,8 +76,8 @@ html[data-theme="dark"] .m-monthly :deep(button.action-button.secondary) {
    ★ 之前主键被 Naive 的 --n-height 压成 34px、▾ 半边 40px 还是白底 ⇒ 看起来像两颗错位叠在一起的按钮。
      这里对整组统一 height/min-height/radius，用 !important 一次性压住 Naive 的 --n-height。 */
 .m-monthly :deep(.action-row .n-button-group .n-button) {
-  height: 40px !important;
-  min-height: 40px !important;
+  height: 36px !important;
+  min-height: 36px !important;
   border-radius: 0 !important;
 }
 /* 主键：吃满剩余宽度。--n-color 必须 !important（Naive 把颜色写在内联 style 里），
@@ -101,7 +101,7 @@ html[data-theme="dark"] .m-monthly :deep(button.action-button.secondary) {
 }
 /* ▾ 半边：同色 + 一道半透明白线分界（Naive 默认把它画成白底，右边那块白就是它） */
 .m-monthly :deep(.action-row .n-button-group .n-button:not(.action-button)) {
-  flex: 0 0 38px;
+  flex: 0 0 34px;
   --n-color: var(--m-primary) !important;
   --n-color-hover: var(--m-primary-deep) !important;
   --n-color-pressed: var(--m-primary-deep) !important;
@@ -123,13 +123,13 @@ html[data-theme="dark"] .m-monthly :deep(button.action-button.secondary) {
 
 /* 说明文字收一档，别抢正文注意力 */
 .m-monthly :deep(.description.muted) {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.55;
   color: var(--m-text3);
 }
 .m-monthly :deep(.status-indicator.closed) {
   color: var(--m-red);
-  font-size: 11px;
+  font-size: 10px;
 }
 </style>
 

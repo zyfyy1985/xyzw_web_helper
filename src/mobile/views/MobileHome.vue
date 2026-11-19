@@ -321,26 +321,26 @@ async function openGame() {
   display: none;
 }
 .m-home :deep(.identity-card.embedded > .loading) {
-  padding: 14px 16px;
+  padding: 12.5px 14.5px;
   color: var(--m-ink-t3);
 }
 
 /* ===== ① 顶部：头像 + 名字｜本周活动（焦点） ===== */
 .m-home :deep(.identity-card .role-profile-header) {
   background: none;
-  border-radius: 4px;
-  padding: 14px 16px 0;
+  border-radius: 3.5px;
+  padding: 12.5px 14.5px 0;
 }
 .m-home :deep(.identity-card .role-profile-content) {
   flex-direction: row;
   align-items: flex-start;
   text-align: left;
-  gap: 11px;
+  gap: 10px;
 }
 .m-home :deep(.identity-card .avatar-container),
 .m-home :deep(.identity-card .role-avatar) {
-  width: 44px;
-  height: 44px;
+  width: 39.5px;
+  height: 39.5px;
   flex: none;
 }
 .m-home :deep(.identity-card .role-avatar) {
@@ -354,8 +354,8 @@ async function openGame() {
   display: grid;
   grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
-  column-gap: 8px;
-  row-gap: 5px;
+  column-gap: 7px;
+  row-gap: 4.5px;
   min-width: 0;
   flex: 1;
   padding-top: 1px;
@@ -367,7 +367,7 @@ async function openGame() {
   align-items: center;
   min-width: 0;
   color: var(--m-ink-t1);
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0;
@@ -375,11 +375,11 @@ async function openGame() {
   overflow: hidden;
 }
 .m-home :deep(.identity-card .role-name .n-tag) {
-  height: 17px;
-  padding: 0 5px;
-  margin-left: 6px !important;
-  font-size: 10.5px;
-  line-height: 17px;
+  height: 15.5px;
+  padding: 0 4.5px;
+  margin-left: 5.5px !important;
+  font-size: 9.5px;
+  line-height: 15.5px;
   /* 门派色是组件内联的饱和红，压在深底上会和「本周活动」抢注意力 ⇒ 压一档 */
   opacity: 0.8;
   filter: saturate(0.62);
@@ -388,9 +388,9 @@ async function openGame() {
   grid-column: 1 / -1;
   grid-row: 2;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 7px;
   color: var(--m-ink-t3);
-  font-size: 11.5px;
+  font-size: 10.5px;
 }
 /* ★ 本周活动 = 全卡唯一焦点：亮蓝字 + 半透明蓝底胶囊，其余信息一律压成灰白 */
 /* 只留活动名（黑市周），「本周活动：」这四个字在移动端多余（胶囊本身就是标签） */
@@ -403,12 +403,12 @@ async function openGame() {
   justify-self: end;
   align-self: center;
   margin: 0;
-  padding: 4px 9px;
+  padding: 3.5px 8px;
   max-width: 100%;
   background: var(--m-ink-chip-bg);
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--m-ink-chip-fg);
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.35;
   white-space: nowrap;
@@ -429,8 +429,8 @@ async function openGame() {
 .m-home :deep(.identity-card .resources) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 13px 16px 0;
-  padding: 13px 0 12px;
+  margin: 11.5px 14.5px 0;
+  padding: 11.5px 0 11px;
   border-top: 1px solid var(--m-ink-line);
   background: none;
 }
@@ -443,24 +443,24 @@ async function openGame() {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 3.5px;
   min-height: 0;
   padding: 0;
   background: none;
   border: none;
-  border-radius: 4px;
+  border-radius: 3.5px;
 }
 .m-home :deep(.identity-card .resources .res-item + .res-item) {
-  padding-left: 12px;
+  padding-left: 11px;
   border-left: 1px solid var(--m-ink-line);
 }
 .m-home :deep(.identity-card .res-item .label) {
   max-width: 100%;
   color: var(--m-ink-t3);
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 400;
   line-height: 1.4;
-  letter-spacing: 0.2px;
+  letter-spacing: 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -469,7 +469,7 @@ async function openGame() {
   max-width: 100%;
   color: var(--m-ink-t1);
   /* 14px 而非 15：数值太亮太大就会和「本周活动」抢焦点 */
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   line-height: 1.35;
   font-variant-numeric: tabular-nums;
@@ -484,22 +484,22 @@ async function openGame() {
   align-items: center;
   justify-content: space-between;
   margin: 0;
-  padding: 10px 16px 12px;
+  padding: 9px 14.5px 11px;
   border-top: 1px solid var(--m-ink-line);
   background: none;
-  border-radius: 4px;
+  border-radius: 3.5px;
 }
 .m-home :deep(.identity-card .resources-toggle::before) {
   content: "资产";
   color: var(--m-ink-t3);
-  font-size: 11px;
-  letter-spacing: 0.4px;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 /* 组件按钮文案是「展开全部 / 收起」（桌面 GameStatus 也在用，不能改组件），
  * 这里 font-size:0 藏掉原文字、用 ::before 换成「全部」，点击由 .m-desk 的捕获监听接管 */
 .m-home :deep(.identity-card .resources-toggle .n-button) {
   width: auto;
-  height: 24px;
+  height: 21.5px;
   font-size: 0;
   font-weight: 500;
   color: var(--m-ink-t1) !important;
@@ -510,13 +510,13 @@ async function openGame() {
 }
 .m-home :deep(.identity-card .resources-toggle .n-button::before) {
   content: "全部";
-  font-size: 12.5px;
+  font-size: 11.5px;
 }
 .m-home :deep(.identity-card .resources-toggle .n-button::after) {
   content: "";
-  width: 6px;
-  height: 6px;
-  margin-left: 5px;
+  width: 5.5px;
+  height: 5.5px;
+  margin-left: 4.5px;
   margin-top: -2px;
   border-right: 1.4px solid currentColor;
   border-bottom: 1.4px solid currentColor;
@@ -579,7 +579,7 @@ async function openGame() {
   box-sizing: border-box;
   max-height: 78vh;
   overflow-y: auto;
-  padding: 8px 16px calc(20px + env(safe-area-inset-bottom));
+  padding: 7px 14.5px calc(18px + env(safe-area-inset-bottom));
   background: var(--m-card);
   border-radius: var(--m-r-lg) var(--m-r-lg) 0 0;
   z-index: 41;
@@ -593,19 +593,19 @@ async function openGame() {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 11px;
+  margin-bottom: 11px;
 }
 .m-home-sheet h4 {
   margin: 0;
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 500;
   line-height: 1.2;
   color: var(--m-text);
 }
 .m-home-sheet .m-as-sub {
-  margin-top: 3px;
-  font-size: 12px;
+  margin-top: 2.5px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--m-text3);
 }
@@ -614,7 +614,7 @@ async function openGame() {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  margin-bottom: 14px;
+  margin-bottom: 12.5px;
   overflow: hidden;
   border-radius: var(--m-r-lg);
   background: var(--m-band);
@@ -624,19 +624,19 @@ async function openGame() {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: 9px 12px;
+  padding: 8px 11px;
   background: var(--m-card);
 }
 .m-home-sheet .m-as-k {
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 10px;
+  line-height: 12.5px;
   color: var(--m-text3) !important;
 }
 .m-home-sheet .m-as-v {
   overflow: hidden;
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 20px;
   font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -644,24 +644,24 @@ async function openGame() {
 }
 /* 分组：节标题 = 3px 行动色竖线 + 12.5px 灰字 + 右侧项数 */
 .m-home-sheet .m-as-sec + .m-as-sec {
-  margin-top: 14px;
+  margin-top: 12.5px;
 }
 .m-home-sheet .m-as-sec-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   margin-bottom: 2px;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 .m-home-sheet .m-as-sec-title::before {
   content: "";
   flex: none;
-  width: 3px;
-  height: 10px;
-  border-radius: 4px;
+  width: 2.5px;
+  height: 9px;
+  border-radius: 3.5px;
   background: var(--m-primary);
 }
 .m-home-sheet .m-as-sec-k {
@@ -669,7 +669,7 @@ async function openGame() {
 }
 .m-home-sheet .m-as-sec-n {
   margin-left: auto;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
@@ -678,20 +678,20 @@ async function openGame() {
 .m-home-sheet .m-as-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 20px;
+  column-gap: 18px;
 }
 .m-home-sheet .m-as-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  padding: 7px 0;
+  gap: 7px;
+  padding: 6.5px 0;
   border-bottom: 1px solid var(--m-band);
 }
 /* App.vue 暗色规则同样会压掉抽屉里的灰阶 */
 .m-home-sheet .m-as-row .m-as-label {
   overflow: hidden;
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -699,7 +699,7 @@ async function openGame() {
 }
 .m-home-sheet .m-as-row .m-as-value {
   flex: none;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--m-text) !important;
@@ -719,18 +719,19 @@ async function openGame() {
 .m-home :deep(.daily-task .card-header) {
   flex-wrap: nowrap;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 .m-home :deep(.daily-task .header-right) {
   width: auto;
   margin-left: auto;
   margin-top: 0;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-home :deep(.daily-task .settings-gear) {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--m-r-sm);
+  width: 23.5px;
+  height: 23.5px;
+  /* 圆形，对齐六宫格里那颗「内置脚本」齿轮 */
+  border-radius: 50%;
   background: var(--m-band);
   color: var(--m-text3);
 }
@@ -740,7 +741,7 @@ async function openGame() {
   transform: none;
 }
 .m-home :deep(.daily-task .progress-container) {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 /* 进度条：Naive 把 rail/fill 颜色写成内联（rail-color=var(--m-bg)、--n-fill-color=var(--m-primary)），
    暗色下轨道几乎全白 —— 只能 !important 压回 band + 唯一行动蓝 */
@@ -752,7 +753,7 @@ async function openGame() {
   border-radius: var(--m-r-sm) !important;
 }
 .m-home :deep(.daily-task .info-container) {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
 }
 .m-home :deep(.daily-task .card-actions) {
@@ -760,10 +761,10 @@ async function openGame() {
   padding-top: 0;
 }
 .m-home :deep(.daily-task .action-button) {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 32.5px;
+  padding: 0 12.5px;
   border-radius: var(--m-r-md);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   background: var(--m-primary);
   color: var(--m-on-primary);
@@ -775,11 +776,11 @@ async function openGame() {
 
 /* ---------- 挂机 / 盐罐 ---------- */
 .m-home :deep(.status-card .card-content) {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 .m-home :deep(.status-card .time-display) {
   font-family: "SF Mono", "Roboto Mono", Consolas, monospace;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--m-text);
@@ -794,10 +795,10 @@ async function openGame() {
 /* 三张卡的动作键统一 36px（卡内基线 32px 是给「行内小动作」的，
    这三处是整宽主 CTA，跟登录页主按钮一样需要一眼看到，所以单独抬一档） */
 .m-home :deep(.card-action > button.action-button) {
-  min-height: 36px;
-  padding: 0 14px;
+  min-height: 32.5px;
+  padding: 0 12.5px;
   border-radius: var(--m-r-md);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
 }
 /* 挂机卡两个原生 button（.action-button secondary / primary）——补齐配色 */
@@ -812,8 +813,8 @@ async function openGame() {
 /* 盐罐卡是 Arco 的 type=primary secondary：背景被收到行动蓝了，但 Arco 自己的字色还是白，
    暗色下就是白字压在浅蓝上（实测 rgb(255,255,255) on rgb(107,192,255)） */
 .m-home :deep(.bottle-helper .card-action .arco-btn) {
-  height: 36px;
-  font-size: 14px;
+  height: 32.5px;
+  font-size: 12.5px;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
   border-color: var(--m-primary);

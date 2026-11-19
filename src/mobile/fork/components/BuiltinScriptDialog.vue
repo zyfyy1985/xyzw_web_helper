@@ -136,12 +136,12 @@ const onStart = () => {
 
 <style scoped>
 .opened-badge {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--primary-color);
   background: rgba(102, 126, 234, 0.1);
   border: 1px solid rgba(102, 126, 234, 0.35);
   border-radius: var(--m-r-lg);
-  padding: 2px 10px;
+  padding: 2px 9px;
   white-space: nowrap;
 }
 
@@ -150,17 +150,17 @@ const onStart = () => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md, 16px);
+  gap: var(--spacing-md, 14.5px);
   padding-right: 2px;
 }
 
 .script-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md, 16px);
-  padding: 12px 14px;
+  gap: var(--spacing-md, 14.5px);
+  padding: 11px 12.5px;
   border:1px solid var(--border-light, var(--m-border));
-  border-radius: var(--border-radius-large, 12px);
+  border-radius: var(--border-radius-large, 11px);
   background:var(--bg-primary, var(--m-card));
 
   cursor: pointer;
@@ -186,11 +186,11 @@ const onStart = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-sm, 8px);
+  gap: var(--spacing-sm, 7px);
 }
 
 .script-name {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color:var(--text-primary, var(--m-text2));
   overflow: hidden;
@@ -200,17 +200,17 @@ const onStart = () => {
 
 .script-ver {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 10px;
   color:var(--text-tertiary, var(--m-text3));
   background:var(--bg-secondary, var(--m-bg));
   border:1px solid var(--border-light, var(--m-border));
   border-radius: var(--m-r-lg);
-  padding: 1px 8px;
+  padding: 1px 7px;
 }
 
 .script-desc {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 11px;
   color:var(--text-secondary, var(--m-text3));
   overflow: hidden;
   text-overflow: ellipsis;
@@ -219,7 +219,7 @@ const onStart = () => {
 
 .dialog-footer {
   display: flex;
-  gap: 12px;
+  gap: 11px;
 }
 
 .dialog-footer .n-button {

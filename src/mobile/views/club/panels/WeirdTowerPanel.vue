@@ -14,7 +14,7 @@
       </span>
     </div>
 
-    <p v-if="loading" class="m-hint" style="text-align: center; padding: 20px 0">正在加载怪异塔数据…</p>
+    <p v-if="loading" class="m-hint" style="text-align: center; padding: 18px 0">正在加载怪异塔数据…</p>
     <template v-else-if="memberScores.length">
       <!-- 表头（对齐旧版四列：序号 / 头像 / 成员 / 层数） -->
       <div class="m-thead m-thead-w">
@@ -37,7 +37,7 @@
         <span class="m-floor">{{ row.towerCountconvert || "0-0" }}</span>
       </div>
     </template>
-    <div v-else class="m-empty" style="padding: 30px 0">
+    <div v-else class="m-empty" style="padding: 27px 0">
       <div class="m-logo">🗼</div>
       <h3>暂无数据</h3>
       <p>点右上角「刷新」拉取俱乐部怪异塔数据</p>

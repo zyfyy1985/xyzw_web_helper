@@ -77,12 +77,12 @@
       <div v-if="!dataReady" class="m-card">
         <div class="m-card-h"><span class="m-t">正在确认赛季…</span></div>
         <div class="m-skel"><i></i><i></i><i></i></div>
-        <p class="m-hint" style="margin: 10px 0 0">
+        <p class="m-hint" style="margin: 9px 0 0">
           本地配置快照没有覆盖当前时间，需要等服务器返回角色赛季后才知道该显示哪一期。
         </p>
       </div>
       <div v-else class="m-card">
-        <div class="m-empty" style="padding: 36px 0">
+        <div class="m-empty" style="padding: 32.5px 0">
           <div class="m-logo">🏔️</div>
           <h3>{{ roleInfo.apexRoleInfo ? "当前不在逐鹿盐山赛季内" : "暂无逐鹿盐山数据" }}</h3>
           <p v-if="!roleInfo.apexRoleInfo">请点击「刷新数据」加载</p>
@@ -109,7 +109,7 @@
             <span v-if="selectedRoundEnded" class="m-tag">历史期 · 只读</span>
             <template v-if="seasonConf">（{{ seasonConf.startDate }} ~ {{ seasonConf.endDate }}）</template>
           </div>
-          <div class="m-stats" style="margin-top: 12px">
+          <div class="m-stats" style="margin-top: 11px">
             <div class="m-stat"><span class="m-stat-k">参与竞猜期</span><span class="m-stat-v">{{ dataReady ? Object.keys(roleInfo.guessMap || {}).length : "—" }}</span></div>
             <div class="m-stat"><span class="m-stat-k">助威轮次</span><span class="m-stat-v">{{ dataReady ? Object.keys(roleInfo.voteMap || {}).length : "—" }}</span></div>
             <div class="m-stat"><span class="m-stat-k">助威道具</span><span class="m-stat-v">{{ dataReady ? supportItemCnt : "—" }}</span></div>
@@ -149,7 +149,7 @@
       <template v-else-if="activeSubTab === 'schedule'">
         <div class="m-card">
           <div class="m-card-h"><span class="m-t">🗓 第 {{ selectedRound || "-" }} 期赛程</span></div>
-          <p v-if="currentSchedule.length === 0" class="m-hint" style="text-align: center; padding: 18px 0">当前暂无进行中的赛程</p>
+          <p v-if="currentSchedule.length === 0" class="m-hint" style="text-align: center; padding: 16px 0">当前暂无进行中的赛程</p>
           <div v-else class="m-tl">
             <div v-for="(st, si) in currentSchedule" :key="'cs' + si" class="m-tl-n" :class="{ active: st.isToday, done: st.isPast }">
               <span class="m-tl-dot">●</span>
@@ -190,7 +190,7 @@
             </span>
           </div>
           <div v-if="!dataReady || !loadedSources.bets || betsPending" class="m-skel"><i></i><i></i><i></i></div>
-          <p v-else-if="currentBets.length === 0" class="m-hint" style="text-align: center; padding: 18px 0">当前期暂无淘汰赛竞猜阶段</p>
+          <p v-else-if="currentBets.length === 0" class="m-hint" style="text-align: center; padding: 16px 0">当前期暂无淘汰赛竞猜阶段</p>
           <template v-else>
             <div v-for="grp in currentBets" :key="'cbg' + grp.scheduleId" class="m-grp">
               <div class="m-grp-h">
@@ -198,7 +198,7 @@
                 <span class="m-tag" :class="statusTagClass(grp.state)">{{ guessStatusText(grp.state) }}</span>
                 <span v-if="grp.advanceNum > 0" class="m-tag job">已押 {{ grp.myBets.length }}/{{ grp.advanceNum }}</span>
               </div>
-              <p v-if="grp.state === ApexScheduleStatus.None" class="m-hint" style="margin: 8px 0 0">{{ grp.openTip }}</p>
+              <p v-if="grp.state === ApexScheduleStatus.None" class="m-hint" style="margin: 7px 0 0">{{ grp.openTip }}</p>
               <template v-else>
                 <div v-for="(b, bi) in visibleBets(grp)" :key="`cb${grp.scheduleId}-${betPage(grp)}-${bi}`" class="m-match">
                   <div class="m-team" :class="{ win: b.team1Win }">
@@ -210,7 +210,7 @@
                     <button
                       v-if="!grp.myBets.includes(b.team1Id)"
                       class="m-btn m-btn-gr"
-                      style="padding: 6px 10px; font-size: 11.5px"
+                      style="padding: 5.5px 9px; font-size: 10.5px"
                       :disabled="!canBetRow(grp, b) || pendingGuessTeamId !== '' || actionCooldown.guess > 0"
                       :title="grp.betTip"
                       @click="doGuess(b.team1Id, b, grp)"
@@ -228,7 +228,7 @@
                     <button
                       v-if="!grp.myBets.includes(b.team2Id)"
                       class="m-btn m-btn-gr"
-                      style="padding: 6px 10px; font-size: 11.5px"
+                      style="padding: 5.5px 9px; font-size: 10.5px"
                       :disabled="!canBetRow(grp, b) || pendingGuessTeamId !== '' || actionCooldown.guess > 0"
                       :title="grp.betTip"
                       @click="doGuess(b.team2Id, b, grp)"
@@ -238,9 +238,9 @@
                   </div>
                 </div>
                 <div v-if="grp.state !== ApexScheduleStatus.None && betTotalPages(grp) > 1" class="m-pager">
-                  <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" :disabled="betPage(grp) <= 0" @click="goBetPage(grp, -1)">上一页</button>
+                  <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" :disabled="betPage(grp) <= 0" @click="goBetPage(grp, -1)">上一页</button>
                   <span class="m-pager-t">第 {{ betPage(grp) + 1 }}/{{ betTotalPages(grp) }} 页 · 已加载 {{ grp.matches.length }} 场</span>
-                  <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" :disabled="betPage(grp) + 1 >= betTotalPages(grp)" @click="goBetPage(grp, 1)">下一页</button>
+                  <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" :disabled="betPage(grp) + 1 >= betTotalPages(grp)" @click="goBetPage(grp, 1)">下一页</button>
                 </div>
                 <div v-else-if="grp.state !== ApexScheduleStatus.None" class="m-pager">
                   <span class="m-pager-t">共 {{ grp.matches.length }} 场对阵</span>
@@ -250,7 +250,7 @@
           </template>
         </div>
 
-        <p class="m-hint" style="margin: 4px 2px 0">{{ rateLimitText }}</p>
+        <p class="m-hint" style="margin: 3.5px 2px 0">{{ rateLimitText }}</p>
       </template>
 
       <!-- ============ 助威 ============ -->
@@ -264,8 +264,8 @@
           <div class="m-card-h"><span class="m-t">📣 {{ currentRoundTitle }}</span></div>
           <div v-if="!dataReady || !loadedSources.vote || boardPending" class="m-skel"><i></i><i></i><i></i></div>
           <template v-else>
-            <p v-if="!supportOpen" class="m-hint" style="margin: 0 0 8px">当前不在助威时间内（仅正式赛段 / 淘汰赛段可助威，且该期不能有已锁定或进行中的场次）。</p>
-            <p v-if="currentVoteBoard.length === 0" class="m-hint" style="text-align: center; padding: 18px 0">当前暂无可助威的队伍</p>
+            <p v-if="!supportOpen" class="m-hint" style="margin: 0 0 7px">当前不在助威时间内（仅正式赛段 / 淘汰赛段可助威，且该期不能有已锁定或进行中的场次）。</p>
+            <p v-if="currentVoteBoard.length === 0" class="m-hint" style="text-align: center; padding: 16px 0">当前暂无可助威的队伍</p>
             <div v-else class="m-vgrid">
               <div v-for="(t, ti) in currentVoteBoard" :key="'cv' + ti" class="m-vcard" :style="{ '--rank-color': rankColor(t.rank) }">
                 <div class="m-vcard-r">#{{ t.rank }}</div>
@@ -279,7 +279,7 @@
                 </div>
                 <button
                   class="m-btn m-btn-gr"
-                  style="margin-top: 8px"
+                  style="margin-top: 7px"
                   :disabled="t.isOut || !supportOpen || selectedRoundEnded || voteLoading || actionCooldown.vote > 0"
                   @click="openVoteDialog(t.teamId, t.name, selectedRound)"
                 >
@@ -291,7 +291,7 @@
             <button
               v-if="currentVoteBoard.length && !voteBoardComplete"
               class="m-btn m-btn-g m-btn-block"
-              style="margin-top: 10px; min-height: 40px"
+              style="margin-top: 9px; min-height: 36px"
               :disabled="boardPending"
               @click="fetchVoteBoard({ append: true })"
             >
@@ -309,7 +309,7 @@
       <h4>选择期号</h4>
       <div class="m-sh-sub">列出游戏里仍可查看的期号（含刚结束、奖励可领的期）</div>
       <template v-for="g in roundOptions" :key="g.key">
-        <div class="m-csub" style="margin-top: 10px">{{ g.label }}</div>
+        <div class="m-csub" style="margin-top: 9px">{{ g.label }}</div>
         <div class="m-rlist">
           <button
             v-for="c in g.children"
@@ -341,7 +341,7 @@
         <button class="m-btn m-btn-g" @click="voteChangeNum(10)">+10</button>
         <button class="m-btn m-btn-g" @click="voteChangeNum(voteMaxCnt)">MAX</button>
       </div>
-      <div style="display: flex; gap: 8px; margin-top: 14px">
+      <div style="display: flex; gap: 7px; margin-top: 12.5px">
         <button class="m-btn m-btn-g" style="flex: 1" @click="voteSheet = false">取消</button>
         <button class="m-btn m-btn-p" style="flex: 1" :disabled="actionCooldown.vote > 0 || voteLoading" @click="doVote">
           确认助威{{ actionCooldown.vote > 0 ? `（冷却 ${actionCooldown.vote}s）` : "" }}
@@ -1503,26 +1503,26 @@ export default { name: "MobileApexPanel" };
 
 <style scoped>
 /* ---------- 分步加载：一行细条 + 骨架块 ---------- */
-.m-loadbar { display: flex; align-items: center; gap: 8px; }
+.m-loadbar { display: flex; align-items: center; gap: 7px; }
 .m-loadbar .m-t { margin: 0; }
 /* 转圈：只画半圈、靠 border-top 换色 —— 比整颗 spinner 组件轻，14px 小方块也不动布局 */
 .m-spin {
-  width: 14px; height: 14px; flex: none; box-sizing: border-box;
+  width: 12.5px; height: 12.5px; flex: none; box-sizing: border-box;
   border-radius: 50%;
   border: 2px solid var(--m-border);
   border-top-color: var(--m-primary);
   animation: m-spin 0.8s linear infinite;
 }
-.m-loadbar-hint { margin-left: auto; font-size: 11px; color: var(--m-text3); }
+.m-loadbar-hint { margin-left: auto; font-size: 10px; color: var(--m-text3); }
 @media (max-width: 359px) {
   /* 320：这行提示折下去会把条子撑到 73px，比它提示的内容还显眼 ⇒ 直接不显示，
      状态文案本身已经说清在干什么了。 */
   .m-loadbar-hint { display: none; }
 }
 /* 骨架：三行递减的灰条，只表达「这里将来会有内容」，不塞假数据 */
-.m-skel { display: flex; flex-direction: column; gap: 8px; padding: 4px 0; }
+.m-skel { display: flex; flex-direction: column; gap: 7px; padding: 3.5px 0; }
 .m-skel i {
-  display: block; height: 12px; border-radius: var(--m-r-sm);
+  display: block; height: 11px; border-radius: var(--m-r-sm);
   background: var(--m-band);
   animation: m-skel-pulse 1.3s ease-in-out infinite;
 }
@@ -1531,58 +1531,58 @@ export default { name: "MobileApexPanel" };
 @keyframes m-spin { to { transform: rotate(360deg); } }
 @keyframes m-skel-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-.m-banner-sub { font-size: 12.5px; font-weight: 700; color: var(--m-text2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.m-banner-sub { font-size: 11.5px; font-weight: 700; color: var(--m-text2); display: flex; flex-wrap: wrap; align-items: center; gap: 5.5px; }
 /* 阶段时间线 */
 .m-tl { display: flex; flex-direction: column; }
-.m-tl-n { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--m-border); }
+.m-tl-n { display: flex; align-items: flex-start; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--m-border); }
 .m-tl-n:last-child { border-bottom: none; }
-.m-tl-dot { color: var(--m-text3); font-size: 9px; line-height: 1.6; flex: none; }
+.m-tl-dot { color: var(--m-text3); font-size: 8px; line-height: 1.6; flex: none; }
 .m-tl-n.active .m-tl-dot { color: var(--m-red); }
 .m-tl-n.done .m-tl-dot { color: var(--m-green); }
 .m-tl-n.disabled { opacity: 0.45; }
 .m-tl-b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.m-tl-nm { font-size: 12.5px; font-weight: 700; color: var(--m-text); display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.m-tl-dt { font-size: 11px; color: var(--m-text3); }
+.m-tl-nm { font-size: 11.5px; font-weight: 700; color: var(--m-text); display: flex; align-items: center; gap: 4.5px; flex-wrap: wrap; }
+.m-tl-dt { font-size: 10px; color: var(--m-text3); }
 /* 对阵行 */
-.m-match { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--m-border); }
+.m-match { display: grid; grid-template-columns: 1fr auto 1fr; gap: 7px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--m-border); }
 .m-match:last-child { border-bottom: none; }
-.m-match-vs { font-size: 10.5px; font-weight: 700; color: var(--m-text3); flex: none; }
+.m-match-vs { font-size: 9.5px; font-weight: 700; color: var(--m-text3); flex: none; }
 .m-team { min-width: 0; }
 .m-team.right { text-align: right; }
-.m-team-nm { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: var(--m-text); flex-wrap: wrap; }
+.m-team-nm { display: flex; align-items: center; gap: 4.5px; font-size: 11.5px; font-weight: 700; color: var(--m-text); flex-wrap: wrap; }
 .m-team.right .m-team-nm { justify-content: flex-end; }
-.m-team-mt { display: block; font-size: 10.5px; color: var(--m-text3); margin-top: 3px; }
+.m-team-mt { display: block; font-size: 9.5px; color: var(--m-text3); margin-top: 2.5px; }
 .m-team.win .m-team-nm { color: var(--m-green); }
 /* 竞猜分组 */
-.m-grp { border: 1px solid var(--m-border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.m-grp { border: 1px solid var(--m-border); border-radius: 7px; padding: 9px 11px; margin-bottom: 9px; }
 .m-grp:last-child { margin-bottom: 0; }
-.m-grp-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 4px; }
-.m-grp-t { font-size: 12.5px; font-weight: 700; color: var(--m-text); }
+.m-grp-h { display: flex; flex-wrap: wrap; align-items: center; gap: 5.5px; margin-bottom: 3.5px; }
+.m-grp-t { font-size: 11.5px; font-weight: 700; color: var(--m-text); }
 /* 翻页条 */
-.m-pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
-.m-pager-t { font-size: 11px; color: var(--m-text3); text-align: center; flex: 1; }
+.m-pager { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: 9px; }
+.m-pager-t { font-size: 10px; color: var(--m-text3); text-align: center; flex: 1; }
 /* 助威队伍卡 */
-.m-vgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.m-vcard { border: 1px solid var(--m-border); border-radius: 8px; padding: 10px; min-width: 0; }
-.m-vcard-r { font-size: 13px; font-weight: 700; color: var(--rank-color, var(--m-text3)); }
-.m-vcard-nm { font-size: 12.5px; font-weight: 700; color: var(--m-text); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-vcard-mt { font-size: 10.5px; color: var(--m-text3); margin: 2px 0 6px; }
-.m-vcard-cn { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--m-text2); margin-top: 6px; }
+.m-vgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.m-vcard { border: 1px solid var(--m-border); border-radius: 7px; padding: 9px; min-width: 0; }
+.m-vcard-r { font-size: 11.5px; font-weight: 700; color: var(--rank-color, var(--m-text3)); }
+.m-vcard-nm { font-size: 11.5px; font-weight: 700; color: var(--m-text); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vcard-mt { font-size: 9.5px; color: var(--m-text3); margin: 2px 0 5.5px; }
+.m-vcard-cn { display: flex; flex-wrap: wrap; align-items: center; gap: 4.5px; font-size: 10px; font-weight: 700; color: var(--m-text2); margin-top: 5.5px; }
 .m-vcard-my { color: var(--m-primary); font-weight: 700; }
 /* 助威数量 */
-.m-vqty { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
-.m-vqty-n { min-width: 44px; text-align: center; font-size: 17px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
+.m-vqty { display: flex; flex-wrap: wrap; align-items: center; gap: 5.5px; margin-top: 11px; }
+.m-vqty-n { min-width: 39.5px; text-align: center; font-size: 15.5px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
 /* 期号列表 */
-.m-rlist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.m-rlist { display: flex; flex-wrap: wrap; gap: 5.5px; margin-top: 5.5px; }
 .m-ritem {
   border: 1px solid var(--m-border); background: var(--m-bg); color: var(--m-text);
-  border-radius: var(--m-r-sm); padding: 7px 14px; font-size: 12.5px; font-weight: 700; font-family: inherit; cursor: pointer;
+  border-radius: var(--m-r-sm); padding: 6.5px 12.5px; font-size: 11.5px; font-weight: 700; font-family: inherit; cursor: pointer;
 }
 .m-ritem.on {
   background: var(--m-primary);
   border-color: transparent; color:var(--m-on-primary);
 }
 /* 「已结束」小标：只在期号列表里用，跟着按钮底色走 */
-.m-ritem .m-tag { margin-left: 6px; color: var(--m-text3); background: var(--m-band); }
+.m-ritem .m-tag { margin-left: 5.5px; color: var(--m-text3); background: var(--m-band); }
 .m-ritem.on .m-tag { color: var(--m-on-primary); background: rgba(255, 255, 255, 0.22); }
 </style>

@@ -300,7 +300,7 @@ function removeGroup(group) {
   display: flex;
   flex-direction: column;
   max-height: 88%;
-  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  padding: 7px 14.5px calc(14.5px + env(safe-area-inset-bottom));
   border-radius: var(--m-r-lg) var(--m-r-lg) 0 0;
   background: var(--m-card);
   transform: translateY(102%);
@@ -311,24 +311,24 @@ function removeGroup(group) {
 }
 .gm-grab {
   flex: none;
-  width: 36px;
-  height: 4px;
-  margin: 4px auto 12px;
+  width: 32.5px;
+  height: 3.5px;
+  margin: 3.5px auto 11px;
   border-radius: 2px;
   background: var(--m-border);
 }
 .gm-title {
   flex: none;
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 1.25;
   color: var(--m-text) !important;
 }
 .gm-sub {
   flex: none;
-  margin-top: 3px;
-  margin-bottom: 12px;
-  font-size: 11.5px;
+  margin-top: 2.5px;
+  margin-bottom: 11px;
+  font-size: 10.5px;
   line-height: 1.5;
   color: var(--m-text3) !important;
 }
@@ -343,24 +343,24 @@ function removeGroup(group) {
 
 /* ---------- 区块 ---------- */
 .gm-sec {
-  padding: 14px 0;
+  padding: 12.5px 0;
 }
 .gm-sec + .gm-sec {
   border-top: 1px solid var(--m-border);
 }
 .gm-sec-t {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1.3;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
   color: var(--m-text2) !important;
 }
 .gm-sec-n {
-  margin-left: 6px;
-  padding: 1px 6px;
+  margin-left: 5.5px;
+  padding: 1px 5.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 500;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
@@ -369,13 +369,13 @@ function removeGroup(group) {
 /* ---------- 输入 / 色块 ---------- */
 .gm-input {
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
+  height: 32.5px;
+  padding: 0 9px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text2) !important;
   -webkit-appearance: none;
   appearance: none;
@@ -386,13 +386,13 @@ function removeGroup(group) {
 .gm-swatches {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0;
+  gap: 7px;
+  margin: 9px 0;
 }
 /* 色块不做正圆（规范里只有视频播放键是圆），4px 圆角的小方块 */
 .gm-swatch {
-  width: 24px;
-  height: 24px;
+  width: 21.5px;
+  height: 21.5px;
   padding: 0;
   border: none;
   border-radius: var(--m-r-sm);
@@ -405,50 +405,50 @@ function removeGroup(group) {
 
 /* ---------- 成员多选 ---------- */
 .gm-acc {
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
 .gm-acc-h {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 7px;
+  margin-bottom: 5.5px;
 }
 .gm-acc-t {
   flex: 1;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-text2) !important;
 }
 .gm-acc-n {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
 .gm-list {
-  max-height: 168px;
+  max-height: 151px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 .gm-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
+  gap: 7px;
+  min-height: 29px;
   cursor: pointer;
 }
 .gm-cb {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 14.5px;
+  height: 14.5px;
   margin: 0;
   accent-color: var(--m-primary);
 }
 .gm-nm {
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.4;
   color: var(--m-text2) !important;
   white-space: nowrap;
@@ -456,15 +456,15 @@ function removeGroup(group) {
   text-overflow: ellipsis;
 }
 .gm-empty {
-  padding: 12px 0;
+  padding: 11px 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3) !important;
 }
 
 /* ---------- 分组行 ---------- */
 .gm-group {
-  padding: 10px 0;
+  padding: 9px 0;
   border-bottom: 1px solid var(--m-border);
 }
 .gm-group:last-child {
@@ -474,23 +474,23 @@ function removeGroup(group) {
 .gm-line {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .gm-grow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .gm-dot {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: var(--m-r-sm);
 }
 .gm-gname {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-text2) !important;
   white-space: nowrap;
@@ -499,27 +499,27 @@ function removeGroup(group) {
 }
 .gm-gcount {
   flex: none;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
 .gm-acts {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   justify-content: flex-end;
 }
 
 /* ---------- 按钮（抽屉内基线 32 / 36） ---------- */
 .gm-mini {
   flex: none;
-  height: 26px;
-  padding: 0 9px;
+  height: 23.5px;
+  padding: 0 8px;
   border: none;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   color: var(--m-text2) !important;
   cursor: pointer;
@@ -534,13 +534,13 @@ function removeGroup(group) {
 }
 .gm-pb {
   width: 100%;
-  height: 36px;
-  margin-top: 12px;
+  height: 32.5px;
+  margin-top: 11px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-on-primary) !important;
   cursor: pointer;
@@ -548,17 +548,17 @@ function removeGroup(group) {
 .gm-pb--sm {
   width: auto;
   margin-top: 0;
-  padding: 0 16px;
+  padding: 0 14.5px;
 }
 .gm-ob {
   flex: none;
-  height: 36px;
-  padding: 0 14px;
+  height: 32.5px;
+  padding: 0 12.5px;
   border: 1px solid var(--m-hairline);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-primary-deep) !important;
   cursor: pointer;
@@ -567,9 +567,9 @@ html[data-theme="dark"] .gm-ob {
   color: var(--m-primary) !important;
 }
 .gm-group .gm-acts {
-  margin-top: 10px;
+  margin-top: 9px;
 }
 .gm-group .gm-swatches {
-  margin: 10px 0;
+  margin: 9px 0;
 }
 </style>

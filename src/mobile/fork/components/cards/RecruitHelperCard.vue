@@ -143,7 +143,7 @@ const handleHelper = async () => {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   padding: 0;
 }
 
@@ -151,22 +151,22 @@ const handleHelper = async () => {
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 .item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 9px 4px 8px;
+  gap: 3.5px;
+  padding: 8px 3.5px 7px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   min-width: 0;
 
   > img {
-    width: 34px;
-    height: 34px;
+    width: 30.5px;
+    height: 30.5px;
     object-fit: contain;
   }
 }
@@ -186,8 +186,8 @@ const handleHelper = async () => {
 .item:only-child {
   flex-direction: row;
   justify-content: flex-start;
-  gap: 10px;
-  padding: 11px 12px;
+  gap: 9px;
+  padding: 10px 11px;
 
   .box-info {
     align-items: flex-start;
@@ -195,13 +195,13 @@ const handleHelper = async () => {
   }
 
   .box-count {
-    font-size: 13px;
+    font-size: 11.5px;
   }
 }
 
 .box-type {
   max-width: 100%;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2);
@@ -211,7 +211,7 @@ const handleHelper = async () => {
 }
 
 .box-count {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--m-text);
@@ -222,7 +222,7 @@ const handleHelper = async () => {
 .selects {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 
   > * {
     flex: 1 1 0;

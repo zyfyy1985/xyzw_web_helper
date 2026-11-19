@@ -131,7 +131,7 @@
                             legacyColorMap[memberData.legacy]?.value,
                         }"
                         size="small"
-                        style="margin-left: 8px"
+                        style="margin-left: 7px"
                       >
                         {{ legacyColorMap[memberData.legacy]?.name || "未知" }}
                       </n-tag>
@@ -1031,7 +1031,7 @@ onMounted(() => {
 .main-card {
   background: var(--bg-primary);
   border-radius: var(--border-radius-xl);
-  padding: 20px;
+  padding: 18px;
 
   transition: all 0.3s ease;
 }
@@ -1044,17 +1044,17 @@ onMounted(() => {
 .card-header {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 14.5px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .card-header .status-icon {
-  width: 48px;
-  height: 48px;
+  width: 43px;
+  height: 43px;
   object-fit: contain;
   border-radius: var(--m-r-md);
-  margin-right: 16px;
+  margin-right: 14.5px;
 }
 
 .card-header .status-info {
@@ -1062,26 +1062,26 @@ onMounted(() => {
 }
 
 .card-header .status-info h3 {
-  margin: 0 0 4px 0;
-  font-size: 24px;
+  margin: 0 0 3.5px 0;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .card-header .status-info p {
   margin: 0;
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
 .action-section {
-  margin-bottom: 24px;
+  margin-bottom: 21.5px;
 }
 
 .action-section .input-group {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 11px;
+  margin-bottom: 14.5px;
 }
 
 .action-section .input-group .target-input {
@@ -1093,40 +1093,40 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14.5px;
 }
 
 .action-section .fight-options .option-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .action-section .fight-options .option-item .option-label {
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
 .action-section .fight-options .option-item .fight-count-select {
-  width: 120px;
+  width: 108px;
 }
 
 .action-section .fight-options .option-actions {
   display: flex;
-  gap: 12px;
+  gap: 11px;
 }
 
 .loading-section {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 40px 20px;
+  padding: 36px 18px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius-medium);
 }
 
 .empty-state {
-  padding: 40px 20px;
+  padding: 36px 18px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius-medium);
   text-align: center;
@@ -1135,14 +1135,14 @@ onMounted(() => {
 .content-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .info-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--border-radius-large);
-  padding: 12px;
+  padding: 11px;
   transition: all 0.3s ease;
 }
 
@@ -1155,14 +1155,14 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  padding-bottom: 4px;
+  margin-bottom: 7px;
+  padding-bottom: 3.5px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .info-card .card-title h4 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -1170,16 +1170,16 @@ onMounted(() => {
 .info-card .card-title .card-title-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .info-card .card-title .hero-count {
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--text-secondary);
 }
 
 .info-card .card-title .click-hint {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   font-style: italic;
 }
@@ -1187,7 +1187,7 @@ onMounted(() => {
 /* 左右卡片的额外优化 */
 .info-card.left-card,
 .info-card.right-card {
-  padding: 10px;
+  padding: 9px;
   display: flex;
   flex-direction: column;
 }
@@ -1209,13 +1209,13 @@ onMounted(() => {
 
 .info-table tr {
   display: table-row;
-  height: 26px;
+  height: 23.5px;
 }
 
 .info-card.left-card .card-title,
 .info-card.right-card .card-title {
-  margin-bottom: 6px;
-  padding-bottom: 4px;
+  margin-bottom: 5.5px;
+  padding-bottom: 3.5px;
 }
 
 .info-card.left-card .opponent-info-table {
@@ -1241,17 +1241,17 @@ onMounted(() => {
 }
 
 .info-table td {
-  padding: 2px 5px; /* 进一步减少内边距 */
-  font-size: 13px; /* 略微减小字体大小 */
+  padding: 2px 4.5px; /* 进一步减少内边距 */
+  font-size: 11.5px; /* 略微减小字体大小 */
   vertical-align: middle;
-  height: 24px; /* 进一步减小行高 */
-  line-height: 24px; /* 确保行高与内容对齐 */
+  height: 21.5px; /* 进一步减小行高 */
+  line-height: 21.5px; /* 确保行高与内容对齐 */
 }
 
 .info-table .avatar-cell {
-  width: 70px;
+  width: 63px;
   text-align: center;
-  padding: 6px;
+  padding: 5.5px;
 }
 
 .info-table .opponent-avatar {
@@ -1260,7 +1260,7 @@ onMounted(() => {
 }
 
 .info-table .label-cell {
-  width: 100px;
+  width: 90px;
   color: var(--text-secondary);
   text-align: right;
   font-weight: 500;
@@ -1273,9 +1273,9 @@ onMounted(() => {
   color: var(--text-primary);
   text-align: left;
   font-weight: 500;
-  padding-left: 10px;
+  padding-left: 9px;
   white-space: nowrap; /* 防止文本自动换行 */
-  min-width: 120px; /* 确保有足够宽度显示内容 */
+  min-width: 108px; /* 确保有足够宽度显示内容 */
 }
 
 .info-table .highlight-row .value-cell {
@@ -1285,7 +1285,7 @@ onMounted(() => {
 
 .info-table .lineup {
   display: flex;
-  gap: 6px;
+  gap: 5.5px;
   align-items: center;
 }
 
@@ -1305,10 +1305,10 @@ onMounted(() => {
 
 .opponent-main-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 288px 1fr;
   grid-template-rows: 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 14.5px;
+  margin-bottom: 14.5px;
 }
 
 @media (max-width: 1200px) {
@@ -1346,41 +1346,41 @@ onMounted(() => {
 /* 英雄卡片样式 */
 .heroes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14.5px;
+  margin-top: 14.5px;
   justify-items: center; /* 水平居中 */
   align-items: center; /* 垂直居中 */
   justify-content: center; /* 确保整个网格在容器中居中 */
   height: 100%;
-  padding: 8px 0;
+  padding: 7px 0;
 }
 
 @media (max-width: 768px) {
   .heroes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 11px;
   }
 }
 
 .heroes-grid.compact {
   grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  gap: 14.5px;
   justify-items: center; /* 水平居中 */
   align-items: center; /* 垂直居中 */
 }
 
 @media (max-width: 1200px) {
   .heroes-grid.compact {
-    grid-template-columns: repeat(5, minmax(100px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(5, minmax(90px, 1fr));
+    gap: 11px;
   }
 }
 
 @media (max-width: 768px) {
   .heroes-grid.compact {
-    grid-template-columns: repeat(5, minmax(80px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(5, minmax(72px, 1fr));
+    gap: 7px;
   }
 }
 
@@ -1388,23 +1388,23 @@ onMounted(() => {
   background: var(--bg-primary);
   border: 1px solid var(--border-light);
   border-radius: var(--border-radius-medium);
-  padding: 12px;
+  padding: 11px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .hero-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2.5px);
 
   border-color: var(--primary-color-light);
 }
 
 .hero-card.compact {
-  padding: 12px;
+  padding: 11px;
   min-height: auto;
-  width: 130px; /* 调整卡片宽度 */
-  height: 190px; /* 调整卡片高度 */
+  width: 117px; /* 调整卡片宽度 */
+  height: 171px; /* 调整卡片高度 */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1413,29 +1413,29 @@ onMounted(() => {
 
 .hero-avatar-container {
   position: relative;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
 }
 
 .hero-card.compact .hero-avatar-container {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .hero-circle {
-  width: 80px;
-  height: 80px;
+  width: 72px;
+  height: 72px;
   border-radius: var(--m-r-md);
   background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin: 0 auto 8px;
+  margin: 0 auto 7px;
 
 }
 
 .hero-card.compact .hero-circle {
-  width: 64px;
-  height: 64px;
+  width: 57.5px;
+  height: 57.5px;
 }
 
 .hero-avatar-img {
@@ -1445,7 +1445,7 @@ onMounted(() => {
 }
 
 .hero-placeholder {
-  font-size: 24px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -1458,77 +1458,77 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  height: 22px; /* 设置固定行高 */
+  gap: 5.5px;
+  margin-bottom: 7px;
+  height: 20px; /* 设置固定行高 */
 }
 
 .hero-name {
   margin: 0;
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 22px; /* 与行高保持一致 */
+  line-height: 20px; /* 与行高保持一致 */
   display: inline-flex;
   align-items: center;
   height: 100%;
 }
 
 .hero-card.compact .hero-name {
-  font-size: 13px;
+  font-size: 11.5px;
   margin: 0;
-  line-height: 22px; /* 与行高保持一致 */
+  line-height: 20px; /* 与行高保持一致 */
 }
 
 .holy-beast-tag {
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 9px;
+  padding: 2px 5.5px;
   margin: 0;
   display: inline-flex;
   align-items: center;
-  height: 22px; /* 与行高保持一致 */
+  height: 20px; /* 与行高保持一致 */
   vertical-align: middle;
 }
 
 .hero-stats {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3.5px;
 }
 
 .hero-stats .stat-item {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
 .hero-card.compact .hero-stats .stat-item {
-  font-size: 11px;
-  line-height: 16px;
+  font-size: 10px;
+  line-height: 14.5px;
 }
 
 /* 结果卡片样式 */
 .result-card .card-title .result-summary {
   display: flex;
-  gap: 16px;
+  gap: 14.5px;
   flex-wrap: wrap;
 }
 
 .result-summary .summary-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
 }
 
 .result-summary .summary-label {
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
 .result-summary .summary-value {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
 }
 
@@ -1549,28 +1549,28 @@ onMounted(() => {
 }
 
 .result-list {
-  margin-top: 12px;
+  margin-top: 11px;
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* 1行显示2场战斗结果 */
-  gap: 12px;
-  max-height: 500px; /* 限制最大高度 */
+  gap: 11px;
+  max-height: 450px; /* 限制最大高度 */
   overflow-y: auto; /* 添加垂直滚动 */
-  padding-right: 8px; /* 为滚动条预留空间 */
+  padding-right: 7px; /* 为滚动条预留空间 */
 }
 
 /* 自定义滚动条样式 */
 .result-list::-webkit-scrollbar {
-  width: 6px;
+  width: 5.5px;
 }
 
 .result-list::-webkit-scrollbar-track {
   background: var(--bg-secondary);
-  border-radius: 4px;
+  border-radius: 3.5px;
 }
 
 .result-list::-webkit-scrollbar-thumb {
   background: var(--border-light);
-  border-radius: 4px;
+  border-radius: 3.5px;
 }
 
 .result-list::-webkit-scrollbar-thumb:hover {
@@ -1581,7 +1581,7 @@ onMounted(() => {
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--border-radius-medium);
-  padding: 10px;
+  padding: 9px;
   transition: all 0.3s ease;
   width: 100%;
   box-sizing: border-box;
@@ -1611,11 +1611,11 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 5.5px;
 }
 
 .battle-index {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -1624,13 +1624,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 11px;
 }
 
 @media (max-width: 768px) {
   .battle-details {
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
   }
 }
 
@@ -1638,7 +1638,7 @@ onMounted(() => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
 }
 
 .battle-side.left-side {
@@ -1661,19 +1661,19 @@ onMounted(() => {
 }
 
 .side-name {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .side-power,
 .side-die {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
 }
 
 .battle-vs {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-secondary);
   flex-shrink: 0;
@@ -1681,15 +1681,15 @@ onMounted(() => {
 
 /* 英雄详情模态框样式 */
 .hero-detail-modal .hero-modal-content {
-  padding: 20px 0;
+  padding: 18px 0;
 }
 
 .hero-modal-header {
   display: flex;
-  gap: 24px;
+  gap: 21.5px;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
+  margin-bottom: 21.5px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -1705,8 +1705,8 @@ onMounted(() => {
 }
 
 .hero-modal-avatar img {
-  width: 120px;
-  height: 120px;
+  width: 108px;
+  height: 108px;
   border-radius: var(--m-r-md);
   object-fit: cover;
   border: 3px solid var(--primary-color-light);
@@ -1718,67 +1718,67 @@ onMounted(() => {
 }
 
 .hero-modal-name {
-  margin: 0 0 12px 0;
-  font-size: 24px;
+  margin: 0 0 11px 0;
+  font-size: 21.5px;
   font-weight: 600;
 }
 
 .hero-modal-stats {
   display: flex;
-  gap: 16px;
+  gap: 14.5px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .hero-modal-stats .stat-item {
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-primary);
 }
 
 .hero-modal-stats .stat-item:first-child {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--primary-color);
 }
 
 .hero-modal-details {
-  margin-bottom: 24px;
+  margin-bottom: 21.5px;
 }
 
 .hero-modal-equipment .section-title {
-  margin: 0 0 16px 0;
-  font-size: 16px;
+  margin: 0 0 14.5px 0;
+  font-size: 14.5px;
   font-weight: 600;
 }
 
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14.5px;
 }
 
 .equipment-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .equipment-label {
-  font-size: 14px;
+  font-size: 12.5px;
   color: var(--text-secondary);
 }
 
 .equipment-slots {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 .equipment-slot {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border:1px solid var(--m-border);
-  border-radius: 4px;
+  border-radius: 3.5px;
   transition: all 0.2s ease;
 }
 
@@ -1791,17 +1791,17 @@ onMounted(() => {
 /* 鱼珠洗练样式 */
 .ModalEquipment {
   display: inline-block;
-  width: 18px;
-  height: 18px;
-  margin-right: 5px;
-  border-radius: 4px;
+  width: 16px;
+  height: 16px;
+  margin-right: 4.5px;
+  border-radius: 3.5px;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-footer {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 11px;
 }
 
 /* 响应式设计 */
@@ -1812,19 +1812,19 @@ onMounted(() => {
   }
 
   .heroes-card .heroes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(162px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
   .main-card {
-    padding: 12px;
+    padding: 11px;
   }
 
   .card-header {
     flex-direction: column;
     text-align: center;
-    gap: 12px;
+    gap: 11px;
   }
 
   .action-section .input-group {
@@ -1833,12 +1833,12 @@ onMounted(() => {
 
   .result-card .card-title .result-summary {
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
   }
 
   .result-card .battle-details {
     flex-direction: column;
-    gap: 16px;
+    gap: 14.5px;
   }
 
   .result-card .battle-side {
@@ -1848,16 +1848,16 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .info-card {
-    padding: 12px;
+    padding: 11px;
   }
 
   .heroes-card .heroes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(126px, 1fr));
+    gap: 11px;
   }
 
   .heroes-card .hero-card {
-    padding: 12px;
+    padding: 11px;
   }
 }
 </style>

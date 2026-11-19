@@ -28,8 +28,8 @@ import WeirdTowerStatus from "@/mobile/fork/components/Tower/WeirdTowerStatus.vu
   flex-wrap: wrap;
   align-items: center;
   text-align: left;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 9px;
+  margin-bottom: 11px;
 }
 .m-weird-tower :deep(.energy-display) {
   align-self: auto;
@@ -38,14 +38,14 @@ import WeirdTowerStatus from "@/mobile/fork/components/Tower/WeirdTowerStatus.vu
 
 /* 「购买」：桌面橙红渐变 → 唯一行动蓝 */
 .m-weird-tower :deep(.buy-energy-button) {
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: 25px;
+  padding: 0 9px;
   border-radius: var(--m-r-sm);
   background: var(--m-primary);
   color: var(--m-on-primary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 28px;
+  line-height: 25px;
 
   transform: none;
 }
@@ -56,9 +56,9 @@ import WeirdTowerStatus from "@/mobile/fork/components/Tower/WeirdTowerStatus.vu
 
 /* 主按钮：紫 var(--m-primary) → 唯一行动蓝。三个按钮纵向排列，高度统一到 40 */
 .m-weird-tower :deep(.climb-button) {
-  min-height: 40px;
+  min-height: 36px;
   border-radius: var(--m-r-md);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 .m-weird-tower :deep(.climb-button.active) {
@@ -72,31 +72,31 @@ import WeirdTowerStatus from "@/mobile/fork/components/Tower/WeirdTowerStatus.vu
 
 /* 停止按钮：桌面白底 + 灰边框，暗色下是一块白砖 */
 .m-weird-tower :deep(.stop-button) {
-  min-height: 40px;
+  min-height: 36px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-band);
   color: var(--m-red);
-  font-size: 13px;
+  font-size: 11.5px;
 }
 
 /* 爬塔次数输入框：桌面是 86px 固定宽 + 灰边框，改成无边框 band 输入 */
 .m-weird-tower :deep(.climb-limit-input) {
-  flex: 0 0 72px;
-  width: 72px;
-  min-height: 40px;
+  flex: 0 0 65px;
+  width: 65px;
+  min-height: 36px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   color: var(--m-text);
-  font-size: 13px;
+  font-size: 11.5px;
 }
 .m-weird-tower :deep(.climb-limit-input:focus) {
   border: none;
   background: var(--m-primary-soft);
 }
 .m-weird-tower :deep(.climb-limit-unit) {
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text3);
 }
 
@@ -104,20 +104,20 @@ import WeirdTowerStatus from "@/mobile/fork/components/Tower/WeirdTowerStatus.vu
 .m-weird-tower :deep(.card-content) {
   background: var(--m-bg);
   border-radius: var(--m-r-md);
-  padding: 14px;
-  margin-bottom: 10px;
+  padding: 12.5px;
+  margin-bottom: 9px;
 }
 /* 卡身 flex + align-items:center 会让 .tower-floor 收缩，space-between 失效 */
 .m-weird-tower :deep(.card-content .tower-floor) {
   width: 100%;
-  gap: 8px;
+  gap: 7px;
 }
 .m-weird-tower :deep(.card-content .label) {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 .m-weird-tower :deep(.card-content .floor-number) {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--m-text);
 }

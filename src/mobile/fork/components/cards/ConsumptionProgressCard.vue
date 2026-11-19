@@ -741,21 +741,21 @@ const planOptions = computed(() => {
 .consumption-progress {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 /* ---------- 头部 ---------- */
 .cp-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
 }
 
 .cp-ic {
   flex: none;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   color: var(--m-primary);
@@ -769,7 +769,7 @@ const planOptions = computed(() => {
 
   h3 {
     margin: 0;
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
     line-height: 1.25;
     color: var(--m-text);
@@ -777,7 +777,7 @@ const planOptions = computed(() => {
 
   p {
     margin: 2px 0 0;
-    font-size: 11.5px;
+    font-size: 10.5px;
     line-height: 1.35;
     color: var(--m-text3);
   }
@@ -787,26 +787,26 @@ const planOptions = computed(() => {
 .cp-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 .cp-stat {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 9px 10px;
+  gap: 2.5px;
+  padding: 8px 9px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 
   .k {
-    font-size: 11px;
+    font-size: 10px;
     line-height: 1.2;
     color: var(--m-text3);
   }
 
   .v {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
     line-height: 1.2;
     color: var(--m-text);
@@ -817,7 +817,7 @@ const planOptions = computed(() => {
 
     i {
       font-style: normal;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 500;
       color: var(--m-text3);
     }
@@ -829,20 +829,20 @@ const planOptions = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   /* 行动色带的 8% 底色；暗色下用主色同款透明底才不会脏 */
   background: color-mix(in srgb, var(--m-primary) 8%, transparent);
 
   .cp-need-k {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--m-text2);
   }
 
   .cp-need-v {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     line-height: 1;
     color: var(--m-primary);
@@ -864,8 +864,8 @@ const planOptions = computed(() => {
 }
 
 .cp-hint {
-  margin: -4px 0 0;
-  font-size: 11px;
+  margin: -3.5px 0 0;
+  font-size: 10px;
   line-height: 1.5;
   color: var(--m-text3);
 }
@@ -875,17 +875,17 @@ const planOptions = computed(() => {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
   margin-top: 2px;
 
   .cp-sec-t {
-    font-size: 12.5px;
+    font-size: 11.5px;
     font-weight: 700;
     color: var(--m-text);
   }
 
   .cp-sec-x {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--m-text3);
     font-variant-numeric: tabular-nums;
   }
@@ -895,20 +895,20 @@ const planOptions = computed(() => {
 .cp-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .cp-item {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 10px 12px;
+  gap: 4.5px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 
   /* 22/2000 这种 1% 的进度，fill 只有 3px，圆角一收就成一颗「点」⇒ 给个最小宽度 */
   :deep(.n-progress-graph-line-fill) {
-    min-width: 6px;
+    min-width: 5.5px;
   }
 }
 
@@ -916,26 +916,26 @@ const planOptions = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
 .cp-nm {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   min-width: 0;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-text);
 
   em {
     flex: none;
     font-style: normal;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
     line-height: 1;
-    padding: 3px 5px;
+    padding: 2.5px 4.5px;
     border-radius: var(--m-r-sm);
     color: var(--m-primary);
     background: color-mix(in srgb, var(--m-primary) 12%, transparent);
@@ -944,19 +944,19 @@ const planOptions = computed(() => {
 
 .cp-num {
   flex: none;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 
   b {
-    font-size: 14px;
+    font-size: 12.5px;
     font-weight: 700;
     color: var(--m-text);
   }
 }
 
 .cp-item-f {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.3;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
@@ -969,18 +969,18 @@ const planOptions = computed(() => {
 /* ---------- 空态 ---------- */
 .cp-empty {
   margin: 0;
-  padding: 14px 12px;
+  padding: 12.5px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 
 /* ---------- 方案 ---------- */
 .cp-assume {
   margin: 0;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.4;
   color: var(--m-text3);
 
@@ -993,11 +993,11 @@ const planOptions = computed(() => {
 .cp-plans {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .cp-combo {
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
@@ -1006,17 +1006,17 @@ const planOptions = computed(() => {
 .cp-open {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .cp-open-r {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
 
   .k {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--m-text3);
   }
 }
@@ -1027,7 +1027,7 @@ const planOptions = computed(() => {
  *   这里把它收成「band 底 + 无边框 + 加减透明，中间一根 hairline」。
  *   ★★ Naive 把 --n-color/--n-border 写成**内联** style，普通声明赢不过 ⇒ 必须 !important。 */
 .cp-num-in {
-  width: 130px;
+  width: 117px;
   flex: none;
 
   :deep(.n-input) {
@@ -1042,7 +1042,7 @@ const planOptions = computed(() => {
     --n-border-disabled: 0 !important;
     --n-box-shadow-focus: none !important;
     --n-caret-color: var(--m-primary) !important;
-    --n-font-size: 13px !important;
+    --n-font-size: 11.5px !important;
     --n-border-radius: var(--m-r-sm) !important;
     background: var(--m-bg);
     border-radius: var(--m-r-sm);
@@ -1066,9 +1066,9 @@ const planOptions = computed(() => {
     --n-border-hover: 0 !important;
     --n-border-focus: 0 !important;
     --n-border-pressed: 0 !important;
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
+    width: 23.5px;
+    height: 23.5px;
+    min-width: 23.5px;
     padding: 0;
     margin: 0;
     border-radius: var(--m-r-sm);
@@ -1091,7 +1091,7 @@ const planOptions = computed(() => {
 /* 库存数跟在输入框旁边，填数量时不用回上面找 */
 .cp-stock {
   flex: none;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
@@ -1100,19 +1100,19 @@ const planOptions = computed(() => {
 .cp-combo-h {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 7px;
+  margin-bottom: 5.5px;
 }
 
 .cp-combo-no {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   color: var(--m-on-primary);
   background: var(--m-primary);
@@ -1122,7 +1122,7 @@ const planOptions = computed(() => {
 .cp-combo-t {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text);
 }
@@ -1130,7 +1130,7 @@ const planOptions = computed(() => {
 /* 方案头右侧：这一条能补多少普通道具 */
 .cp-combo-v {
   flex: none;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--m-primary);
   font-variant-numeric: tabular-nums;
@@ -1138,11 +1138,11 @@ const planOptions = computed(() => {
 
 .cp-combo-r {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 46px 54px;
+  grid-template-columns: minmax(0, 1fr) auto 41.5px 48.5px;
   align-items: center;
-  gap: 6px;
-  padding: 5px 0;
-  font-size: 12px;
+  gap: 5.5px;
+  padding: 4.5px 0;
+  font-size: 11px;
   color: var(--m-text2);
   font-variant-numeric: tabular-nums;
 
@@ -1171,7 +1171,7 @@ const planOptions = computed(() => {
 
 .cp-combo-c {
   text-align: right;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
 }
 
@@ -1179,11 +1179,11 @@ const planOptions = computed(() => {
 /* 320 宽：三格数字挤，缩字号；方案行去掉「耗」列以外的余量 */
 @media (max-width: 359px) {
   .cp-stat .v {
-    font-size: 13px;
+    font-size: 11.5px;
   }
 
   .cp-combo-r {
-    grid-template-columns: minmax(0, 1fr) auto 40px 48px;
+    grid-template-columns: minmax(0, 1fr) auto 36px 43px;
   }
 }
 </style>

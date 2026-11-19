@@ -3,7 +3,7 @@
     <!-- 就绪门：组件 setup 里 watch(() => tokenStore.gameData.towerResult)，
          gameData 为 null 时当场抛 TypeError 并冒到根，整页白屏。桌面靠 v-show 分区少踩到。 -->
     <div v-if="!dataReady" class="m-card">
-      <div class="m-empty" style="padding: 30px 0">
+      <div class="m-empty" style="padding: 27px 0">
         <div class="m-logo">◌</div>
         <h3>等待账号数据</h3>
         <p>连上账号后咸将塔信息会自动出现</p>
@@ -44,8 +44,8 @@ const dataReady = computed(() => !!tokenStore.gameData?.roleInfo);
   flex-wrap: wrap;
   align-items: center;
   text-align: left;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 9px;
+  margin-bottom: 11px;
 }
 .m-xian-tower :deep(.energy-display) {
   align-self: auto;
@@ -54,14 +54,14 @@ const dataReady = computed(() => !!tokenStore.gameData?.roleInfo);
 
 /* 「购买」：桌面是橙红渐变（var(--m-amber)→var(--m-amber)），本体系只允许一个行动色，收成行动蓝 */
 .m-xian-tower :deep(.buy-energy-button) {
-  min-height: 28px;
-  padding: 0 10px;
+  min-height: 25px;
+  padding: 0 9px;
   border-radius: var(--m-r-sm);
   background: var(--m-primary);
   color: var(--m-on-primary);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 28px;
+  line-height: 25px;
 
   transform: none;
 }
@@ -72,9 +72,9 @@ const dataReady = computed(() => !!tokenStore.gameData?.roleInfo);
 
 /* 主按钮：紫 var(--m-primary) → 唯一行动蓝 */
 .m-xian-tower :deep(.climb-button) {
-  min-height: 40px;
+  min-height: 36px;
   border-radius: var(--m-r-md);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 .m-xian-tower :deep(.climb-button.active) {
@@ -88,33 +88,33 @@ const dataReady = computed(() => !!tokenStore.gameData?.roleInfo);
 
 /* 停止按钮：桌面白底 + var(--m-border) 边框，暗色下是一块白砖 */
 .m-xian-tower :deep(.stop-button) {
-  min-height: 40px;
+  min-height: 36px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-band);
   color: var(--m-red);
-  font-size: 13px;
+  font-size: 11.5px;
 }
 
 /* 层数条：桌面靠 --bg-tertiary 反色，这里换成 band，圆角收到 8 */
 .m-xian-tower :deep(.card-content) {
   background: var(--m-bg);
   border-radius: var(--m-r-md);
-  padding: 14px;
-  margin-bottom: 10px;
+  padding: 12.5px;
+  margin-bottom: 9px;
 }
 /* 卡身是 flex + align-items:center，.tower-floor 不撑满时 space-between 失效，
    结果「当前层数」和数字黏在一起 —— 补 width:100% 让 desktop 的左右分栏意图生效 */
 .m-xian-tower :deep(.card-content .tower-floor) {
   width: 100%;
-  gap: 8px;
+  gap: 7px;
 }
 .m-xian-tower :deep(.card-content .label) {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 .m-xian-tower :deep(.card-content .floor-number) {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--m-text);
 }

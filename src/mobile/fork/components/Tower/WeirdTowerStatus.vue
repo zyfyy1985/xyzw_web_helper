@@ -921,13 +921,13 @@ onMounted(() => {
   border-left:4px solid var(--m-primary); // 怪异塔专用颜色
   display: flex;
   flex-direction: column;
-  min-height: 240px; // 继续缩小整体高度
+  min-height: 216px; // 继续缩小整体高度
   padding: var(--spacing-lg);
 }
 
 .status-icon {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -950,8 +950,8 @@ onMounted(() => {
 }
 
 .energy-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
@@ -963,18 +963,18 @@ onMounted(() => {
 
 /* ==================== 购买小鱼干按钮 ==================== */
 .buy-energy-button {
-  padding: 2px 10px;
-  margin-left: 4px;
-  font-size: var(--font-size-xs, 12px);
+  padding: 2px 9px;
+  margin-left: 3.5px;
+  font-size: var(--font-size-xs, 11px);
   font-weight: var(--font-weight-medium);
   color:var(--m-on-primary);
   background:linear-gradient(135deg, var(--m-amber) 0%, var(--m-amber) 100%);
   border: none;
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
   white-space: nowrap;
-  line-height: 20px;
+  line-height: 18px;
 }
 
 .buy-energy-button:hover:not(.disabled) {
@@ -1005,9 +1005,9 @@ onMounted(() => {
 
 .buy-energy-dialog {
   width: 100%;
-  max-width: 360px;
+  max-width: 324px;
   background:var(--bg-primary, var(--m-card));
-  border-radius: var(--border-radius-large, 12px);
+  border-radius: var(--border-radius-large, 11px);
 
   overflow: hidden;
 }
@@ -1028,14 +1028,14 @@ onMounted(() => {
 }
 
 .buy-energy-dialog .dialog-close {
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
+  width: 25px;
+  height: 25px;
+  font-size: 18px;
   line-height: 1;
   color: var(--text-secondary);
   background: transparent;
   border: none;
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
@@ -1060,7 +1060,7 @@ onMounted(() => {
 
 .buy-energy-dialog .row-label {
   flex-shrink: 0;
-  width: 76px;
+  width: 68.5px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
@@ -1073,15 +1073,15 @@ onMounted(() => {
 }
 
 .num-btn {
-  width: 36px;
-  height: 36px;
+  width: 32.5px;
+  height: 32.5px;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
   background: var(--bg-tertiary);
   border:1px solid var(--border-color, var(--m-border));
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -1092,7 +1092,7 @@ onMounted(() => {
 
 .num-input {
   flex: 1;
-  height: 36px;
+  height: 32.5px;
   padding: 0 var(--spacing-sm);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
@@ -1100,7 +1100,7 @@ onMounted(() => {
   color: var(--text-primary);
   background:var(--bg-primary, var(--m-card));
   border:1px solid var(--border-color, var(--m-border));
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   outline: none;
 }
 
@@ -1117,13 +1117,13 @@ onMounted(() => {
 
 .quick-btn {
   flex: 1;
-  padding: 6px 0;
+  padding: 5.5px 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   background: var(--bg-tertiary);
   border:1px solid var(--border-color, var(--m-border));
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1134,7 +1134,7 @@ onMounted(() => {
 }
 
 .dialog-hint {
-  font-size: var(--font-size-xs, 12px);
+  font-size: var(--font-size-xs, 11px);
   color: var(--text-secondary);
   text-align: center;
   padding-top: var(--spacing-xs);
@@ -1142,8 +1142,8 @@ onMounted(() => {
 }
 
 .dialog-hint .gold-icon {
-  width: 15px;
-  height: 15px;
+  width: 13.5px;
+  height: 13.5px;
   vertical-align: -2px;
   margin: 0 2px;
 }
@@ -1157,10 +1157,10 @@ onMounted(() => {
 .btn-cancel,
 .btn-confirm {
   flex: 1;
-  padding: 10px 0;
+  padding: 9px 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  border-radius: var(--border-radius-small, 6px);
+  border-radius: var(--border-radius-small, 5.5px);
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
 }
@@ -1241,8 +1241,8 @@ onMounted(() => {
 }
 
 .climb-limit-input {
-  flex: 0 0 86px;
-  width: 86px;
+  flex: 0 0 77.5px;
+  width: 77.5px;
   padding: var(--spacing-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);

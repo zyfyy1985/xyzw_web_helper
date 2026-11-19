@@ -54,7 +54,7 @@
         </template>
       </div>
 
-      <div v-if="loading1" class="m-card"><p class="m-hint" style="text-align: center; padding: 18px 0">正在拉取匹配数据…</p></div>
+      <div v-if="loading1" class="m-card"><p class="m-hint" style="text-align: center; padding: 16px 0">正在拉取匹配数据…</p></div>
 
       <div v-else-if="!matchList.length" class="m-card">
         <div class="m-empty">
@@ -185,7 +185,7 @@
         </div>
         <p class="m-hint m-fhint">默认上周六，按击杀数降序</p>
       </div>
-      <div v-if="weekList.length" ref="exportWeekDom" style="display: flex; flex-direction: column; gap: 12px">
+      <div v-if="weekList.length" ref="exportWeekDom" style="display: flex; flex-direction: column; gap: 11px">
         <div class="m-card">
           <!-- 战报头 + 总览数字带（版式照 11-01 用户给的参考图：抬头 + 右上胶囊 + 一行六格） -->
           <div class="m-rhead">
@@ -253,7 +253,7 @@
           </div>
         </div>
       </div>
-      <div v-else-if="!loadingWeek" class="m-card"><p class="m-hint" style="text-align: center; padding: 18px 0">{{ weekFetched ? "该日期无战绩数据，可换日期再查" : "暂无数据，点「查询」拉取" }}</p></div>
+      <div v-else-if="!loadingWeek" class="m-card"><p class="m-hint" style="text-align: center; padding: 16px 0">{{ weekFetched ? "该日期无战绩数据，可换日期再查" : "暂无数据，点「查询」拉取" }}</p></div>
     </template>
 
     <!-- ============ 月战绩 ============ -->
@@ -273,7 +273,7 @@
         </div>
         <p class="m-hint" style="margin: 0">聚合本月各战斗日（周六 + 第四周周日）数据</p>
       </div>
-      <div v-if="monthRecords.length" ref="exportMonthDom" style="display: flex; flex-direction: column; gap: 12px">
+      <div v-if="monthRecords.length" ref="exportMonthDom" style="display: flex; flex-direction: column; gap: 11px">
         <div class="m-card">
           <!-- 战报头 + 总览数字带（与周报同版式，只是口径是整月聚合） -->
           <div class="m-rhead">
@@ -355,7 +355,7 @@
           </div>
         </div>
       </div>
-      <div v-else-if="!loadingMonth" class="m-card"><p class="m-hint" style="text-align: center; padding: 18px 0">{{ monthFetched ? "该区间无战绩数据，可换日期再查" : "暂无数据，点「查询」拉取" }}</p></div>
+      <div v-else-if="!loadingMonth" class="m-card"><p class="m-hint" style="text-align: center; padding: 16px 0">{{ monthFetched ? "该区间无战绩数据，可换日期再查" : "暂无数据，点「查询」拉取" }}</p></div>
     </template>
 
     <!-- ============ 盐场地图 ============ -->
@@ -367,7 +367,7 @@
           <p>开放时间：每月前四周的周六 19:55 - 21:00；每月第四周的周日 19:55 - 21:30。其他时间可查看历史战绩。</p>
         </div>
       </div>
-      <div v-else ref="exportMapDom" style="display: flex; flex-direction: column; gap: 12px">
+      <div v-else ref="exportMapDom" style="display: flex; flex-direction: column; gap: 11px">
         <div class="m-card">
           <div class="m-card-h">
             <span class="m-t">盐场地图</span>
@@ -377,7 +377,7 @@
           </div>
           <div class="m-kv"><span class="m-k">战场 ID</span><span class="m-v">{{ battlefieldId || "-" }}</span></div>
           <div class="m-kv"><span class="m-k">最后更新</span><span class="m-v">{{ lastUpdateTime || "-" }}</span></div>
-          <div v-if="!isExporting" style="display: flex; gap: 8px; margin-top: 12px">
+          <div v-if="!isExporting" style="display: flex; gap: 7px; margin-top: 11px">
             <button class="m-btn m-btn-p" style="flex: 1" :disabled="warConnecting" @click="warConnect">{{ warConnecting ? "连接中…" : "连接战场" }}</button>
             <button class="m-btn m-btn-g" style="flex: 1" :disabled="!warConnected && !warJoined" @click="warStore.refreshData()">刷新</button>
             <button class="m-btn m-btn-g" style="flex: 1" @click="warDisconnect">断开</button>
@@ -402,7 +402,7 @@
               <canvas ref="legionWarMapDom"></canvas>
             </div>
           </div>
-          <p class="m-hint" style="margin-top: 8px">手机：单指拖动 · 双指缩放 · 双击切换 | 电脑：拖拽平移 · 滚轮缩放 · 双击切换</p>
+          <p class="m-hint" style="margin-top: 7px">手机：单指拖动 · 双指缩放 · 双击切换 | 电脑：拖拽平移 · 滚轮缩放 · 双击切换</p>
         </div>
         <div class="m-card">
           <div class="m-card-h">
@@ -459,7 +459,7 @@
             </button>
           </span>
         </div>
-        <div class="m-seg" style="margin-bottom: 12px">
+        <div class="m-seg" style="margin-bottom: 11px">
           <button :class="{ on: statView === 'individual' }" @click="statView = 'individual'">本部成员</button>
           <button :class="{ on: statView === 'all_individual' }" @click="statView = 'all_individual'">全场个人</button>
           <button :class="{ on: statView === 'legion' }" @click="statView = 'legion'">俱乐部榜</button>
@@ -591,7 +591,7 @@
             </div>
           </div>
         </template>
-        <p v-if="!legionData.length && !individualData.length && !allIndividualData.length" class="m-hint" style="text-align: center; padding: 12px 0">暂无数据，请先连接战场</p>
+        <p v-if="!legionData.length && !individualData.length && !allIndividualData.length" class="m-hint" style="text-align: center; padding: 11px 0">暂无数据，请先连接战场</p>
       </div>
     </template>
 
@@ -2658,36 +2658,36 @@ export default { name: "MobileSaltPanel" };
 <style scoped>
 /* ---------- 匹配卡：日期行 / 提示 / 分割线 / 操作行（合并查询与对手俱乐部） ---------- */
 .m-tdate {
-  font-size: 11.5px; font-weight: 600; color: var(--m-text3);
-  font-variant-numeric: tabular-nums; margin-left: 4px;
+  font-size: 10.5px; font-weight: 600; color: var(--m-text3);
+  font-variant-numeric: tabular-nums; margin-left: 3.5px;
 }
-.m-frow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.m-fhint { margin: 7px 0 0; font-size: 10.5px; line-height: 1.45; }
-.m-split { height: 1px; background: var(--m-border); margin: 10px -14px; }
-.m-subrow { align-items: center; justify-content: space-between; gap: 6px; }
-.m-subrow .m-more { font-size: 11px; color: var(--m-text3); white-space: nowrap; }
-.m-subrow .m-more b { color: var(--m-text); font-size: 12px; }
-.m-subrow .m-acts { gap: 6px; }
-.m-chipbtn { padding: 5px 9px; font-size: 11px; border-radius: 8px; white-space: nowrap; }
+.m-frow { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.m-fhint { margin: 6.5px 0 0; font-size: 9.5px; line-height: 1.45; }
+.m-split { height: 1px; background: var(--m-border); margin: 9px -12.5px; }
+.m-subrow { align-items: center; justify-content: space-between; gap: 5.5px; }
+.m-subrow .m-more { font-size: 10px; color: var(--m-text3); white-space: nowrap; }
+.m-subrow .m-more b { color: var(--m-text); font-size: 11px; }
+.m-subrow .m-acts { gap: 5.5px; }
+.m-chipbtn { padding: 4.5px 8px; font-size: 10px; border-radius: 7px; white-space: nowrap; }
 .m-finput {
   border: 1px solid var(--m-border);
   background: var(--m-bg);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12.5px;
+  border-radius: 7px;
+  padding: 7px 9px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text);
   font-family: inherit;
 }
 .m-rank {
   flex: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 23.5px;
+  height: 23.5px;
+  border-radius: 7px;
   background: var(--m-bg);
   border: 1px solid var(--m-border);
   color: var(--m-text2);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -2708,20 +2708,20 @@ export default { name: "MobileSaltPanel" };
 .m-anno {
   display: flex; flex-direction: column; gap: 2px;
   background: var(--m-card); border: 1px solid var(--m-border);
-  border-left: 3px solid var(--m-primary); border-radius: 8px;
-  padding: 8px 10px; margin-bottom: 10px;
+  border-left: 3px solid var(--m-primary); border-radius: 7px;
+  padding: 7px 9px; margin-bottom: 9px;
 }
-.m-anno-t { font-size: 12px; font-weight: 700; color: var(--m-text); line-height: 1.5; }
-.m-anno-time { font-size: 11px; font-weight: 500; color: var(--m-text3); line-height: 1.5; }
+.m-anno-t { font-size: 11px; font-weight: 700; color: var(--m-text); line-height: 1.5; }
+.m-anno-time { font-size: 10px; font-weight: 500; color: var(--m-text3); line-height: 1.5; }
 /* 联盟标签栏 */
 .m-atabs {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 6px; margin-bottom: 10px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(75.5px, 1fr));
+  gap: 5.5px; margin-bottom: 9px;
 }
 .m-atab {
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  min-width: 0; height: auto; padding: 7px 6px; border-radius: 8px;
-  font-size: 12px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+  display: flex; align-items: center; justify-content: center; gap: 3.5px;
+  min-width: 0; height: auto; padding: 6.5px 5.5px; border-radius: 7px;
+  font-size: 11px; font-weight: 600; line-height: 1.2; white-space: nowrap;
   background: var(--tab-tint); border: 1px solid var(--tab-line); color: var(--tab-dark);
   font-family: inherit; cursor: pointer;
 }
@@ -2730,8 +2730,8 @@ export default { name: "MobileSaltPanel" };
 }
 .m-atab-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .m-atab-c {
-  flex: none; font-size: 10px; font-weight: 700; line-height: 1;
-  padding: 2px 5px; border-radius: 8px;
+  flex: none; font-size: 9px; font-weight: 700; line-height: 1;
+  padding: 2px 4.5px; border-radius: 7px;
   background: var(--tab-tint); color: var(--tab-dark);
 }
 .m-atab.on .m-atab-c { background: rgba(255, 255, 255, 0.3); color:var(--m-on-primary); }
@@ -2755,26 +2755,26 @@ html[data-theme="dark"] .al-all { --tab-dark:var(--m-primary); --tab-tint: rgba(
    供蟠桃 / 营地等面板共用；下方只保留盐场特有的类。 */
 /* 区服灰块 */
 .m-scard-server {
-  flex: none; padding: 1px 6px; border-radius: 4px;
+  flex: none; padding: 1px 5.5px; border-radius: 3.5px;
   background: var(--m-bg); color: var(--m-text2);
-  font-size: 11px; font-weight: 600; line-height: 1.6; white-space: nowrap;
+  font-size: 10px; font-weight: 600; line-height: 1.6; white-space: nowrap;
 }
 .m-scard-badge {
-  flex: none; padding: 1px 6px; border-radius: 8px;
-  font-size: 11px; font-weight: 700; color: var(--m-primary); background: var(--m-blue-soft);
+  flex: none; padding: 1px 5.5px; border-radius: 7px;
+  font-size: 10px; font-weight: 700; color: var(--m-primary); background: var(--m-blue-soft);
   white-space: nowrap;
 }
 .m-scard-alliance {
-  margin-left: auto; flex: none; padding: 1px 8px; border-radius: 8px;
-  font-size: 11px; font-weight: 700; line-height: 1.6; white-space: nowrap;
+  margin-left: auto; flex: none; padding: 1px 7px; border-radius: 7px;
+  font-size: 10px; font-weight: 700; line-height: 1.6; white-space: nowrap;
   background: var(--tab-tint); color: var(--tab-dark); border: 1px solid var(--tab-line);
 }
 .m-scard-alliance.editable { cursor: pointer; }
 /* 编辑模式排名输入 */
 .m-rank-input {
-  flex: none; width: 42px; height: 26px; border-radius: 4px;
+  flex: none; width: 38px; height: 23.5px; border-radius: 3.5px;
   border: 1px solid var(--m-primary); background: var(--m-card);
-  color: var(--m-text); font-size: 12px; font-weight: 700; text-align: center;
+  color: var(--m-text); font-size: 11px; font-weight: 700; text-align: center;
   font-family: inherit; padding: 0 2px;
 }
 /* ---------- 盐场战报版式（11-01 按用户参考图重做）
@@ -2783,32 +2783,32 @@ html[data-theme="dark"] .al-all { --tab-dark:var(--m-primary); --tab-tint: rgba(
    （击杀红 / 攻城蓝 / 复活丹绿 / K/D 主色），浅灰底一律 --m-bg，分割线 --m-band。 ---------- */
 
 /* 抬头：俱乐部 + 期间，右侧「参战 N 人」胶囊 */
-.m-rhead { display: flex; align-items: center; gap: 10px; }
+.m-rhead { display: flex; align-items: center; gap: 9px; }
 .m-rhead-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .m-rhead-t {
-  font-size: 16px; font-weight: 700; color: var(--m-text); line-height: 1.3;
+  font-size: 14.5px; font-weight: 700; color: var(--m-text); line-height: 1.3;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.m-rhead-d { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-rhead-d { font-size: 10px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 .m-rpill {
-  flex: none; height: 24px; padding: 0 10px; border-radius: 999px;
+  flex: none; height: 21.5px; padding: 0 9px; border-radius: 899px;
   display: inline-flex; align-items: center;
-  font-size: 11px; font-weight: 700; color: var(--m-primary); background: var(--m-primary-soft);
+  font-size: 10px; font-weight: 700; color: var(--m-primary); background: var(--m-primary-soft);
 }
 
 /* 数字带：六格一行，格间一条竖线（整块 band 底，不做卡片套卡片） */
 .m-rstat {
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin-top: 12px; border-radius: var(--m-r-md); background: var(--m-bg); overflow: hidden;
+  margin-top: 11px; border-radius: var(--m-r-md); background: var(--m-bg); overflow: hidden;
 }
-.m-rstat-c { padding: 9px 2px; text-align: center; min-width: 0; border-left: 1px solid var(--m-border); }
+.m-rstat-c { padding: 8px 2px; text-align: center; min-width: 0; border-left: 1px solid var(--m-border); }
 .m-rstat-c:first-child { border-left: none; }
 .m-rstat-k {
-  display: block; font-size: 10px; line-height: 1.3; color: var(--m-text3);
+  display: block; font-size: 9px; line-height: 1.3; color: var(--m-text3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .m-rstat-v {
-  display: block; margin-top: 3px; font-size: 16px; font-weight: 700; line-height: 1.15;
+  display: block; margin-top: 2.5px; font-size: 14.5px; font-weight: 700; line-height: 1.15;
   color: var(--m-text); font-variant-numeric: tabular-nums;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -2818,13 +2818,13 @@ html[data-theme="dark"] .al-all { --tab-dark:var(--m-primary); --tab-tint: rgba(
 .m-rstat-v.is-kd { color: var(--m-primary); }
 
 /* 榜单：2 列 × 3 行，卡内 band 底、无边框 */
-.m-rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.m-rk-card { background: var(--m-bg); border-radius: var(--m-r-md); padding: 8px 9px; min-width: 0; }
-.m-rk-t { font-size: 11px; font-weight: 700; color: var(--m-text3); margin-bottom: 5px; }
-.m-rk-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; min-width: 0; }
+.m-rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.m-rk-card { background: var(--m-bg); border-radius: var(--m-r-md); padding: 7px 8px; min-width: 0; }
+.m-rk-t { font-size: 10px; font-weight: 700; color: var(--m-text3); margin-bottom: 4.5px; }
+.m-rk-row { display: flex; align-items: center; gap: 5.5px; padding: 2.5px 0; min-width: 0; }
 .m-rk-no {
-  flex: none; width: 14px; text-align: center;
-  font-size: 11.5px; font-weight: 800; color: var(--m-text3);
+  flex: none; width: 12.5px; text-align: center;
+  font-size: 10.5px; font-weight: 800; color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
 /* 名次 1/2/3 = 金银铜（用户 11-01 明确：前面的名次不要跟主题色）
@@ -2844,51 +2844,51 @@ html[data-theme="dark"] .m-rk-no.n3,
 html[data-theme="dark"] .m-rtd-no.n3 { color: #e5b083 !important; }
 
 .m-rk-ava {
-  flex: none; width: 18px; height: 18px; border-radius: 5px;
+  flex: none; width: 16px; height: 16px; border-radius: 4.5px;
   object-fit: cover; background: var(--m-card);
 }
 .m-rk-ava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 700; color: var(--m-primary); background: var(--m-card);
+  font-size: 8px; font-weight: 700; color: var(--m-primary); background: var(--m-card);
 }
 .m-rk-nm {
-  flex: 1; min-width: 0; font-size: 11.5px; color: var(--m-text);
+  flex: 1; min-width: 0; font-size: 10.5px; color: var(--m-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* 榜上的数值跟主题色走（用户 11-01 原话：「说的是后面的数字」）——
    原来这里是 --m-text 深黑，跟右侧一列数字挤在一起分不清主次 */
-.m-rk-v { flex: none; font-size: 12px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums; }
+.m-rk-v { flex: none; font-size: 11px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums; }
 
 /* 明细表：7 列固定宽，数值列右对齐 */
 .m-rtable { margin-top: 2px; }
 .m-rthead,
 .m-rtr {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 30px 30px 30px 40px 38px;
-  align-items: center; gap: 4px;
+  grid-template-columns: 27px minmax(0, 1fr) 27px 27px 27px 36px 34px;
+  align-items: center; gap: 3.5px;
 }
 .m-rthead {
-  padding: 6px 4px; margin-bottom: 2px; border-radius: var(--m-r-sm);
+  padding: 5.5px 3.5px; margin-bottom: 2px; border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 10.5px; font-weight: 700; color: var(--m-text3);
+  font-size: 9.5px; font-weight: 700; color: var(--m-text3);
 }
 .m-rthead span { text-align: right; }
 .m-rthead span:nth-child(1),
 .m-rthead span:nth-child(2) { text-align: left; }
 .m-rtr {
-  padding: 7px 4px;
+  padding: 6.5px 3.5px;
   border-bottom: 1px solid var(--m-band);
 }
 .m-rtr:last-child { border-bottom: none; }
 .m-rtr.is-tap { cursor: pointer; }
 .m-rtr.is-tap:active { background: var(--m-bg); }
-.m-rtd-no { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-rtd-no { font-size: 10px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 .m-rtd-no.n1,
 .m-rtd-no.n2,
 .m-rtd-no.n3 { font-weight: 700; }
-.m-rtd-nm { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.m-rtd-nm { display: flex; align-items: center; gap: 4.5px; min-width: 0; }
 .m-rtd-v {
-  text-align: right; font-size: 12px; font-weight: 700; color: var(--m-text);
+  text-align: right; font-size: 11px; font-weight: 700; color: var(--m-text);
   font-variant-numeric: tabular-nums;
 }
 .m-rtd-v.is-kill { color: var(--m-red); }
@@ -2898,9 +2898,9 @@ html[data-theme="dark"] .m-rtd-no.n3 { color: #e5b083 !important; }
 
 /* MVP 徽标：跟在成员名字后面（用户 11-01 第二次调整，原先贴在行右上角会压住 K/D 数字） */
 .m-mvp-tag {
-  flex: none; height: 14px; padding: 0 5px; border-radius: 3px;
+  flex: none; height: 12.5px; padding: 0 4.5px; border-radius: 2.5px;
   display: inline-flex; align-items: center;
-  font-size: 8px; font-weight: 800; letter-spacing: 0.3px; line-height: 1;
+  font-size: 7px; font-weight: 800; letter-spacing: 1px; line-height: 1;
   color: var(--m-on-primary); background: var(--m-primary);
 }
 /* 暗色 --m-primary 是浅蓝 #6bc0ff，字必须回到 --m-on-primary（深色），
@@ -2908,38 +2908,38 @@ html[data-theme="dark"] .m-rtd-no.n3 { color: #e5b083 !important; }
 html[data-theme="dark"] .m-mvp-tag { color: var(--m-on-primary) !important; }
 
 /* 月报逐日展开：与表格同宽，缩进对齐成员列 */
-.m-rsub { padding: 2px 4px 8px; border-bottom: 1px solid var(--m-band); }
-.m-rsub-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
+.m-rsub { padding: 2px 3.5px 7px; border-bottom: 1px solid var(--m-band); }
+.m-rsub-row { display: flex; align-items: baseline; gap: 7px; padding: 2.5px 0; }
 .m-rsub-d {
-  flex: none; width: 46px; font-size: 10.5px; font-weight: 700; color: var(--m-text3);
+  flex: none; width: 41.5px; font-size: 9.5px; font-weight: 700; color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
-.m-rsub-x { flex: 1; min-width: 0; font-size: 11px; color: var(--m-text2); font-variant-numeric: tabular-nums; }
+.m-rsub-x { flex: 1; min-width: 0; font-size: 10px; color: var(--m-text2); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 359px) {
-  .m-rstat-v { font-size: 14px; }
-  .m-rstat-k { font-size: 9.5px; }
+  .m-rstat-v { font-size: 12.5px; }
+  .m-rstat-k { font-size: 8.5px; }
   .m-rthead,
-  .m-rtr { grid-template-columns: 26px minmax(0, 1fr) 28px 28px 28px 34px 34px; }
-  .m-rk-nm { font-size: 11px; }
+  .m-rtr { grid-template-columns: 23.5px minmax(0, 1fr) 25px 25px 25px 30.5px 30.5px; }
+  .m-rk-nm { font-size: 10px; }
 }
 /* 月战绩逐日展开 */
-.m-daylist { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.m-daylist { display: flex; flex-direction: column; gap: 3.5px; margin-top: 5.5px; }
 .m-dayc {
-  font-size: 10.5px; color: var(--m-text2); background: var(--m-bg);
-  border: 1px solid var(--m-border); border-radius: 8px; padding: 3px 8px;
+  font-size: 9.5px; color: var(--m-text2); background: var(--m-bg);
+  border: 1px solid var(--m-border); border-radius: 7px; padding: 2.5px 7px;
 }
-.m-dayc b { color: var(--m-text); margin-right: 6px; }
+.m-dayc b { color: var(--m-text); margin-right: 5.5px; }
 /* 盐场地图画布 */
 .m-map-view {
-  position: relative; width: 100%; height: 55vh; min-height: 320px;
-  overflow: hidden; border-radius: 8px; border: 1px solid var(--m-border);
+  position: relative; width: 100%; height: 55vh; min-height: 288px;
+  overflow: hidden; border-radius: 7px; border: 1px solid var(--m-border);
   background: var(--m-bg); touch-action: none;
 }
 .m-map-stage { position: absolute; left: 0; top: 0; will-change: transform; }
 .m-map-stage canvas { display: block; }
 /* 抽屉内头像/装备（照抄 ClubPanel） */
-.m-sheet .m-trow .m-mava { width: 40px; height: 40px; border-radius: 8px; flex: none; overflow: hidden; }
+.m-sheet .m-trow .m-mava { width: 36px; height: 36px; border-radius: 7px; flex: none; overflow: hidden; }
 .m-sheet .m-trow .m-mava img { width: 100%; height: 100%; object-fit: cover; }
 
 
@@ -2950,10 +2950,10 @@ html[data-theme="dark"] .m-mvp-tag { color: var(--m-on-primary) !important; }
 
 
 /* 联盟选择列表（照抄 ApexPanel 期号列表） */
-.m-rlist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.m-rlist { display: flex; flex-wrap: wrap; gap: 5.5px; margin-top: 5.5px; }
 .m-ritem {
   border: 1px solid var(--m-border); background: var(--m-bg); color: var(--m-text);
-  border-radius: var(--m-r-sm); padding: 7px 14px; font-size: 12.5px; font-weight: 700; font-family: inherit; cursor: pointer;
+  border-radius: var(--m-r-sm); padding: 6.5px 12.5px; font-size: 11.5px; font-weight: 700; font-family: inherit; cursor: pointer;
 }
 .m-ritem.on {
   background: var(--m-primary);

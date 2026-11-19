@@ -136,7 +136,7 @@ const startStudy = async () => {
 .m-ic-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
 }
 
 /* 颜色一律 currentColor：暗色下 App.vue 的 `*{color:#fff}` 会命中 svg 内部节点，

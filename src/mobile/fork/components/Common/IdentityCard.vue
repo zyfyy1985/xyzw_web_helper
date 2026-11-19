@@ -670,8 +670,8 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   text-align: center;
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  height: 80px;
-  line-height: 80px;
+  height: 72px;
+  line-height: 72px;
 }
 
 .identity-embedded {
@@ -698,7 +698,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 .identity-card {
   position: fixed;
   top: 0;
-  width: 360px;
+  width: 324px;
   background: var(--bg-primary);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-lg);
@@ -725,25 +725,25 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 .strap {
   position: absolute;
-  top: -64px;
-  right: 24px;
+  top: -57.5px;
+  right: 21.5px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .strap-tape {
-  width: 22px;
-  height: 56px;
+  width: 20px;
+  height: 50.5px;
   background:linear-gradient(180deg, var(--m-amber), var(--m-amber));
-  border-radius: 8px;
+  border-radius: 7px;
   box-shadow: inset 0 -4px rgba(0, 0, 0, 0.15);
 }
 
 .strap-buckle {
-  width: 36px;
-  height: 18px;
+  width: 32.5px;
+  height: 16px;
   background:var(--m-amber);
   border-radius: var(--m-r-md);
   box-shadow: inset 0 -2px rgba(0, 0, 0, 0.2);
@@ -757,8 +757,8 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 }
 
 .icon {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   object-fit: contain;
 }
 
@@ -778,7 +778,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   margin-left: auto;
   background: transparent;
   border: none;
-  font-size: 16px;
+  font-size: 14.5px;
   cursor: pointer;
   color: var(--text-secondary);
 }
@@ -786,7 +786,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 .role-profile-header {
   position: relative;
   border-radius: var(--border-radius-large);
-  padding: 16px;
+  padding: 14.5px;
   overflow: hidden;
 }
 
@@ -794,19 +794,19 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   position: relative;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14.5px;
   z-index: 3;
 }
 
 .avatar-container {
-  width: 56px;
-  height: 56px;
+  width: 50.5px;
+  height: 50.5px;
   flex-shrink: 0;
 }
 
 .role-avatar {
-  width: 56px;
-  height: 56px;
+  width: 50.5px;
+  height: 50.5px;
   border-radius: var(--m-r-md);
   object-fit: cover;
   border: 2px solid rgba(255, 255, 255, 0.6);
@@ -823,13 +823,13 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   display: flex;
-  gap: 12px;
+  gap: 11px;
 }
 
 .activity-week {
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-  margin-top: 4px;
+  margin-top: 3.5px;
   font-weight: var(--font-weight-medium);
 }
 
@@ -852,7 +852,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3.5px;
   }
 
   .role-stats {
@@ -863,22 +863,22 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
   .resources {
     grid-template-columns: repeat(2, 1fr); // 手机端强制两列
-    gap: 6px;
+    gap: 5.5px;
   }
 
   .res-item {
-    padding: 6px 8px;
+    padding: 5.5px 7px;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
     gap: 2px;
 
     .label {
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .value {
-      font-size: 13px;
+      font-size: 11.5px;
     }
   }
 }
@@ -953,14 +953,14 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 .resources {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-  --res-item-height: 44px;
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: 7px;
+  margin-top: 9px;
+  --res-item-height: 39.5px;
 }
 
 .resources.collapsed {
-  max-height: calc((var(--res-item-height) + 8px) * 2 + 8px);
+  max-height: calc((var(--res-item-height) + 7px) * 2 + 7px);
   overflow: hidden;
 }
 
@@ -968,7 +968,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
   background: var(--bg-primary);
   border: 1px solid var(--border-light);
   border-radius: var(--m-r-md);
-  padding: 8px 10px;
+  padding: 7px 9px;
   min-height: var(--res-item-height);
   display: flex;
   align-items: center;
@@ -984,7 +984,7 @@ watch(() => roleInfo.value, initializeAvatar, { deep: true });
 
 .res-item .label {
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .res-item .value {

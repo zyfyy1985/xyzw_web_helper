@@ -116,20 +116,20 @@ const pick = (value) => {
 <style scoped>
 .m-cal-h {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--m-text);
+  margin-bottom: 7px; font-size: 11.5px; font-weight: 700; color: var(--m-text);
 }
 .m-cal-nav {
-  width: 30px; height: 30px; border-radius: var(--m-r-md); border: 1px solid var(--m-border);
+  width: 27px; height: 27px; border-radius: var(--m-r-md); border: 1px solid var(--m-border);
   background: var(--m-bg); color: var(--m-text2);
-  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; font-family: inherit; cursor: pointer;
 }
-.m-cal-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 4px; }
-.m-cal-wd span { text-align: center; font-size: 10.5px; font-weight: 700; color: var(--m-text3); }
-.m-cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.m-cal-wd { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2.5px; margin-bottom: 3.5px; }
+.m-cal-wd span { text-align: center; font-size: 9.5px; font-weight: 700; color: var(--m-text3); }
+.m-cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2.5px; }
 .m-cal-g button {
-  height: 34px; border-radius: var(--m-r-md); border: 1px solid transparent;
+  height: 30.5px; border-radius: var(--m-r-md); border: 1px solid transparent;
   background: var(--m-bg); color: var(--m-text);
-  font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+  font-size: 11px; font-weight: 700; font-family: inherit; cursor: pointer;
 }
 .m-cal-g button.out { color: var(--m-text3); opacity: 0.5; }
 .m-cal-g button.off { color: var(--m-text3); opacity: 0.35; cursor: not-allowed; }

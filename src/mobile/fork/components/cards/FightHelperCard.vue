@@ -127,7 +127,7 @@ const handleFightHelper = async () => {
 
 <style scoped lang="scss">
 .container {
-  padding: 10px 0;
+  padding: 9px 0;
   display: flex;
   flex-direction: column;
   .list {
@@ -139,8 +139,8 @@ const handleFightHelper = async () => {
       flex-direction: column;
       align-items: center;
       > img {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
       }
       .fight-info {
         display: flex;
@@ -148,7 +148,7 @@ const handleFightHelper = async () => {
         align-items: center;
         .fight-type {
           font-weight: bold;
-          margin-top: 4px;
+          margin-top: 3.5px;
         }
         .fight-count {
           margin-top: 2px;
@@ -160,8 +160,8 @@ const handleFightHelper = async () => {
   .selects {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-top: 12px;
+    gap: 11px;
+    margin-top: 11px;
   }
   .total-points {
     display: flex;

@@ -158,25 +158,25 @@ async function submit() {
 .m-grant-warn {
   background: var(--m-red-soft);
   border-radius: var(--m-r-md);
-  padding: 10px 12px;
-  margin: 2px 0 12px;
+  padding: 9px 11px;
+  margin: 2px 0 11px;
 }
 .m-grant-warn b {
   display: block;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--m-red);
-  margin-bottom: 4px;
+  margin-bottom: 3.5px;
 }
 .m-grant-warn p {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.55;
   color: var(--m-red);
 }
 .m-grant-warn p + p {
-  margin-top: 4px;
+  margin-top: 3.5px;
 }
 
 /* ---------- 勾选行 ----------
@@ -185,16 +185,16 @@ async function submit() {
 .m-grant-agree {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 2px 0 12px;
-  font-size: 12.5px;
+  gap: 7px;
+  padding: 2px 0 11px;
+  font-size: 11.5px;
   color: var(--m-text2);
 }
 .m-grant-box {
-  width: 17px;
-  height: 17px;
+  width: 15.5px;
+  height: 15.5px;
   flex: none;
-  border-radius: 5px;
+  border-radius: 4.5px;
   border: 1.5px solid var(--m-hairline);
   background: var(--m-card);
   display: flex;
@@ -203,8 +203,8 @@ async function submit() {
   transition: background 0.15s, border-color 0.15s;
 }
 .m-grant-box svg {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   color: var(--m-on-primary);
   opacity: 0;
 }

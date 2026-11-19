@@ -59,9 +59,9 @@ const sub = ref("serverrank");
   z-index: 20;
   background: var(--m-bg);
   border: none;
-  border-radius: 4px;
-  padding: 6px 0;
-  gap: 6px;
+  border-radius: 3.5px;
+  padding: 5.5px 0;
+  gap: 5.5px;
 }
 .m-rank > :deep(.m-seg button) {
   flex: 0 0 auto;

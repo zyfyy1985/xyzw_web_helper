@@ -77,10 +77,10 @@ const onImgError = (e) => {
 }
 .cr-row {
   display: grid;
-  grid-template-columns: 24px 34px minmax(0, 1fr) auto;
+  grid-template-columns: 21.5px 30.5px minmax(0, 1fr) auto;
   align-items: start;
-  gap: 10px;
-  padding: 11px 14px;
+  gap: 9px;
+  padding: 10px 12.5px;
   border-bottom: 1px solid var(--m-band);
 }
 .cr-row:last-child {
@@ -88,15 +88,15 @@ const onImgError = (e) => {
 }
 
 .cr-rank {
-  width: 24px;
-  height: 24px;
-  margin-top: 5px;
+  width: 21.5px;
+  height: 21.5px;
+  margin-top: 4.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--m-text2) !important;
   font-variant-numeric: tabular-nums;
@@ -107,8 +107,8 @@ const onImgError = (e) => {
 }
 
 .cr-logo {
-  width: 34px;
-  height: 34px;
+  width: 30.5px;
+  height: 30.5px;
   border-radius: var(--m-r-sm);
   object-fit: cover;
   background: var(--m-bg);
@@ -117,7 +117,7 @@ const onImgError = (e) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text3) !important;
 }
@@ -125,17 +125,17 @@ const onImgError = (e) => {
 .cr-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2.5px;
   min-width: 0;
 }
 .cr-l1 {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4.5px;
   min-width: 0;
 }
 .cr-nm {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text) !important;
   overflow: hidden;
@@ -144,16 +144,16 @@ const onImgError = (e) => {
 }
 .cr-tag {
   flex: none;
-  font-size: 10px;
-  line-height: 15px;
-  padding: 0 5px;
-  border-radius: 3px;
+  font-size: 9px;
+  line-height: 13.5px;
+  padding: 0 4.5px;
+  border-radius: 2.5px;
   background: var(--m-primary-soft);
   color: var(--m-primary) !important;
   font-weight: 500;
 }
 .cr-meta {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3) !important;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,18 +167,18 @@ const onImgError = (e) => {
 .cr-heroes {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 5.5px;
+  margin-top: 5.5px;
   grid-column: 2 / -1;
 }
 .cr-h {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3.5px;
   flex: 1 1 0;
   min-width: 0;
-  max-width: 116px;
-  padding: 2px 6px 2px 2px;
+  max-width: 104.5px;
+  padding: 2px 5.5px 2px 2px;
   background: var(--m-bg);
   border: none;
   border-radius: var(--m-r-sm);
@@ -198,9 +198,9 @@ const onImgError = (e) => {
   opacity: 0.5;
 }
 .cr-h-ava {
-  width: 18px;
-  height: 18px;
-  border-radius: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2.5px;
   object-fit: cover;
   flex: none;
   background: var(--m-card);
@@ -209,14 +209,14 @@ const onImgError = (e) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: var(--m-text3) !important;
 }
 .cr-h-nm {
   font-style: normal;
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 10px;
+  line-height: 12.5px;
   color: var(--m-text2) !important;
   min-width: 0;
   overflow: hidden;
@@ -227,8 +227,8 @@ const onImgError = (e) => {
 /* 车头详情加载中的占位（与真实 chip 同高，列表不跳） */
 .cr-heroes--ph i {
   display: block;
-  width: 56px;
-  height: 22px;
+  width: 50.5px;
+  height: 20px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   animation: cr-pulse 1.3s ease-in-out infinite;
@@ -240,16 +240,16 @@ const onImgError = (e) => {
   align-items: flex-end;
   gap: 1px;
   flex: none;
-  margin-top: 3px;
+  margin-top: 2.5px;
 }
 .cr-score {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text) !important;
   font-variant-numeric: tabular-nums;
 }
 .cr-score-lb {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--m-text3) !important;
 }
 
@@ -259,11 +259,11 @@ const onImgError = (e) => {
 }
 
 @media (max-width: 359px) {
-  .cr-row { grid-template-columns: 22px 30px minmax(0, 1fr) auto; gap: 8px; padding: 10px 12px; }
-  .cr-rank { width: 22px; height: 22px; font-size: 11px; }
-  .cr-logo { width: 30px; height: 30px; }
-  .cr-nm { font-size: 13.5px; }
-  .cr-h { max-width: 88px; }
+  .cr-row { grid-template-columns: 20px 27px minmax(0, 1fr) auto; gap: 7px; padding: 9px 11px; }
+  .cr-rank { width: 20px; height: 20px; font-size: 10px; }
+  .cr-logo { width: 27px; height: 27px; }
+  .cr-nm { font-size: 12px; }
+  .cr-h { max-width: 79px; }
 }
 </style>
 

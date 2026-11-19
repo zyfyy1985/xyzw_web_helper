@@ -273,7 +273,7 @@
         v-model:show="techModalVisible"
         preset="card"
         title="俱乐部科技"
-        style="width: 700px; max-width: 90vw"
+        style="width: 630px; max-width: 90vw"
         :bordered="false"
       >
         <div v-if="selectedTechData" class="tech">
@@ -2296,30 +2296,30 @@ onMounted(() => {
 .lu {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14.5px;
 }
 
 /* ---------- 区块头 ---------- */
 .lu-blk + .lu-blk {
-  padding-top: 15px;
+  padding-top: 13.5px;
   border-top: 1px solid var(--m-band);
 }
 .lu-hd {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 7px;
+  margin-bottom: 9px;
 }
 .lu-hd-t {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text);
   line-height: 1.3;
 }
 .lu-hd-x {
   flex: none;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
   line-height: 1.3;
 }
@@ -2328,12 +2328,12 @@ onMounted(() => {
 .lu-heroes {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  gap: 5.5px;
 }
 .lu-hero {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3.5px;
   min-width: 0;
   cursor: pointer;
 }
@@ -2360,7 +2360,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text3);
 }
 .lu-hero-empty {
@@ -2369,7 +2369,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14.5px;
   line-height: 1;
   color: var(--m-text3);
   background: var(--m-bg);
@@ -2382,10 +2382,10 @@ onMounted(() => {
   z-index: 2;
   top: 0;
   left: 0;
-  padding: 0 4px;
-  height: 14px;
-  line-height: 14px;
-  font-size: 10px;
+  padding: 0 3.5px;
+  height: 12.5px;
+  line-height: 12.5px;
+  font-size: 9px;
   font-weight: 700;
   color: #fff;
   background: rgba(15, 118, 62, 0.9);
@@ -2400,7 +2400,7 @@ onMounted(() => {
   bottom: 0;
   padding: 1px 0 2px;
   text-align: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 500;
   line-height: 1.2;
   color: #fff;
@@ -2412,7 +2412,7 @@ onMounted(() => {
   );
 }
 .lu-hero-nm {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.25;
   color: var(--m-text);
@@ -2422,7 +2422,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .lu-hero-tg {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.25;
   color: var(--m-text3);
   text-align: center;
@@ -2432,32 +2432,32 @@ onMounted(() => {
 }
 /* 已保存阵容里的那排：留一份就行，行高与上面一致，只把字号再收一档 */
 .lu-heroes.is-mini .lu-hero-nm {
-  font-size: 10.5px;
+  font-size: 9.5px;
 }
 .lu-heroes.is-mini .lu-hero-tg {
-  font-size: 9.5px;
+  font-size: 8.5px;
 }
 
 /* ---------- 玩具 / 宠物 ---------- */
 .lu-chips {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 7px;
+  margin-top: 11px;
 }
 .lu-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
-  padding: 7px 9px;
+  padding: 6.5px 8px;
   background: var(--m-bg);
   border-radius: var(--m-r-sm);
 }
 .lu-chip-ic {
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 21.5px;
+  height: 21.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2469,12 +2469,12 @@ onMounted(() => {
   min-width: 0;
 }
 .lu-chip-k {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.2;
   color: var(--m-text3);
 }
 .lu-chip-v {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text);
@@ -2483,18 +2483,18 @@ onMounted(() => {
   white-space: nowrap;
 }
 .lu-chips.is-mini {
-  margin-top: 10px;
-  gap: 6px;
+  margin-top: 9px;
+  gap: 5.5px;
 }
 .lu-chips.is-mini .lu-chip {
-  padding: 6px 8px;
+  padding: 5.5px 7px;
 }
 .lu-chips.is-mini .lu-chip-ic {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 .lu-chips.is-mini .lu-chip-v {
-  font-size: 11.5px;
+  font-size: 10.5px;
 }
 
 /* ---------- 保存当前阵容 ---------- */
@@ -2502,10 +2502,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5.5px;
   width: 100%;
-  height: 40px;
-  margin-top: 12px;
+  height: 36px;
+  margin-top: 11px;
   padding: 0;
   border: 1px solid var(--m-primary);
   border-radius: var(--m-r-sm);
@@ -2521,7 +2521,7 @@ onMounted(() => {
   opacity: 0.45;
 }
 .lu-save-tx {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1;
 }
@@ -2530,13 +2530,13 @@ onMounted(() => {
 .lu-slotbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 7px;
+  margin-bottom: 7px;
 }
 .lu-slots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -2544,14 +2544,14 @@ onMounted(() => {
 .lu-slot {
   flex: 1 1 0;
   min-width: 0;
-  height: 30px;
+  height: 27px;
   padding: 0;
   border: none;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1;
 }
@@ -2570,8 +2570,8 @@ onMounted(() => {
 }
 .lu-iconbtn {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2588,8 +2588,8 @@ onMounted(() => {
   opacity: 0.5;
 }
 .lu-hint {
-  margin: 0 0 10px;
-  font-size: 11px;
+  margin: 0 0 9px;
+  font-size: 10px;
   line-height: 1.5;
   color: var(--m-text3);
 }
@@ -2598,10 +2598,10 @@ onMounted(() => {
 .lu-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 .lu-item {
-  padding: 11px 11px 12px;
+  padding: 10px 10px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
@@ -2609,12 +2609,12 @@ onMounted(() => {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 9px;
+  gap: 7px;
+  margin-bottom: 8px;
 }
 .lu-item-nm {
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text);
   line-height: 1.3;
@@ -2624,7 +2624,7 @@ onMounted(() => {
 }
 .lu-item-tm {
   flex: none;
-  font-size: 10.5px;
+  font-size: 9.5px;
   color: var(--m-text3);
 }
 
@@ -2632,18 +2632,18 @@ onMounted(() => {
 .lu-acts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 11px;
+  gap: 5.5px;
+  margin-top: 10px;
 }
 .lu-act {
-  height: 32px;
+  height: 29px;
   padding: 0 2px;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-sm);
   background: var(--m-card);
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
@@ -2669,16 +2669,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2.5px;
   width: 100%;
-  height: 28px;
-  margin-top: 6px;
+  height: 25px;
+  margin-top: 5.5px;
   padding: 0;
   border: none;
   background: transparent;
   color: var(--m-text3);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1;
 }
 .lu-more[disabled] {
@@ -2687,38 +2687,38 @@ onMounted(() => {
 
 /* ---------- 空态 / 导入导出 ---------- */
 .lu-empty {
-  padding: 20px 14px;
+  padding: 18px 12.5px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   text-align: center;
 }
 .lu-empty-t {
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-text2);
   line-height: 1.4;
 }
 .lu-empty-s {
-  margin-top: 4px;
-  font-size: 11px;
+  margin-top: 3.5px;
+  font-size: 10px;
   line-height: 1.6;
   color: var(--m-text3);
 }
 .lu-tools {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
 }
 .lu-mini {
-  height: 30px;
+  height: 27px;
   padding: 0;
   border: 1px dashed var(--m-border);
   border-radius: var(--m-r-sm);
   background: transparent;
   color: var(--m-text3);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1;
 }
 .lu-mini:active {
@@ -2746,21 +2746,21 @@ onMounted(() => {
   max-height: 82vh;
   display: flex;
   flex-direction: column;
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  padding: 12.5px 14.5px calc(12.5px + env(safe-area-inset-bottom));
   background: var(--m-card);
-  border-radius: 14px 14px 0 0;
+  border-radius: 12.5px 12.5px 0 0;
 }
 .lu-sheet-hd {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-bottom: 12px;
+  gap: 9px;
+  padding-bottom: 11px;
   border-bottom: 1px solid var(--m-band);
 }
 .lu-sheet-av {
   flex: none;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--m-r-sm);
   overflow: hidden;
   background: var(--m-bg);
@@ -2777,7 +2777,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text3);
 }
 .lu-sheet-id {
@@ -2785,14 +2785,14 @@ onMounted(() => {
   min-width: 0;
 }
 .lu-sheet-nm {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--m-text);
   line-height: 1.25;
 }
 .lu-sheet-sub {
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
   line-height: 1.3;
   overflow: hidden;
@@ -2801,8 +2801,8 @@ onMounted(() => {
 }
 .lu-sheet-x {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   padding: 0;
   border: none;
   border-radius: var(--m-r-sm);
@@ -2817,37 +2817,37 @@ onMounted(() => {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: 12px;
+  padding-top: 11px;
 }
 
 /* 属性四格：字段与存档条目一致（战力 / 攻击 / 血量 / 速度） */
 .lu-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 7px;
 }
 .lu-stat {
   min-width: 0;
-  padding: 8px 10px;
+  padding: 7px 9px;
   background: var(--m-bg);
   border-radius: var(--m-r-sm);
 }
 .lu-stat-k {
-  font-size: 10.5px;
+  font-size: 9.5px;
   color: var(--m-text3);
   line-height: 1.2;
 }
 .lu-stat-v {
   margin-top: 2px;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text);
   line-height: 1.25;
   font-variant-numeric: tabular-nums;
 }
 .lu-sub-h {
-  margin: 16px 0 8px;
-  font-size: 12px;
+  margin: 14.5px 0 7px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--m-text3);
 }
@@ -2856,43 +2856,43 @@ onMounted(() => {
 .lu-parts {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 .lu-part {
-  padding: 10px;
+  padding: 9px;
   background: var(--m-bg);
   border-radius: var(--m-r-sm);
 }
 .lu-part-hd {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 7px;
+  margin-bottom: 7px;
 }
 .lu-part-nm {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--m-text);
 }
 .lu-part-lv {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
 }
 .lu-part-bn {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--m-primary);
 }
 .lu-quench {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 5px;
+  gap: 4.5px;
 }
 .lu-slot-c {
   position: relative;
   min-width: 0;
-  padding: 6px 2px 5px;
+  padding: 5.5px 2px 4.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-card);
   text-align: center;
@@ -2902,7 +2902,7 @@ onMounted(() => {
   box-shadow: inset 0 0 0 1px var(--m-border);
 }
 .lu-slot-c-nm {
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.2;
   color: var(--m-text2);
   overflow: hidden;
@@ -2914,7 +2914,7 @@ onMounted(() => {
 }
 .lu-slot-c-v {
   margin-top: 2px;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text);
@@ -2923,16 +2923,16 @@ onMounted(() => {
 /* 淬炼品质：右上角一颗小圆点，不占布局也不跟文字抢空间 */
 .lu-slot-dot {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 5px;
-  height: 5px;
+  top: 2.5px;
+  right: 2.5px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
 }
 .lu-sheet-empty {
-  padding: 18px 0;
+  padding: 16px 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--m-text3);
 }
@@ -2945,14 +2945,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 22px;
+  padding: 0 20px;
   background: rgba(0, 0, 0, 0.45);
 }
 .lu-pg {
   width: 100%;
-  max-width: 320px;
-  padding: 16px 16px 14px;
-  border-radius: 14px;
+  max-width: 288px;
+  padding: 14.5px 14.5px 12.5px;
+  border-radius: 12.5px;
   background: var(--m-card);
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.28);
 }
@@ -2960,91 +2960,91 @@ onMounted(() => {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
 }
 .lu-pg-t {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text);
 }
 .lu-pg-c {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
 .lu-pg-nm {
-  margin: 4px 0 12px;
-  font-size: 12px;
+  margin: 3.5px 0 11px;
+  font-size: 11px;
   color: var(--m-text2);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .lu-pg-step {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--m-text);
 }
 .lu-pg-step em {
-  margin-left: 6px;
+  margin-left: 5.5px;
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text2);
 }
 .lu-pg-next {
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: 3.5px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 .lu-pg-bar {
-  margin-top: 10px;
-  height: 6px;
-  border-radius: 3px;
+  margin-top: 9px;
+  height: 5.5px;
+  border-radius: 2.5px;
   background: var(--m-band);
   overflow: hidden;
 }
 .lu-pg-bar i {
   display: block;
   height: 100%;
-  border-radius: 3px;
+  border-radius: 2.5px;
   background: var(--m-primary);
   transition: width 0.18s ease;
 }
 .lu-pg-pct {
-  margin-top: 6px;
+  margin-top: 5.5px;
   text-align: right;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
 .lu-pg-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 2px 0 14px;
+  gap: 5.5px;
+  margin: 2px 0 12.5px;
 }
 .lu-pg-tag {
-  padding: 3px 8px;
-  border-radius: 999px;
+  padding: 2.5px 7px;
+  border-radius: 899px;
   background: var(--m-band);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text2);
 }
 .lu-pg-err {
-  margin: 2px 0 14px;
-  font-size: 12px;
+  margin: 2px 0 12.5px;
+  font-size: 11px;
   line-height: 1.6;
   color: #d03050;
   word-break: break-all;
 }
 .lu-pg-btn {
   width: 100%;
-  height: 36px;
+  height: 32.5px;
   border: 0;
   border-radius: var(--m-r-sm);
   background: var(--m-primary);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 600;
   color: #fff;
 }
@@ -3058,23 +3058,23 @@ onMounted(() => {
 .tech {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 .tech-tabs {
   display: flex;
-  gap: 6px;
+  gap: 5.5px;
 }
 .tech-tab {
   flex: 1 1 0;
   min-width: 0;
-  height: 30px;
+  height: 27px;
   padding: 0;
   border: none;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1;
 }
@@ -3086,20 +3086,20 @@ onMounted(() => {
 .tech-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 12px;
+  gap: 0 11px;
 }
 .tech-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 5.5px;
   min-width: 0;
-  height: 30px;
+  height: 27px;
   border-bottom: 1px solid var(--m-band);
 }
 .tech-name {
   min-width: 0;
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--m-text2);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3107,7 +3107,7 @@ onMounted(() => {
 }
 .tech-level {
   flex: none;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   color: var(--m-text);
   font-variant-numeric: tabular-nums;
@@ -3126,9 +3126,9 @@ onMounted(() => {
   opacity: 0.55;
 }
 .no-tech-data {
-  padding: 24px 0;
+  padding: 21.5px 0;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text3);
 }
 </style>

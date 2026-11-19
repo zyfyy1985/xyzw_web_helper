@@ -396,11 +396,11 @@ onBeforeUnmount(() => {
 /* ---------- 连接卡 ---------- */
 .m-ws-st {
   flex: none;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--m-r-sm);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
 }
 .m-ws-st.is-on { color: var(--m-green); background: var(--m-green-soft); }
 .m-ws-st.is-wait { color: var(--m-amber); background: var(--m-amber-soft); }
@@ -410,11 +410,11 @@ onBeforeUnmount(() => {
 .m-ws-f {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 4.5px;
+  margin-bottom: 9px;
 }
 .m-ws-lb {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3) !important;
 }
@@ -427,17 +427,17 @@ onBeforeUnmount(() => {
 .m-ws-sel {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 30px;
-  font-size: 14px;
+  padding-right: 27px;
+  font-size: 12.5px;
   line-height: 1.4;
   text-overflow: ellipsis;
 }
 .m-ws-chev {
   position: absolute;
-  right: 10px;
+  right: 9px;
   top: 50%;
-  width: 14px;
-  height: 14px;
+  width: 12.5px;
+  height: 12.5px;
   transform: translateY(-50%);
   color: var(--m-text3);
   pointer-events: none;
@@ -450,12 +450,12 @@ onBeforeUnmount(() => {
 .m-ws-btns {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   margin-top: 2px;
 }
 .m-ws-btns2 {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-ws-btns2 .m-btn {
   flex: 1;
@@ -464,10 +464,10 @@ onBeforeUnmount(() => {
 
 /* 提示条：紧贴触发它的按钮，红/绿一眼分得开 */
 .m-ws-note {
-  margin: 10px 0 0;
-  padding: 7px 10px;
+  margin: 9px 0 0;
+  padding: 6.5px 9px;
   border-radius: var(--m-r-sm);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
 }
 .m-ws-note.ok { color: var(--m-green) !important; background: var(--m-green-soft); }
@@ -493,26 +493,26 @@ onBeforeUnmount(() => {
   cursor: pointer;
   color: var(--m-text3) !important;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
+  font-size: 10px;
   word-break: break-all;
 }
 .m-ws-url.open {
   white-space: pre-wrap;
-  max-height: 180px;
+  max-height: 162px;
   overflow-y: auto;
 }
 
 /* ---------- 命令 ---------- */
 .m-ws-json {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.6;
   resize: vertical;
-  min-height: 62px;
+  min-height: 56px;
 }
 .m-ws-hint {
-  margin: 8px 0 0;
-  font-size: 11.5px;
+  margin: 7px 0 0;
+  font-size: 10.5px;
   line-height: 1.5;
   color: var(--m-text3) !important;
 }
@@ -520,20 +520,20 @@ onBeforeUnmount(() => {
 /* ---------- 日志 ---------- */
 .m-ws-count {
   flex: none;
-  min-width: 18px;
-  padding: 0 6px;
-  border-radius: 9px;
+  min-width: 16px;
+  padding: 0 5.5px;
+  border-radius: 8px;
   background: var(--m-band);
   color: var(--m-text3) !important;
-  font-size: 11px;
-  line-height: 18px;
+  font-size: 10px;
+  line-height: 16px;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 .m-ws-empty {
-  padding: 18px 0 12px;
+  padding: 16px 0 11px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3) !important;
 }
 /* 「清空」在没有日志时是禁用的：.m-link 本身没有禁用态，不补这一条会看着能点、点了没反应 */
@@ -544,13 +544,13 @@ onBeforeUnmount(() => {
 .m-ws-log {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5.5px;
   max-height: 46vh;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 .m-ws-item {
-  padding: 8px 10px;
+  padding: 7px 9px;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   border-left: 3px solid var(--m-border);
@@ -560,42 +560,42 @@ onBeforeUnmount(() => {
 .m-ws-item-h {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .m-ws-tag {
   flex: none;
-  padding: 0 6px;
+  padding: 0 5.5px;
   border-radius: var(--m-r-sm);
-  font-size: 10.5px;
-  line-height: 17px;
+  font-size: 9.5px;
+  line-height: 15.5px;
 }
 .m-ws-tag.sent { color: var(--m-primary) !important; background: var(--m-primary-soft); }
 .m-ws-tag.received { color: var(--m-green) !important; background: var(--m-green-soft); }
 .m-ws-time {
   flex: 1;
   min-width: 0;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
 .m-ws-toggle {
   flex: none;
-  font-size: 11.5px;
+  font-size: 10.5px;
 }
 /* 折叠成 3 行多一点的高度；用 max-height 而不是 line-clamp，因为内容是 pre 换行文本 */
 .m-ws-pre {
-  margin: 6px 0 0;
-  max-height: 62px;
+  margin: 5.5px 0 0;
+  max-height: 56px;
   overflow: hidden;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-all;
   color: var(--m-text2) !important;
 }
 .m-ws-pre.open {
-  max-height: 320px;
+  max-height: 288px;
   overflow-y: auto;
 }
 </style>

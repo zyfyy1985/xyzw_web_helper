@@ -347,34 +347,34 @@ const exportResult = async () => {
 
 <style scoped>
 /* 整块：夹在「信息块」和「武将阵容」之间，上下都要留白，否则会跟信息卡黏在一起 */
-.m-duelbox { margin-top: 12px; }
+.m-duelbox { margin-top: 11px; }
 
 /* 切磋条（band 平带，design.md：分区靠底色不靠边框） */
 .m-duelbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 12px;
-  padding: 8px 10px;
+  gap: 7px;
+  margin: 0 0 11px;
+  padding: 7px 9px;
   border-radius: var(--m-r-md);
   background: var(--m-band);
 }
-.m-duelbar-t { flex: none; font-size: 12px; font-weight: 700; color: var(--m-text); }
-.m-duelbar-n { flex: 1; min-width: 0; height: 30px; text-align: center; }
-.m-duelbar-b { flex: none; padding: 0 14px; height: 30px; font-size: 12.5px; }
+.m-duelbar-t { flex: none; font-size: 11px; font-weight: 700; color: var(--m-text); }
+.m-duelbar-n { flex: 1; min-width: 0; height: 27px; text-align: center; }
+.m-duelbar-b { flex: none; padding: 0 12.5px; height: 27px; font-size: 11.5px; }
 
 /* 进度 */
-.m-prog { margin-top: 12px; }
+.m-prog { margin-top: 11px; }
 .m-prog-st {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  margin-bottom: 6px; font-size: 11px; color: var(--m-text2);
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-bottom: 5.5px; font-size: 10px; color: var(--m-text2);
 }
 
 /* 结果 */
-.m-duel { margin-top: 12px; }
+.m-duel { margin-top: 11px; }
 .m-duel-st {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  margin-bottom: 8px; font-size: 11px; color: var(--m-text2);
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-bottom: 7px; font-size: 10px; color: var(--m-text2);
 }
 .m-duel-st b { color: var(--m-text); }
 .duel-high { color: var(--m-green) !important; }
@@ -385,24 +385,24 @@ const exportResult = async () => {
 
 /* 每场对战行：第N场 + 胜/负 + 左方(头像/名/战力) + VS + 右方 */
 .m-duelrow {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  padding: 9px 0; border-bottom: 1px solid var(--m-border);
+  display: flex; align-items: center; gap: 5.5px; flex-wrap: wrap;
+  padding: 8px 0; border-bottom: 1px solid var(--m-border);
 }
 .m-duelrow:last-child { border-bottom: none; }
-.m-duel-idx { flex: none; font-size: 10.5px; font-weight: 700; color: var(--m-text3); }
-.m-duel-side { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.m-duel-idx { flex: none; font-size: 9.5px; font-weight: 700; color: var(--m-text3); }
+.m-duel-side { display: flex; align-items: center; gap: 5.5px; flex: 1; min-width: 0; }
 .m-duel-side.right { justify-content: flex-end; }
 .m-duel-side.right .m-duel-tx { text-align: right; }
-.m-duel-side .m-mava { width: 26px; height: 26px; border-radius: var(--m-r-md); }
-.m-duel-side .m-mava img { width: 26px; height: 26px; border-radius: var(--m-r-md); object-fit: cover; }
+.m-duel-side .m-mava { width: 23.5px; height: 23.5px; border-radius: var(--m-r-md); }
+.m-duel-side .m-mava img { width: 23.5px; height: 23.5px; border-radius: var(--m-r-md); object-fit: cover; }
 .m-duel-tx { min-width: 0; }
 .m-duel-nm {
-  display: block; font-size: 11.5px; font-weight: 700; color: var(--m-text);
+  display: block; font-size: 10.5px; font-weight: 700; color: var(--m-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.m-duel-mt { display: block; font-size: 10px; color: var(--m-text3); }
-.m-duel-vs { flex: none; font-size: 9.5px; font-weight: 700; color: var(--m-text3); }
+.m-duel-mt { display: block; font-size: 9px; color: var(--m-text3); }
+.m-duel-vs { flex: none; font-size: 8.5px; font-weight: 700; color: var(--m-text3); }
 
-.m-duel-ops { display: flex; gap: 8px; margin-top: 10px; margin-bottom: 4px; }
+.m-duel-ops { display: flex; gap: 7px; margin-top: 9px; margin-bottom: 3.5px; }
 .m-duel-ops .m-btn { flex: 1; }
 </style>

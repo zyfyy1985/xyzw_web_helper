@@ -19,7 +19,7 @@
         </span>
       </div>
       <button type="button" class="m-dtag" @click="calOpen = true">{{ queryDate }}</button>
-      <p class="m-hint" style="margin: 8px 0 0">仅周日可查；当天需 18:00 后才算本期对战</p>
+      <p class="m-hint" style="margin: 7px 0 0">仅周日可查；当天需 18:00 后才算本期对战</p>
     </div>
 
     <!-- 主标题 + VS 头部（照抄旧版 main-title / header-section） -->
@@ -58,7 +58,7 @@
 
     <!-- 三态：loading / 数据 / 空 -->
     <div v-if="loading" class="m-card">
-      <p class="m-hint" style="text-align: center; padding: 24px 0">正在加载敌方数据…</p>
+      <p class="m-hint" style="text-align: center; padding: 21.5px 0">正在加载敌方数据…</p>
     </div>
     <template v-else-if="opponentMembers.length > 0">
       <div class="m-card" ref="membersDom">
@@ -166,7 +166,7 @@
       </div>
     </template>
     <div v-else class="m-card">
-      <div class="m-empty" style="padding: 30px 0">
+      <div class="m-empty" style="padding: 27px 0">
         <div class="m-logo">🍑</div>
         <h3>暂无敌方数据</h3>
         <p>点右上角「刷新」重新拉取</p>
@@ -820,27 +820,27 @@ export default { name: "MobilePeachInfoPanel" };
 
 <style scoped>
 
-.m-mtitle { margin: 4px 2px 10px; font-size: 15px; font-weight: 700; color: var(--m-text); }
+.m-mtitle { margin: 3.5px 2px 9px; font-size: 13.5px; font-weight: 700; color: var(--m-text); }
 /* VS 头部 */
-.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 7px; align-items: center; }
 .m-vs-c { min-width: 0; }
-.m-vs-id { font-size: 10.5px; color: var(--m-text3); font-weight: 700; }
-.m-vs-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; min-width: 0; }
-.m-vs-sv { font-size: 10.5px; color: var(--m-text2); flex: none; font-weight: 700; }
-.m-clogo-s { width: 26px; height: 26px; border-radius: 8px; flex: none; }
-.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-.m-vs-nm { font-size: 13px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-vs-st { font-size: 11px; color: var(--m-text2); font-weight: 700; }
-.m-vs-anno { font-size: 10.5px; color: var(--m-text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vs-id { font-size: 9.5px; color: var(--m-text3); font-weight: 700; }
+.m-vs-row { display: flex; align-items: center; gap: 5.5px; margin-bottom: 2.5px; min-width: 0; }
+.m-vs-sv { font-size: 9.5px; color: var(--m-text2); flex: none; font-weight: 700; }
+.m-clogo-s { width: 23.5px; height: 23.5px; border-radius: 7px; flex: none; }
+.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+.m-vs-nm { font-size: 11.5px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vs-st { font-size: 10px; color: var(--m-text2); font-weight: 700; }
+.m-vs-anno { font-size: 9.5px; color: var(--m-text3); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .m-vs-badge {
-  width: 34px; height: 34px; border-radius: var(--m-r-md); flex: none;
+  width: 30.5px; height: 30.5px; border-radius: var(--m-r-md); flex: none;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11.5px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 10.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary);
 }
 /* 阵容统计 chip 行 */
-.m-chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; }
-.m-chiprow-l { font-size: 11.5px; font-weight: 700; color: var(--m-text2); }
+.m-chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: 5.5px; margin-bottom: 9px; }
+.m-chiprow-l { font-size: 10.5px; font-weight: 700; color: var(--m-text2); }
 /* 阵容类型 chip：贴卡片右上角（配色由 lineupTypeStyle 内联生成） */
 .pi-badge {
   margin-left: auto; margin-top: 0; flex: none; max-width: 46%;
@@ -849,23 +849,23 @@ export default { name: "MobilePeachInfoPanel" };
 /* 玩具名：行动蓝（旧版为紫，规范禁第二强调色相） */
 .pi-toy { color: var(--m-primary); }
 /* 宠物图标 */
-.pi-pet-ic { width: 18px; height: 18px; border-radius: 4px; vertical-align: -3px; margin-right: 3px; object-fit: cover; }
+.pi-pet-ic { width: 16px; height: 16px; border-radius: 3.5px; vertical-align: -2.5px; margin-right: 2.5px; object-fit: cover; }
 /* 阵容块：标签在上，武将小卡换行排列（照抄旧版 lineup-hero-card） */
-.pi-lineup { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
-.pi-lineup-none { font-size: 12px; color: var(--m-text3); }
-.pi-lineup-wrap { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.pi-lineup { display: flex; flex-direction: column; align-items: flex-start; gap: 4.5px; min-width: 0; }
+.pi-lineup-none { font-size: 11px; color: var(--m-text3); }
+.pi-lineup-wrap { display: flex; flex-wrap: wrap; gap: 4.5px; min-width: 0; }
 .pi-hero {
   display: flex; flex-direction: column; gap: 1px;
-  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 8px;
-  padding: 4px 8px; min-width: 0;
+  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 7px;
+  padding: 3.5px 7px; min-width: 0;
 }
-.pi-hero-n { font-size: 11px; font-weight: 700; color: var(--m-text); white-space: nowrap; }
+.pi-hero-n { font-size: 10px; font-weight: 700; color: var(--m-text); white-space: nowrap; }
 .pi-hero-r { font-style: normal; color: var(--m-red); margin-left: 2px; }
-.pi-hero-hb { font-style: normal; color: var(--m-green); margin-left: 4px; font-size: 10px; }
-.pi-hero-p { font-size: 10px; color: var(--m-text2); white-space: nowrap; }
+.pi-hero-hb { font-style: normal; color: var(--m-green); margin-left: 3.5px; font-size: 9px; }
+.pi-hero-p { font-size: 9px; color: var(--m-text2); white-space: nowrap; }
 .pi-hero-p i { font-style: normal; }
 /* 战斗模拟 5 次 */
-.m-sim-none, .m-sim-wait, .m-sim-fight, .m-sim-to, .m-sim-lose, .m-sim-win, .m-sim-full { font-size: 11px; }
+.m-sim-none, .m-sim-wait, .m-sim-fight, .m-sim-to, .m-sim-lose, .m-sim-win, .m-sim-full { font-size: 10px; }
 .m-sim-none { color: var(--m-text3); font-weight: 400; }
 .m-sim-wait { color: var(--m-text2); font-weight: 700; }
 .m-sim-fight { color: var(--m-blue); font-weight: 700; }
@@ -874,6 +874,6 @@ export default { name: "MobilePeachInfoPanel" };
 .m-sim-win { font-weight: 700; }
 .m-sim-win.sim-high { color: var(--m-green); }
 .m-sim-win.sim-low { color: var(--m-red); }
-.m-sim-full { color: var(--m-blue); font-weight: 700; margin-left: 6px; }
+.m-sim-full { color: var(--m-blue); font-weight: 700; margin-left: 5.5px; }
 </style>
 

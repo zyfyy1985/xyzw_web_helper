@@ -20,7 +20,7 @@
       <span class="m-th m-th-c">比赛类型</span>
       <span class="m-th m-th-r">名次</span>
     </div>
-    <p v-if="loading" class="m-hint" style="text-align: center; padding: 16px 0">正在加载战绩数据…</p>
+    <p v-if="loading" class="m-hint" style="text-align: center; padding: 14.5px 0">正在加载战绩数据…</p>
     <template v-else-if="tableData.length">
       <div class="m-hrow" v-for="(row, i) in rows" :key="i">
         <span class="m-hdate">{{ row.warDate }}</span>
@@ -29,12 +29,12 @@
       </div>
       <!-- 每页 10 条 -->
       <div class="m-pager" v-if="pageCount > 1 && !isExporting">
-        <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" :disabled="page <= 1" @click="page--">上一页</button>
+        <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" :disabled="page <= 1" @click="page--">上一页</button>
         <span class="m-pager-t">第 {{ page }} / {{ pageCount }} 页 · 共 {{ tableData.length }} 条 · 每页 10 条</span>
-        <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" :disabled="page >= pageCount" @click="page++">下一页</button>
+        <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" :disabled="page >= pageCount" @click="page++">下一页</button>
       </div>
     </template>
-    <div v-else class="m-empty" style="padding: 30px 0">
+    <div v-else class="m-empty" style="padding: 27px 0">
       <div class="m-logo">🏆</div>
       <h3>暂无数据</h3>
       <p>共 0 条 · 点右上角「刷新」重试</p>
@@ -230,19 +230,19 @@ export default { name: "MobileClubHistoryPanel" };
 .m-hrow.m-hrow {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  column-gap: 10px;
+  column-gap: 9px;
 }
 .m-thead-h .m-th:nth-child(1) { text-align: left; }
 .m-thead-h .m-th:nth-child(2) { text-align: center; }
 .m-thead-h .m-th:nth-child(3) { text-align: right; }
 .m-hrow .m-hdate {
   min-width: 0; text-align: left;
-  font-size: 11.5px; color: var(--m-text3); font-variant-numeric: tabular-nums;
+  font-size: 10.5px; color: var(--m-text3); font-variant-numeric: tabular-nums;
 }
 .m-hrow .m-htype { min-width: 0; text-align: center; }
 /* 名次徽章：文案为「第 N 名」，宽度需容纳 3 位数名次，故 54px + 10px 字号、不省略 */
-.m-hrow .m-medal { justify-self: end; box-sizing: border-box; font-size: 10px; white-space: nowrap; }
+.m-hrow .m-medal { justify-self: end; box-sizing: border-box; font-size: 9px; white-space: nowrap; }
 /* 翻页条（与逐鹿面板同款） */
-.m-pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
-.m-pager-t { font-size: 11px; color: var(--m-text3); text-align: center; flex: 1; }
+.m-pager { display: flex; align-items: center; justify-content: space-between; gap: 7px; margin-top: 9px; }
+.m-pager-t { font-size: 10px; color: var(--m-text3); text-align: center; flex: 1; }
 </style>

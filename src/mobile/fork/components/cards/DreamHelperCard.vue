@@ -731,18 +731,18 @@ const startDreamHelper = async () => {
 
 <style scoped lang="scss">
 .dream-helper-content {
-  padding: 10px 0;
+  padding: 9px 0;
 
   .tabs {
     display: flex;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
     background: var(--bg-tertiary);
     border-radius: var(--border-radius-medium);
     overflow: hidden;
 
     .tab {
       flex: 1;
-      padding: 8px;
+      padding: 7px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
@@ -756,35 +756,35 @@ const startDreamHelper = async () => {
   }
 
   .tab-content {
-    padding: 10px 0;
+    padding: 9px 0;
   }
 
   .team-info {
-    margin-bottom: 15px;
+    margin-bottom: 13.5px;
 
     .team-title {
       font-size: var(--font-size-sm);
       color: var(--text-secondary);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
     }
 
     .team-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5.5px;
     }
 
     .hero-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px;
+      padding: 5.5px;
       background: var(--bg-tertiary);
       border-radius: var(--border-radius-small);
     }
 
     .hero-name {
-      padding: 4px 8px;
+      padding: 3.5px 7px;
       border-left:3px solid var(--m-primary);
       font-size: var(--font-size-sm);
     }
@@ -792,54 +792,54 @@ const startDreamHelper = async () => {
 
   .team-actions {
     display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: 7px;
+    margin-bottom: 13.5px;
   }
 
   .merchant-info {
-    margin-bottom: 15px;
+    margin-bottom: 13.5px;
 
     .merchant-title {
       font-size: var(--font-size-sm);
       color: var(--text-secondary);
-      margin-bottom: 8px;
+      margin-bottom: 7px;
     }
 
     .merchant-actions {
       display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 7px;
+      margin-bottom: 9px;
     }
   }
 
   .merchant-items {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 11px;
   }
 
   .merchant-section {
     background: var(--bg-tertiary);
     border-radius: var(--border-radius-small);
-    padding: 8px;
+    padding: 7px;
 
     .merchant-name {
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-semibold);
-      margin-bottom: 6px;
+      margin-bottom: 5.5px;
     }
 
     .items-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3.5px;
     }
 
     .item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 4px;
+      padding: 3.5px;
       background: var(--bg-primary);
       border-radius: var(--border-radius-xs);
     }

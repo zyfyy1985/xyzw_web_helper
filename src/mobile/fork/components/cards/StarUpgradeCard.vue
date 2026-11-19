@@ -363,7 +363,7 @@ const formatTime = (ts) => new Date(ts).toLocaleTimeString("zh-CN");
   gap: var(--spacing-sm);
 }
 .setting-item .n-input-number {
-  width: 110px;
+  width: 99px;
 }
 .status-row {
   display: flex;
@@ -386,15 +386,15 @@ const formatTime = (ts) => new Date(ts).toLocaleTimeString("zh-CN");
 .log-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5.5px;
 }
 .log-item {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .action-row {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .log-item.success {
   color: var(--success-color);

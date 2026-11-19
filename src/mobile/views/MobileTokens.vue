@@ -901,23 +901,23 @@ function saveEdit() {
 .m-tk-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 7px;
+  padding: 8px 14.5px;
   background: var(--m-card);
   border-radius: var(--m-r-lg);
 }
 .m-tk-bar-t {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 20px;
   color: var(--m-text);
 }
 .m-tk-ibtn {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   padding: 0;
   border: none;
   border-radius: var(--m-r-md);
@@ -928,8 +928,8 @@ function saveEdit() {
   justify-content: center;
 }
 .m-tk-ibtn svg {
-  width: 17px;
-  height: 17px;
+  width: 15.5px;
+  height: 15.5px;
 }
 
 /* ---------- 分节标题（他人共享给我） ----------
@@ -937,7 +937,7 @@ function saveEdit() {
  * 它只是把列表切成两段，不该看起来像一张卡的标题，否则会跟上面的账号卡抢层级。 */
 .m-tk-sec {
   padding: 2px 2px 0;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
 }
@@ -946,10 +946,10 @@ function saveEdit() {
 .m-tk-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   /* 当前账号：只加一条左侧 3px 行动色，不做整卡高亮（规范里 region 不靠底色区分） */
   border-left: 3px solid transparent;
-  padding-left: 13px;
+  padding-left: 11.5px;
 }
 .m-tk-card.on {
   border-left-color: var(--m-primary);
@@ -957,13 +957,13 @@ function saveEdit() {
 .m-tk-top {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 /* 头像块统一一支色，与顶栏头像（.m-ava 用 --m-primary）对齐。
    原先按名字长度取 --m-ava-1..4，三字名会落到近黑的 ava-4，一列里独一份像 bug。 */
 .m-tk-ava {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   flex: none;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
@@ -971,7 +971,7 @@ function saveEdit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   line-height: 1;
 }
@@ -980,13 +980,13 @@ function saveEdit() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2.5px;
 }
 .m-tk-nm {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 15px;
+  gap: 5.5px;
+  font-size: 13.5px;
   font-weight: 700;
   line-height: 1.25;
   color: var(--m-text);
@@ -998,14 +998,14 @@ function saveEdit() {
 .m-tk-sub {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
+  gap: 5.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
 }
 .m-tk-dot {
-  width: 6px;
-  height: 6px;
+  width: 5.5px;
+  height: 5.5px;
   border-radius: var(--m-r-sm);
   flex: none;
   background: var(--m-text3);
@@ -1020,8 +1020,8 @@ function saveEdit() {
 }
 .m-tk-more {
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
@@ -1031,17 +1031,17 @@ function saveEdit() {
   justify-content: center;
 }
 .m-tk-more:active { background: var(--m-band); }
-.m-tk-more svg { width: 16px; height: 16px; }
+.m-tk-more svg { width: 14.5px; height: 14.5px; }
 
 /* 备注行：整行可点，点进去直接开编辑 sheet */
 .m-tk-remark {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 5.5px;
+  padding: 5.5px 7px;
   background: var(--m-bg);
   border-radius: var(--m-r-sm);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--m-text3);
   min-width: 0;
@@ -1053,8 +1053,8 @@ function saveEdit() {
   text-overflow: ellipsis;
 }
 .m-tk-remark svg {
-  width: 13px;
-  height: 13px;
+  width: 11.5px;
+  height: 11.5px;
   flex: none;
 }
 
@@ -1062,8 +1062,8 @@ function saveEdit() {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  font-size: 11px;
+  gap: 7px;
+  font-size: 10px;
   line-height: 1.4;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
@@ -1071,13 +1071,13 @@ function saveEdit() {
 
 .m-tk-act {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-tk-act .m-btn {
   flex: 1;
   width: auto;
-  padding: 9px 12px;
-  font-size: 13px;
+  padding: 8px 11px;
+  font-size: 11.5px;
 }
 
 /* ---------- 危险动作 ---------- */
@@ -1087,7 +1087,7 @@ function saveEdit() {
 
 /* ---------- 添加 Token 表单容器：桌面子组件托管，只去外框 ---------- */
 .m-tk-form {
-  margin-top: 12px;
+  margin-top: 11px;
 }
 .m-tk-form :deep(.card-header),
 .m-tk-form :deep(.form-actions) {

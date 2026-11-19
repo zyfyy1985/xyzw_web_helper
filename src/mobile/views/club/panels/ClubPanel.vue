@@ -89,7 +89,7 @@
         <div v-if="bossExpand && overview.unfoughtBosses.length" class="m-boss-grid">
           <span class="m-boss-chip" v-for="b in overview.unfoughtBosses" :key="b">{{ b }}</span>
         </div>
-        <p v-else-if="bossExpand" class="m-hint" style="margin: 8px 0 0">已全部击杀，太猛了 🎉</p>
+        <p v-else-if="bossExpand" class="m-hint" style="margin: 7px 0 0">已全部击杀，太猛了 🎉</p>
       </div>
 
       <!-- 公告（照抄旧版公告卡） -->
@@ -104,7 +104,7 @@
         <div class="m-cline">
           <img v-if="leader.headImg" :src="leader.headImg" class="m-clava" alt="" @error="onImgError" />
           <span v-else class="m-clava m-clava--ph" :style="{ background: avatarBg(leader) }">{{ (leader.name || "?").charAt(0) }}</span>
-          <span class="m-cnm" style="font-size: 13px">{{ leader.name }}</span>
+          <span class="m-cnm" style="font-size: 11.5px">{{ leader.name }}</span>
           <span class="m-cmeta m-cline-id">ID {{ leader.roleId }}</span>
         </div>
       </div>
@@ -121,7 +121,7 @@
         <template v-else-if="applyList.length">
           <div class="m-trow" v-for="ap in applyList" :key="ap.roleId">
             <span class="m-ib" style="background: var(--m-primary-deep)">
-              <img v-if="ap.headImg" :src="ap.headImg" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover" />
+              <img v-if="ap.headImg" :src="ap.headImg" style="width: 32.5px; height: 32.5px; border-radius: 7px; object-fit: cover" />
               <span v-else>{{ (ap.name || "?").charAt(0) }}</span>
             </span>
             <span class="m-body">
@@ -131,11 +131,11 @@
               </span>
             </span>
             <span class="m-rt">
-              <button class="m-btn m-btn-gr" style="padding: 6px 10px; font-size: 11.5px" @click="approveApply(ap.roleId)">通过</button>
-              <button class="m-btn m-btn-g" style="padding: 6px 10px; font-size: 11.5px" @click="rejectApply(ap.roleId)">拒绝</button>
+              <button class="m-btn m-btn-gr" style="padding: 5.5px 9px; font-size: 10.5px" @click="approveApply(ap.roleId)">通过</button>
+              <button class="m-btn m-btn-g" style="padding: 5.5px 9px; font-size: 10.5px" @click="rejectApply(ap.roleId)">拒绝</button>
             </span>
           </div>
-          <div style="display: flex; gap: 8px; margin-top: 10px">
+          <div style="display: flex; gap: 7px; margin-top: 9px">
             <button class="m-btn m-btn-gr" style="flex: 1" :disabled="applyBusy" @click="approveAll">一键通过</button>
             <button class="m-btn m-btn-g" style="flex: 1" :disabled="applyBusy" @click="rejectAll">一键拒绝</button>
           </div>
@@ -158,7 +158,7 @@
             </button>
           </span>
         </div>
-        <div v-if="!isExporting" style="display: flex; gap: 8px; margin-bottom: 10px">
+        <div v-if="!isExporting" style="display: flex; gap: 7px; margin-bottom: 9px">
           <button class="m-btn m-btn-g" :style="{ flex: 1, color: filterNoRedQuench ? 'var(--m-primary)' : '', borderColor: filterNoRedQuench ? 'var(--m-primary)' : '' }" @click="filterNoRedQuench = !filterNoRedQuench">
             0 红玩家
           </button>
@@ -166,7 +166,7 @@
             红淬降低
           </button>
         </div>
-        <p v-if="batchLoading" class="m-hint" style="margin: 0 0 4px">正在自动获取成员阵容信息…</p>
+        <p v-if="batchLoading" class="m-hint" style="margin: 0 0 3.5px">正在自动获取成员阵容信息…</p>
         <!-- 成员卡片（照抄盐场「本月战绩」卡片形式，严格两行：身份行 + 三字段行） -->
         <div class="m-scards">
           <div class="m-scard" v-for="(m, i) in topMembers" :key="m.roleId" @click="openPlayer(m)">
@@ -210,7 +210,7 @@
             </div>
           </div>
         </div>
-        <p v-if="!topMembers.length" class="m-hint" style="margin: 8px 0 0; text-align: center">暂无成员数据</p>
+        <p v-if="!topMembers.length" class="m-hint" style="margin: 7px 0 0; text-align: center">暂无成员数据</p>
       </div>
       <!-- 历史战绩：show:lazy 语义——首次进入才挂载并拉取，之后只切显示不重拉 -->
       <ClubHistoryPanel v-if="shown.history" v-show="sub === 'history'" />
@@ -870,34 +870,34 @@ export default { name: "MobileClubPanel" };
 
 <style scoped>
 /* ---------- 成员卡片：身份行（名字 + ID 竖排，右侧职务/阵容/踢出） ---------- */
-.m-mhead { gap: 6px; }
+.m-mhead { gap: 5.5px; }
 /* 名字块：名字一行、ID 一行（避免单行 6 个元素把名字挤成几个像素）
    —— .m-mname / .m-mname-t / .m-mid 已提到 mobile.css 全局（蟠桃敌方成员也复用） */
-.m-mright { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.m-mright { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: 5.5px; }
 .m-scard-lineup--none { background: var(--m-bg); color: var(--m-text3); }
 .m-kick {
   flex: none; border: 1px solid var(--m-border); background: var(--m-card);
-  border-radius: 4px; padding: 2px 6px;
-  font-size: 11px; font-weight: 700; color: var(--m-red); line-height: 1.3;
+  border-radius: 3.5px; padding: 2px 5.5px;
+  font-size: 10px; font-weight: 700; color: var(--m-red); line-height: 1.3;
 }
 
 /* ---------- 概览：身份行 / 四宫格 / Boss 进度 / 会长行 ---------- */
 .m-head-id { align-items: center; }
 .m-cinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .m-cnm {
-  font-size: 15px; font-weight: 700; color: var(--m-text);
+  font-size: 13.5px; font-weight: 700; color: var(--m-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* 单行弱化元信息，替掉原来的黄/蓝/绿三色 chip（按项折行，不把「成员 30」拆开） */
-.m-cmeta { font-size: 11px; color: var(--m-text3); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 0 6px; }
+.m-cmeta { font-size: 10px; color: var(--m-text3); line-height: 1.4; display: flex; flex-wrap: wrap; gap: 0 5.5px; }
 .m-cmeta-i { white-space: nowrap; }
-.m-cmeta-i + .m-cmeta-i::before { content: "·"; margin-right: 6px; }
-.m-cacts { flex: none; display: flex; align-items: center; gap: 8px; }
+.m-cmeta-i + .m-cmeta-i::before { content: "·"; margin-right: 5.5px; }
+.m-cacts { flex: none; display: flex; align-items: center; gap: 7px; }
 /* 签到降级为轻量胶囊，不再独占整行 */
 .m-pill {
-  border: none; border-radius: var(--m-r-md); padding: 5px 11px;
+  border: none; border-radius: var(--m-r-md); padding: 4.5px 10px;
   background: var(--m-primary); color:var(--m-on-primary);
-  font-size: 12px; font-weight: 700; line-height: 1.3;
+  font-size: 11px; font-weight: 700; line-height: 1.3;
 }
 .m-pill.done { background: var(--m-bg); color: var(--m-text3); border: 1px solid var(--m-border); }
 .m-pill[disabled] { pointer-events: none; }
@@ -906,35 +906,35 @@ export default { name: "MobileClubPanel" };
   gap: 0; overflow: hidden;
   background: var(--m-bg);
   border: 1px solid var(--m-border);
-  border-radius: 8px;
+  border-radius: 7px;
 }
 .m-stats--flat .m-stat {
-  background: none; border: none; border-radius: 4px;
-  padding: 10px 12px;
+  background: none; border: none; border-radius: 3.5px;
+  padding: 9px 11px;
 }
 .m-stats--flat .m-stat:nth-child(odd) { border-right: 1px solid var(--m-border); }
 .m-stats--flat .m-stat:nth-child(-n + 2) { border-bottom: 1px solid var(--m-border); }
 /* Boss 击杀：标题右侧计数 + 细进度条 */
-.m-boss-num { flex: none; font-size: 12.5px; font-weight: 700; color: var(--m-text2); font-variant-numeric: tabular-nums; }
+.m-boss-num { flex: none; font-size: 11.5px; font-weight: 700; color: var(--m-text2); font-variant-numeric: tabular-nums; }
 
 /* 怪异塔信息页签：页签名已经写着「怪异塔信息」，卡片头再重复一遍同名标题是噪音，
    只留右侧的刷新 / 导出图片（.m-t 原本 flex:1 把按钮推到右边，隐藏后要自己补 margin-auto）。 */
 .m-subtower :deep(.m-card-h .m-t) { display: none; }
 .m-subtower :deep(.m-card-h .m-acts) { margin-left: auto; }
-.m-boss-miss { flex: none; font-size: 11.5px; color: var(--m-text3); }
-.m-boss-miss b { color: var(--m-red); font-size: 12.5px; }
-.m-pbar { height: 6px; border-radius: 4px; background: var(--m-bg); overflow: hidden; }
-.m-pbar i { display: block; height: 100%; background: var(--m-primary); border-radius: 4px; transition: width 0.3s; }
-.m-pbar-foot { display: flex; align-items: center; margin-top: 9px; }
+.m-boss-miss { flex: none; font-size: 10.5px; color: var(--m-text3); }
+.m-boss-miss b { color: var(--m-red); font-size: 11.5px; }
+.m-pbar { height: 5.5px; border-radius: 3.5px; background: var(--m-bg); overflow: hidden; }
+.m-pbar i { display: block; height: 100%; background: var(--m-primary); border-radius: 3.5px; transition: width 0.3s; }
+.m-pbar-foot { display: flex; align-items: center; margin-top: 8px; }
 .m-pbar-foot .m-hint { margin: 0; }
 .m-pbar-foot .m-link { margin-left: auto; }
 /* 会长行：头像 + 名字 + ID 各自独立间距 */
-.m-cline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.m-cline { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .m-clava {
-  flex: none; width: 26px; height: 26px; border-radius: var(--m-r-md);
+  flex: none; width: 23.5px; height: 23.5px; border-radius: var(--m-r-md);
   object-fit: cover; border: 1px solid var(--m-border);
 }
-.m-clava--ph { display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color:var(--m-on-primary); }
+.m-clava--ph { display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color:var(--m-on-primary); }
 .m-cline-id { flex: none; white-space: nowrap; }
 
 </style>

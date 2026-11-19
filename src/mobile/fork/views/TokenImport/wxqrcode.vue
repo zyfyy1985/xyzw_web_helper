@@ -43,7 +43,7 @@
     </div>
 
     <!-- 角色命名格式配置 -->
-    <n-form :model="importForm" label-placement="top" :show-label="true" style="margin-top: 16px;">
+    <n-form :model="importForm" label-placement="top" :show-label="true" style="margin-top: 14.5px;">
       <n-form-item label="角色命名格式" :show-label="true">
         <n-input v-model:value="importForm.nameTemplate" placeholder="{name}-{index}-{id}" />
         <template #feedback>
@@ -801,8 +801,8 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
   border: 2px dashed var(--border-light);
   border-radius: var(--border-radius-medium);
   cursor: pointer;
@@ -822,8 +822,8 @@ onUnmounted(() => {
 }
 
 .qr-image {
-  width: 200px;
-  height: 200px;
+  width: 180px;
+  height: 180px;
   border: 2px solid var(--border-light);
   border-radius: var(--border-radius-medium);
   cursor: pointer;

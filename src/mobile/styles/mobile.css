@@ -96,15 +96,15 @@
   --m-shadow: none;
 
   /* ---------- 圆角（DESIGN.md rounded 标尺） ---------- */
-  --m-r-sm: 4px;
-  --m-r-md: 8px;
-  --m-r-lg: 12px;
+  --m-r-sm: 3.5px;
+  --m-r-md: 7px;
+  --m-r-lg: 11px;
 
   /* ---------- 间距（8px 基数） ---------- */
-  --m-sp-sm: 8px;
-  --m-sp-md: 12px;
-  --m-sp-lg: 16px;
-  --m-sp-xl: 20px;
+  --m-sp-sm: 7px;
+  --m-sp-md: 11px;
+  --m-sp-lg: 14.5px;
+  --m-sp-xl: 18px;
 
   --m-tabbar: #ffffff;
 }
@@ -183,6 +183,9 @@ html[data-theme="dark"] {
   flex-direction: column;
   background: var(--m-bg);
   color: var(--m-text2);
+  /* ★ 根字号：原来是继承 Arco 的 body{font-size:14px}，比正文（11.5px 一档）大一截，
+     没写 font-size 的节点会莫名其妙「发胖」。0.9 档统一收到 12.5px（14 × 0.9）。 */
+  font-size: 12.5px;
   font-family: inherit;
   overflow: hidden;
 }
@@ -199,9 +202,9 @@ html[data-theme="dark"] {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
-  padding-top: calc(9px + env(safe-area-inset-top));
+  gap: 7px;
+  padding: 8px 14.5px;
+  padding-top: calc(8px + env(safe-area-inset-top));
   background: var(--m-card);
   border-bottom: 1px solid var(--m-band);
   position: relative;
@@ -210,7 +213,7 @@ html[data-theme="dark"] {
 .m-appbar .m-acct {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   border: none;
   background: none;
   border-radius: 0;
@@ -222,8 +225,8 @@ html[data-theme="dark"] {
   margin-right: auto;
 }
 .m-appbar .m-acct .m-ava {
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   flex: none;
   border-radius: var(--m-r-sm);
   background: var(--m-primary);
@@ -231,7 +234,7 @@ html[data-theme="dark"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 /* 顶栏第二行的连接状态（方案 C，2026-11-02）：
@@ -253,8 +256,8 @@ html[data-theme="dark"] {
 .m-appbar .m-iconbtn.busy:active { background: none; }
 /* 连接中的转圈：16px 环 + 只在顶部留一段琥珀弧，跟 17px 的链环差不多大，切换不跳尺寸 */
 .m-appbar .m-arc {
-  width: 16px;
-  height: 16px;
+  width: 14.5px;
+  height: 14.5px;
   box-sizing: border-box;
   border-radius: 50%;
   border: 2px solid var(--m-band);
@@ -264,10 +267,10 @@ html[data-theme="dark"] {
 /* 未连接时右上角的琥珀角点：图标本身是灰的，靠这颗点表达「这里需要你处理」 */
 .m-appbar .m-badot {
   position: absolute;
-  right: 6px;
-  top: 6px;
-  width: 5px;
-  height: 5px;
+  right: 5.5px;
+  top: 5.5px;
+  width: 4.5px;
+  height: 4.5px;
   border-radius: 50%;
   background: var(--m-amber);
 }
@@ -292,7 +295,7 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
   text-align: left;
 }
 .m-appbar .m-acct .m-nm {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.2;
   white-space: nowrap;
@@ -301,7 +304,7 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
   min-width: 0;
 }
 .m-appbar .m-acct .m-sv {
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.3;
   color: var(--m-text3);
   white-space: nowrap;
@@ -311,8 +314,8 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
 }
 /* 无底图标按钮：点击区 32×32（够点），但不画一块灰方块 */
 .m-appbar .m-iconbtn {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   border-radius: var(--m-r-md);
   border: none;
   background: none;
@@ -336,17 +339,17 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
 }
 .m-scroll::-webkit-scrollbar { display: none; }
 .m-page {
-  padding: 16px 16px 24px;
+  padding: 14.5px 14.5px 21.5px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 /* 面板根容器：已嵌在 .m-page 内，只保留纵向堆叠，不再叠加内边距
    （否则与 .m-page 双重 16px，卡片比首页窄一圈） */
 .m-pane {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 /* ---------- 底部 Tab（同属 chrome 条） ---------- */
@@ -354,9 +357,9 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
   flex: none;
   display: flex;
   background: var(--m-tabbar);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(11px);
   border-top: 1px solid var(--m-band);
-  padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+  padding: 5.5px 7px calc(7px + env(safe-area-inset-bottom));
   position: relative;
   z-index: 20;
 }
@@ -369,47 +372,47 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 400;
   line-height: 1.3;
   color: var(--m-text4);
   cursor: pointer;
-  padding: 4px 0;
+  padding: 3.5px 0;
   border-radius: var(--m-r-md);
   position: relative;
 }
 .m-tabbar button.on { color: var(--m-primary); font-weight: 500; }
-.m-tabbar button svg { width: 22px; height: 22px; }
+.m-tabbar button svg { width: 20px; height: 20px; }
 
 /* ---------- 卡片：canvas 白面，无边框、无阴影，只靠底色差立起来 ---------- */
 .m-card {
   background: var(--m-card);
   border: none;
   border-radius: var(--m-r-md);
-  padding: 14px 16px;
+  padding: 12.5px 14.5px;
   box-shadow: none;
 }
 .m-card-h {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 7px;
+  margin-bottom: 11px;
 }
 /* 表头标题与操作控件统一 22px 行盒，保证文字/按钮真正平齐（不高不低） */
-.m-card-h .m-t { line-height: 22px; }
-.m-card-h .m-link { line-height: 22px; display: inline-flex; align-items: center; }
-.m-card-h .m-more { line-height: 22px; display: inline-flex; align-items: center; }
+.m-card-h .m-t { line-height: 20px; }
+.m-card-h .m-link { line-height: 20px; display: inline-flex; align-items: center; }
+.m-card-h .m-more { line-height: 20px; display: inline-flex; align-items: center; }
 .m-card-h .m-t {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--m-text);
   flex: 1;
   min-width: 0;
 }
-.m-card-h .m-more { font-size: 11.5px; font-weight: 400; color: var(--m-text3); }
+.m-card-h .m-more { font-size: 10.5px; font-weight: 400; color: var(--m-text3); }
 .m-link {
   color: var(--m-primary);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   background: none;
   border: none;
@@ -420,9 +423,9 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
 .m-link.ok {
   color: var(--m-green);
   background: var(--m-green-soft);
-  padding: 3px 8px;
+  padding: 2.5px 7px;
   border-radius: var(--m-r-sm);
-  font-size: 11px;
+  font-size: 10px;
 }
 .m-btn {
   border: none;
@@ -434,7 +437,7 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5.5px;
   transition: background-color 0.12s;
 }
 /* 按压反馈统一走文件末尾的全局 veil，这里不再单独降透明度（两套反馈叠起来比 Arco 那边深） */
@@ -442,9 +445,9 @@ html[data-theme="dark"] .m-appbar .m-acct .m-ws-st.off { color: var(--m-red) !im
 .m-btn-p {
   background: var(--m-primary);
   color: var(--m-on-primary);
-  font-size: 14px;
-  padding: 12px 14px;
-  min-height: 44px;
+  font-size: 12.5px;
+  padding: 11px 12.5px;
+  min-height: 39.5px;
 }
 /* ★ 暗色下实心主按钮的字色会被 App.vue 的 html[data-theme="dark"] *{color:#fff}（0,1,1）
    压掉 —— 上面这条 .m-btn-p 只有 (0,1,0)。结果就是「浅蓝底 + 白字」，对比度不到 2:1
@@ -457,22 +460,22 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 .m-btn-g {
   background: var(--m-card);
   color: var(--m-primary-deep);
-  font-size: 13px;
-  padding: 9px 12px;
+  font-size: 11.5px;
+  padding: 8px 11px;
   border: 1px solid var(--m-hairline);
 }
-.m-btn-gr { background: var(--m-green-soft); color: var(--m-green); font-size: 13px; padding: 9px 12px; }
+.m-btn-gr { background: var(--m-green-soft); color: var(--m-green); font-size: 11.5px; padding: 8px 11px; }
 .m-btn-block { width: 100%; }
-.m-hint { font-size: 11px; color: var(--m-text3); line-height: 1.6; }
+.m-hint { font-size: 10px; color: var(--m-text3); line-height: 1.6; }
 
 /* ---------- 分段控件：选中态用唯一行动蓝实填，不再是渐变药丸 ---------- */
 .m-seg {
   display: flex;
-  gap: 4px;
+  gap: 3.5px;
   background: var(--m-card);
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
-  padding: 3px;
+  padding: 2.5px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -482,11 +485,11 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 400;
   line-height: 1.3;
   color: var(--m-text2);
-  padding: 8px 12px;
+  padding: 7px 11px;
   border-radius: var(--m-r-sm);
   cursor: pointer;
   white-space: nowrap;
@@ -502,49 +505,49 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 .m-idc {
   background: var(--m-hero);
   border-radius: var(--m-r-lg);
-  padding: 16px;
+  padding: 14.5px;
   color: #ffffff;
   position: relative;
   overflow: hidden;
 }
-.m-idc .m-row1 { display: flex; gap: 12px; align-items: center; position: relative; z-index: 1; }
+.m-idc .m-row1 { display: flex; gap: 11px; align-items: center; position: relative; z-index: 1; }
 .m-idc .m-ava {
-  width: 52px;
-  height: 52px;
+  width: 47px;
+  height: 47px;
   border-radius: var(--m-r-md);
   border: 1px solid rgba(255, 255, 255, 0.42);
   background: rgba(255, 255, 255, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 21px;
+  font-size: 19px;
   flex: none;
 }
-.m-idc .m-nm { font-size: 18px; font-weight: 500; line-height: 1.2; display: flex; align-items: center; gap: 6px; }
+.m-idc .m-nm { font-size: 16px; font-weight: 500; line-height: 1.2; display: flex; align-items: center; gap: 5.5px; }
 .m-idc .m-rk {
-  font-size: 10.5px;
+  font-size: 9.5px;
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.32);
-  padding: 2px 7px;
+  padding: 2px 6.5px;
   border-radius: var(--m-r-sm);
   font-weight: 500;
 }
-.m-idc .m-st { font-size: 12.5px; opacity: 0.85; margin-top: 3px; }
-.m-idc .m-res { display: flex; gap: 14px; margin-top: 12px; position: relative; z-index: 1; }
-.m-idc .m-res > div { font-size: 11.5px; opacity: 0.9; min-width: 0; }
-.m-idc .m-res b { display: block; font-size: 15px; font-weight: 700; margin-top: 1px; }
+.m-idc .m-st { font-size: 11.5px; opacity: 0.85; margin-top: 2.5px; }
+.m-idc .m-res { display: flex; gap: 12.5px; margin-top: 11px; position: relative; z-index: 1; }
+.m-idc .m-res > div { font-size: 10.5px; opacity: 0.9; min-width: 0; }
+.m-idc .m-res b { display: block; font-size: 13.5px; font-weight: 700; margin-top: 1px; }
 
 /* ---------- 快捷操作格 ---------- */
-.m-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.m-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .m-qa {
   background: var(--m-card);
   border: none;
   border-radius: var(--m-r-md);
-  padding: 12px 6px 12px;
+  padding: 11px 5.5px 11px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   cursor: pointer;
   position: relative;
   box-shadow: none;
@@ -552,21 +555,21 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 }
 .m-qa:active { background: var(--m-band); }
 .m-qa .m-ib {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: var(--m-r-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--m-on-primary);
 }
-.m-qa .m-lb { font-size: 12px; font-weight: 400; line-height: 1.3; color: var(--m-text2); }
+.m-qa .m-lb { font-size: 11px; font-weight: 400; line-height: 1.3; color: var(--m-text2); }
 .m-qa .m-gear {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 25px;
-  height: 25px;
+  top: 4.5px;
+  right: 4.5px;
+  width: 22.5px;
+  height: 22.5px;
   border-radius: 50%;
   border: none;
   background: var(--m-bg);
@@ -576,10 +579,10 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   justify-content: center;
   cursor: pointer;
 }
-.m-qa .m-gear svg { width: 13px; height: 13px; }
+.m-qa .m-gear svg { width: 11.5px; height: 11.5px; }
 
 /* ---------- 进度条（方头细条，取消药丸与渐变） ---------- */
-.m-pbar { height: 6px; border-radius: var(--m-r-sm); background: var(--m-band); overflow: hidden; }
+.m-pbar { height: 5.5px; border-radius: var(--m-r-sm); background: var(--m-band); overflow: hidden; }
 .m-pbar > i {
   display: block;
   height: 100%;
@@ -587,17 +590,17 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   background: var(--m-primary);
   transition: width 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
-.m-pbar-wrap { display: flex; align-items: center; gap: 10px; }
+.m-pbar-wrap { display: flex; align-items: center; gap: 9px; }
 .m-pbar-wrap .m-pbar { flex: 1; }
-.m-pbar-wrap .m-pct { font-size: 12.5px; font-weight: 700; color: var(--m-text2); min-width: 38px; text-align: right; }
-.m-csub { font-size: 12px; color: var(--m-text3); margin-bottom: 9px; line-height: 1.5; }
+.m-pbar-wrap .m-pct { font-size: 11.5px; font-weight: 700; color: var(--m-text2); min-width: 34px; text-align: right; }
+.m-csub { font-size: 11px; color: var(--m-text3); margin-bottom: 8px; line-height: 1.5; }
 
 /* ---------- 开关（控件圆角 8，不做药丸；旋钮 4） ---------- */
 .m-sw {
-  width: 42px;
-  height: 24px;
+  width: 38px;
+  height: 21.5px;
   flex: none;
-  padding: 3px;
+  padding: 2.5px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-band);
@@ -608,14 +611,14 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 }
 .m-sw > i {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--m-r-sm);
   background: var(--m-card);
   transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 .m-sw.on { background: var(--m-primary); }
-.m-sw.on > i { transform: translateX(18px); background: var(--m-on-primary); }
+.m-sw.on > i { transform: translateX(16px); background: var(--m-on-primary); }
 
 /* ---------- 子页页头（标题 + 副标题）：如 /mobile/schedule ----------
  * 2026-10-29：按用户要求去掉了所有子页左上角的返回箭头 ——
@@ -623,7 +626,7 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 .m-pgbar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   /* 子页没有 .m-appbar 顶栏，状态栏直接叠在内容上 ⇒ 同样让出刘海区（standalone 下生效） */
   margin-top: env(safe-area-inset-top);
 }
@@ -632,13 +635,13 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   justify-content: flex-end;
 }
 .m-pgbar-t {
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text);
 }
 .m-pgbar-s {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
   margin-top: 2px;
@@ -648,14 +651,14 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 .m-trow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 0;
+  gap: 9px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--m-border);
 }
 .m-trow:last-child { border-bottom: none; }
 .m-trow .m-ib {
-  width: 36px;
-  height: 36px;
+  width: 32.5px;
+  height: 32.5px;
   border-radius: var(--m-r-md);
   display: flex;
   align-items: center;
@@ -675,14 +678,14 @@ html[data-theme="dark"] .m-btn.m-btn-p {
    App.vue 有 html[data-theme="dark"] *{color:#fff}（(0,1,0)），比继承更强，暗色下 icon 一律被刷白；
    而暗色里 --m-primary-deep 是浅色（图标底座），白图标压浅底只有 2:1 左右，看着发灰。
    这里用 (0,2,1) 压过那次 * 命中。 */
-.m-trow .m-ib svg { width: 17px; height: 17px; color: var(--m-on-primary); }
+.m-trow .m-ib svg { width: 15.5px; height: 15.5px; color: var(--m-on-primary); }
 /* 带头像的图标块（.m-ib.m-mava）：底色是深色五档，字固定白。
    两条规则特异性同为 (0,2,0)，靠「在后面」胜出 —— 别改成 .m-mava 单类，会被上面那条压掉。 */
 .m-ib.m-mava { color: var(--m-on-ava); }
 /* 名字 / 描述两行：必须显式 column —— 默认 row 会让「堂堂」和「击杀 23 · 复活 14」挤成一行 */
 .m-trow .m-body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
 .m-trow .m-nm {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2);
@@ -690,13 +693,13 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.m-trow .m-ds { font-size: 11px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
-.m-trow .m-rt { flex: none; display: flex; align-items: center; gap: 6px; }
+.m-trow .m-ds { font-size: 10px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
+.m-trow .m-rt { flex: none; display: flex; align-items: center; gap: 5.5px; }
 .m-tag {
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 500;
   line-height: 1.4;
-  padding: 2px 7px;
+  padding: 2px 6.5px;
   border-radius: var(--m-r-sm);
   white-space: nowrap;
 }
@@ -711,10 +714,10 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   border: 1px solid var(--m-blue);
   background: var(--m-blue-soft);
   color: var(--m-blue);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   border-radius: var(--m-r-sm);
-  padding: 7px 16px;
+  padding: 6.5px 14.5px;
   font-family: inherit;
   letter-spacing: 0;
 }
@@ -724,10 +727,10 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 9px 0;
+  gap: 9px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--m-border);
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 .m-kv:last-child { border-bottom: none; }
@@ -755,20 +758,20 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   z-index: 41;
   transform: translateY(105%);
   transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1);
-  padding: 8px 16px calc(24px + env(safe-area-inset-bottom));
+  padding: 7px 14.5px calc(21.5px + env(safe-area-inset-bottom));
   max-height: 82%;
   overflow-y: auto;
 }
 .m-sheet.on { transform: translateY(0); }
 .m-sheet .m-grab {
-  width: 36px;
-  height: 4px;
+  width: 32.5px;
+  height: 3.5px;
   border-radius: 2px;
   background: var(--m-border);
-  margin: 4px auto 12px;
+  margin: 3.5px auto 11px;
 }
-.m-sheet h4 { margin: 0 0 2px; font-size: 18px; font-weight: 500; line-height: 1.2; color: var(--m-text); }
-.m-sheet .m-sh-sub { font-size: 12px; line-height: 1.5; color: var(--m-text3); margin-bottom: 12px; }
+.m-sheet h4 { margin: 0 0 2px; font-size: 16px; font-weight: 500; line-height: 1.2; color: var(--m-text); }
+.m-sheet .m-sh-sub { font-size: 11px; line-height: 1.5; color: var(--m-text3); margin-bottom: 11px; }
 
 /* ---------- 长文抽屉（隐私政策 / 用户协议） ----------
  * 与普通抽屉的差别只有一条：标题、页脚固定，只有正文滚。
@@ -787,11 +790,11 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   overflow: hidden;
   /* margin 显式归零：抽屉靠 bottom:0 贴底，任何外边距都会把它抬离底边 */
   margin: 0;
-  padding: 8px 0 0;
+  padding: 7px 0 0;
 }
 .m-legal-hd {
   flex: none;
-  padding: 0 16px 10px;
+  padding: 0 14.5px 9px;
   border-bottom: 1px solid var(--m-band);
 }
 .m-legal-body {
@@ -800,11 +803,11 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 12px 16px 14px;
+  padding: 11px 14.5px 12.5px;
 }
 .m-legal-ft {
   flex: none;
-  padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+  padding: 9px 14.5px calc(12.5px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--m-band);
 }
 
@@ -815,48 +818,48 @@ html[data-theme="dark"] .m-btn.m-btn-p {
    浅色主题下取值与基础规则一致，等于没写。 */
 .m-sheet.m-legal .m-legal-tt {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
   color: var(--m-text) !important;
 }
 .m-sheet.m-legal .m-legal-meta {
-  margin-top: 3px;
-  font-size: 11.5px;
+  margin-top: 2.5px;
+  font-size: 10.5px;
   line-height: 1.5;
   color: var(--m-text3) !important;
 }
 .m-sheet.m-legal .m-legal-intro {
-  margin: 0 0 4px;
-  font-size: 13px;
+  margin: 0 0 3.5px;
+  font-size: 11.5px;
   line-height: 1.72;
   color: var(--m-text2) !important;
 }
-.m-legal-sec { margin-top: 16px; }
+.m-legal-sec { margin-top: 14.5px; }
 .m-sheet.m-legal .m-legal-h {
-  margin: 0 0 6px;
-  font-size: 14px;
+  margin: 0 0 5.5px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.4;
   color: var(--m-text) !important;
 }
 .m-sheet.m-legal .m-legal-p {
-  margin: 0 0 7px;
-  font-size: 13px;
+  margin: 0 0 6.5px;
+  font-size: 11.5px;
   line-height: 1.75;
   color: var(--m-text2) !important;
 }
 .m-legal-p:last-child { margin-bottom: 0; }
 .m-legal-ul {
-  margin: 0 0 7px;
+  margin: 0 0 6.5px;
   padding: 0;
   list-style: none;
 }
 .m-sheet.m-legal .m-legal-li {
   position: relative;
-  margin-bottom: 7px;
-  padding-left: 13px;
-  font-size: 13px;
+  margin-bottom: 6.5px;
+  padding-left: 11.5px;
+  font-size: 11.5px;
   line-height: 1.75;
   color: var(--m-text2) !important;
 }
@@ -867,9 +870,9 @@ html[data-theme="dark"] .m-btn.m-btn-p {
   content: "";
   position: absolute;
   left: 2px;
-  top: 9px;
-  width: 4px;
-  height: 4px;
+  top: 8px;
+  width: 3.5px;
+  height: 3.5px;
   border-radius: 50%;
   background: var(--m-text3);
 }
@@ -881,14 +884,14 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 .m-toast {
   position: absolute;
   left: 50%;
-  bottom: 92px;
-  transform: translateX(-50%) translateY(8px);
+  bottom: 83px;
+  transform: translateX(-50%) translateY(7px);
   background: rgba(2, 22, 52, 0.92);
   color: #ffffff;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 400;
   line-height: 1.5;
-  padding: 10px 16px;
+  padding: 9px 14.5px;
   border-radius: var(--m-r-md);
   z-index: 60;
   opacity: 0;
@@ -901,38 +904,38 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 
 /* ---------- 空态（ex-empty-state-card：rounded.lg + 大留白） ---------- */
 .m-empty {
-  padding: 48px 24px;
+  padding: 43px 21.5px;
   text-align: center;
   color: var(--m-text3);
 }
-.m-empty .m-logo { font-size: 40px; margin-bottom: 12px; }
-.m-empty h3 { margin: 0 0 6px; font-size: 15px; font-weight: 500; color: var(--m-text); }
-.m-empty p { margin: 0 0 16px; font-size: 13px; line-height: 1.6; }
+.m-empty .m-logo { font-size: 36px; margin-bottom: 11px; }
+.m-empty h3 { margin: 0 0 5.5px; font-size: 13.5px; font-weight: 500; color: var(--m-text); }
+.m-empty p { margin: 0 0 14.5px; font-size: 11.5px; line-height: 1.6; }
 
 /* ---------- 卡片操作区（刷新 / 导出图片） ---------- */
-.m-acts { display: flex; align-items: center; gap: 6px; flex: none; }
+.m-acts { display: flex; align-items: center; gap: 5.5px; flex: none; }
 .m-act {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  height: 22px;
+  gap: 3.5px;
+  height: 20px;
   box-sizing: border-box;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   font-family: inherit;
   color: var(--m-text2);
   background: var(--m-bg);
   border: none;
   border-radius: var(--m-r-sm);
-  padding: 0 8px;
+  padding: 0 7px;
   cursor: pointer;
   flex: none;
   transition: opacity 0.12s;
 }
 .m-act:active { opacity: 0.65; }
 .m-act[disabled] { opacity: 0.4; pointer-events: none; }
-.m-act svg { width: 12px; height: 12px; flex: none; }
+.m-act svg { width: 11px; height: 11px; flex: none; }
 .m-act-i {
   color: var(--m-primary-deep);
   background: var(--m-primary-soft);
@@ -941,14 +944,14 @@ html[data-theme="dark"] .m-btn.m-btn-p {
 /* ---------- 名次徽章（金 / 银 / 铜 / 靠后，规则照抄旧版战绩表）
    配色改为「band 淡底 + ink 字」，不再用金属渐变（规范禁第二强调色与渐变装饰） ---------- */
 .m-medal {
-  min-width: 30px;
-  height: 26px;
-  padding: 0 7px;
+  min-width: 27px;
+  height: 23.5px;
+  padding: 0 6.5px;
   border-radius: var(--m-r-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text3);
   background: var(--m-band);
@@ -968,10 +971,10 @@ html[data-theme="dark"] .m-medal.g3 { background: rgba(215, 160, 100, 0.18); col
 .m-card-h .m-body { flex: 1; min-width: 0; }
 /* tag 组在卡片头里必须可让步：营地日程 tag、逐鹿 5 个 tag 都会把右侧按钮挤到卡外
    （.m-acts 是 flex:none，所以只能让 tag 侧 min-width:0 + 内部折行） */
-.m-card-h .m-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; flex: 1 1 auto; min-width: 0; }
+.m-card-h .m-tags { display: flex; flex-wrap: wrap; gap: 3.5px; margin-top: 4.5px; flex: 1 1 auto; min-width: 0; }
 .m-clogo {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--m-r-md);
   flex: none;
   overflow: hidden;
@@ -982,35 +985,35 @@ html[data-theme="dark"] .m-medal.g3 { background: rgba(215, 160, 100, 0.18); col
   border: none;
 }
 .m-clogo img { width: 100%; height: 100%; object-fit: cover; }
-.m-clogo span { font-size: 16px; font-weight: 500; color: var(--m-primary); }
-.m-clogo-s { width: 22px; height: 22px; border-radius: var(--m-r-sm); }
-.m-clogo-s span { font-size: 10px; }
+.m-clogo span { font-size: 14.5px; font-weight: 500; color: var(--m-primary); }
+.m-clogo-s { width: 20px; height: 20px; border-radius: var(--m-r-sm); }
+.m-clogo-s span { font-size: 9px; }
 
 /* ---------- 统计格（对齐旧版 n-statistic 四项：战力/红淬/当前Boss/Boss血量）
    卡内分块 = band 灰块，无边框；这是「平带分层」而非「卡片套卡片」 ---------- */
-.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.m-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 11px; }
 /* 2 列网格里奇数个子项会留一个空格：让最后一项占满整行，横向排列，避免"瘸一条腿" */
 .m-stats > .m-stat:last-child:nth-child(odd) {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 9px;
 }
 .m-stats > .m-stat:last-child:nth-child(odd) .m-stat-k { margin-bottom: 0; }
 .m-stat {
   background: var(--m-bg);
   border: none;
   border-radius: var(--m-r-md);
-  padding: 10px 12px;
+  padding: 9px 11px;
   min-width: 0;
 }
-.m-stat-k { display: block; font-size: 11px; line-height: 1.3; color: var(--m-text3); font-weight: 400; margin-bottom: 4px; }
+.m-stat-k { display: block; font-size: 10px; line-height: 1.3; color: var(--m-text3); font-weight: 400; margin-bottom: 3.5px; }
 /* 明细行：主值放不下时（如「77.5% (100胜/123刀)」）把括号里的细节降级到第二行，避免被 ellipsis 吃掉 */
-.m-stat-d { display: block; font-size: 11px; line-height: 1.4; color: var(--m-text3); font-weight: 400; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-stat-d { display: block; font-size: 10px; line-height: 1.4; color: var(--m-text3); font-weight: 400; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-stat-v {
   display: block;
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text);
@@ -1019,62 +1022,62 @@ html[data-theme="dark"] .m-medal.g3 { background: rgba(215, 160, 100, 0.18); col
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.m-boss-sum { font-size: 13px; color: var(--m-text3); display: flex; align-items: baseline; gap: 4px; }
-.m-boss-sum b { font-size: 17px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
-.m-boss-miss { margin-left: 12px; }
+.m-boss-sum { font-size: 11.5px; color: var(--m-text3); display: flex; align-items: baseline; gap: 3.5px; }
+.m-boss-sum b { font-size: 15.5px; font-weight: 700; color: var(--m-text); font-variant-numeric: tabular-nums; }
+.m-boss-miss { margin-left: 11px; }
 .m-boss-miss b { color: var(--m-red); }
 .m-boss-toggle {
-  margin-top: 10px;
+  margin-top: 9px;
   border: none;
   background: none;
   padding: 0;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-primary);
   cursor: pointer;
   font-family: inherit;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3.5px;
 }
-.m-boss-toggle i { font-style: normal; font-size: 10px; }
-.m-boss-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.m-boss-toggle i { font-style: normal; font-size: 9px; }
+.m-boss-grid { display: flex; flex-wrap: wrap; gap: 5.5px; margin-top: 9px; }
 .m-boss-chip {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--m-red);
   background: var(--m-red-soft);
   border-radius: var(--m-r-sm);
-  padding: 3px 7px;
+  padding: 2.5px 6.5px;
   font-variant-numeric: tabular-nums;
 }
-.m-anno { margin: 0; font-size: 13px; line-height: 1.6; color: var(--m-text2); white-space: pre-wrap; word-break: break-all; }
+.m-anno { margin: 0; font-size: 11.5px; line-height: 1.6; color: var(--m-text2); white-space: pre-wrap; word-break: break-all; }
 
 /* ---------- 成员行（宽松两行结构 + 实色阵容 chip） ---------- */
-.m-mrow { padding: 12px 0; align-items: flex-start; }
-.m-mrow .m-mava { width: 44px; height: 44px; border-radius: var(--m-r-md); }
-.m-mrow .m-mava img { width: 44px; height: 44px; border-radius: var(--m-r-md); object-fit: cover; }
+.m-mrow { padding: 11px 0; align-items: flex-start; }
+.m-mrow .m-mava { width: 39.5px; height: 39.5px; border-radius: var(--m-r-md); }
+.m-mrow .m-mava img { width: 39.5px; height: 39.5px; border-radius: var(--m-r-md); object-fit: cover; }
 .m-lu {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   border-radius: var(--m-r-sm);
-  padding: 3px 8px;
-  margin-top: 6px;
+  padding: 2.5px 7px;
+  margin-top: 5.5px;
   letter-spacing: 0;
 }
 
 /* ---------- 怪异塔 ---------- */
 .m-widx {
-  width: 26px;
-  height: 26px;
+  width: 23.5px;
+  height: 23.5px;
   border-radius: var(--m-r-sm);
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   color: var(--m-text3);
   background: var(--m-bg);
@@ -1083,12 +1086,12 @@ html[data-theme="dark"] .m-medal.g3 { background: rgba(215, 160, 100, 0.18); col
 }
 /* 层数用行动蓝的淡带，不再引入紫色作第二强调色 */
 .m-floor {
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-primary-deep);
   background: var(--m-primary-soft);
   border-radius: var(--m-r-sm);
-  padding: 4px 10px;
+  padding: 3.5px 9px;
   flex: none;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -1100,6 +1103,8 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
   .mobile-shell {
     left: 50%;
     transform: translateX(-50%);
+    /* ★ 与 --m-shell-w 同值：壳是「设备框」，不参与 0.9 尺寸重算，
+       否则弹窗按 --m-shell-w 算宽度、壳按另一个值算，会差 43px */
     width: 430px;
     border-left: 1px solid var(--m-border);
     border-right: 1px solid var(--m-border);
@@ -1111,10 +1116,10 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 .m-thead {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 2px;
+  gap: 9px;
+  padding: 7px 2px;
   border-bottom: 1px solid var(--m-border);
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 400;
   color: var(--m-text3);
   letter-spacing: 0;
@@ -1123,22 +1128,22 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 .m-thead .m-th-r { text-align: right; }
 .m-thead .m-th-c { text-align: center; }
 /* 四列简表：序号 26px / 头像 40px / 内容自适应 / 末列 Natural */
-.m-thead-w .m-th:nth-child(1) { flex: 0 0 26px; }
-.m-thead-w .m-th:nth-child(2) { flex: 0 0 40px; }
+.m-thead-w .m-th:nth-child(1) { flex: 0 0 23.5px; }
+.m-thead-w .m-th:nth-child(2) { flex: 0 0 36px; }
 .m-thead-w .m-th:last-child { flex: none; }
 
 .m-hrow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 2px;
+  gap: 9px;
+  padding: 10px 2px;
   border-bottom: 1px solid var(--m-border);
 }
 .m-hrow:last-child { border-bottom: none; }
 .m-hrow .m-htype {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 400;
   color: var(--m-text2);
   overflow: hidden;
@@ -1147,7 +1152,7 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 }
 .m-hrow .m-hdate {
   flex: none;
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
@@ -1155,15 +1160,15 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 .m-wrow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 2px;
+  gap: 9px;
+  padding: 10px 2px;
   border-bottom: 1px solid var(--m-border);
 }
 .m-wrow:last-child { border-bottom: none; }
 .m-wrow .m-body { flex: 1; min-width: 0; }
 .m-wrow .m-nm {
   display: block;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2);
@@ -1171,18 +1176,18 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.m-wrow .m-ds { display: block; font-size: 11px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
+.m-wrow .m-ds { display: block; font-size: 10px; line-height: 1.4; color: var(--m-text3); margin-top: 2px; }
 .m-wrow .m-ib,
 .m-wrow .m-mava {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--m-r-md);
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--m-on-primary);
 }
@@ -1198,21 +1203,21 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 .m-glist {
   background: var(--m-card);
   border-radius: var(--m-r-md);
-  margin-bottom: 10px;
+  margin-bottom: 9px;
   overflow: hidden;
 }
 .m-glist:last-child { margin-bottom: 0; }
 .m-glist-h {
-  display: flex; align-items: baseline; gap: 6px;
-  padding: 11px 14px 5px;
+  display: flex; align-items: baseline; gap: 5.5px;
+  padding: 10px 12.5px 4.5px;
 }
-.m-glist-t { font-size: 13px; font-weight: 500; color: var(--m-text); line-height: 1.3; }
-.m-glist-n { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-glist-t { font-size: 11.5px; font-weight: 500; color: var(--m-text); line-height: 1.3; }
+.m-glist-n { font-size: 10px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 
 .m-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .m-tile {
-  display: flex; align-items: center; gap: 9px;
-  padding: 10px 12px; min-width: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 11px; min-width: 0;
   background: transparent; border: none; border-radius: 0;
   font-family: inherit; text-align: left; cursor: pointer;
   transition: background 0.12s;
@@ -1225,7 +1230,7 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 /* 悬停 / 按压不在本类里写：它是 <button>，全站统一那条 veil 规则已经覆盖
    （自己再写 :active 会和 veil 叠两层底色）。 */
 .m-tile-ic {
-  width: 28px; height: 28px; flex: none; border-radius: 6px;
+  width: 25px; height: 25px; flex: none; border-radius: 5.5px;
   display: inline-flex; align-items: center; justify-content: center;
   /* 淡蓝底 + 一层同色淡环：--m-primary-soft(#ebf8ff) 贴在白卡上几乎看不出来（实测对比度≈1.05），
      加 16% 主色描边才立得住；不用阴影（规范禁），暗色下 --m-primary-soft 是深蓝底，同样成立 */
@@ -1236,14 +1241,14 @@ html[data-theme="dark"] .m-floor { color: var(--m-primary); background: var(--m-
 }
 .m-tile-tx { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .m-tile-nm {
-  font-size: 13px; font-weight: 500; color: var(--m-text2); line-height: 1.25;
+  font-size: 11.5px; font-weight: 500; color: var(--m-text2); line-height: 1.25;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .m-tile-sub {
   /* 10.5 而不是 11：11 号下 11 个汉字是 121px，而 390 的磁贴只有 118px 可用，会被省略号切字。
      副标题里的分隔用「·」（中点，约半个字宽）而不是「、」，12 个字的「爬塔·使用道具·合成道具」
      也只要 115px，单行放得下 —— 换来所有磁贴等高、不会出现某一行被折行顶高。 */
-  font-size: 10.5px; color: var(--m-text3); line-height: 1.3;
+  font-size: 9.5px; color: var(--m-text3); line-height: 1.3;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -1258,86 +1263,86 @@ html[data-theme="dark"] .m-tile-sub { color: var(--m-text3) !important; }
 html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 
 @media (max-width: 359px) {
-  .m-glist-h { padding: 10px 12px 4px; }
-  .m-tile { padding: 9px 10px; gap: 8px; }
-  .m-tile-ic { width: 26px; height: 26px; }
-  .m-tile-nm { font-size: 12.5px; }
-  .m-tile-sub { font-size: 10.5px; }
+  .m-glist-h { padding: 9px 11px 3.5px; }
+  .m-tile { padding: 8px 9px; gap: 7px; }
+  .m-tile-ic { width: 23.5px; height: 23.5px; }
+  .m-tile-nm { font-size: 11.5px; }
+  .m-tile-sub { font-size: 9.5px; }
 }
 
 /* ---------- 信息卡片流（盐场/蟠桃/营地共用） ----------
    照抄旧版移动端卡片视图：GameStatus.vue 盐场卡片段（salt-cards）+
    CampChallenge member-cards + PeachBattleRecords/PeachInfo salt-cards。
    网格变体：--1row 一行等宽平分 / --2 两列（默认）/ --4 四列。 */
-.m-scards { display: flex; flex-direction: column; gap: 10px; }
+.m-scards { display: flex; flex-direction: column; gap: 9px; }
 /* 分组头（联盟组 / 敌我组） */
 .m-grprow {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; border-radius: var(--m-r-sm);
+  display: flex; align-items: center; gap: 7px;
+  padding: 6.5px 9px; border-radius: var(--m-r-sm);
   background: var(--m-band); border: none;
 }
 .m-grprow:first-child { margin-top: 0; }
-.m-grp-t { font-size: 12px; font-weight: 500; color: var(--m-text2); }
+.m-grp-t { font-size: 11px; font-weight: 500; color: var(--m-text2); }
 /* 卡片本体：band 灰底，描边取分组色（--tab-solid，未设置时不描边） */
 .m-scard {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 10px;
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 9px;
   border: 1px solid var(--tab-solid, transparent);
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
 /* 名字行：排名/头像/名字同行，附加元素靠右 */
 .m-scard-head {
-  display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: nowrap;
+  display: flex; align-items: center; gap: 7px; min-width: 0; flex-wrap: nowrap;
 }
 .m-scard-rank {
-  flex: none; min-width: 26px; height: 22px; padding: 0 6px; border-radius: var(--m-r-sm);
+  flex: none; min-width: 23.5px; height: 20px; padding: 0 5.5px; border-radius: var(--m-r-sm);
   background: var(--m-card); color: var(--m-text3);
-  font-size: 12px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   display: inline-flex; align-items: center; justify-content: center;
   font-variant-numeric: tabular-nums;
 }
 .m-scard-ava {
-  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  flex: none; width: 25px; height: 25px; border-radius: 50%;
   object-fit: cover; border: none;
 }
 .m-scard-ava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 500; color: var(--m-on-primary);
+  font-size: 11px; font-weight: 500; color: var(--m-on-primary);
   background: var(--m-primary-deep);
 }
 .m-scard-name {
-  flex: 0 1 auto; min-width: 0; font-size: 14px; font-weight: 500; color: var(--m-text2);
+  flex: 0 1 auto; min-width: 0; font-size: 12.5px; font-weight: 500; color: var(--m-text2);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 /* 名字 + ID 两行（长昵称不再把 ID / 职务挤成一小截）。
    俱乐部成员、蟠桃敌方成员共用；此前只存在于 ClubPanel scoped 里。 */
 .m-mname { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .m-mname-t {
-  font-size: 13.5px; font-weight: 500; color: var(--m-text2);
+  font-size: 12px; font-weight: 500; color: var(--m-text2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .m-mid {
-  font-size: 10.5px; color: var(--m-text3); line-height: 1.2;
+  font-size: 9.5px; color: var(--m-text3); line-height: 1.2;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 /* 整行字段（标签 + 值） */
 .m-scard-line {
-  display: flex; align-items: baseline; justify-content: flex-start; gap: 8px; min-width: 0;
+  display: flex; align-items: baseline; justify-content: flex-start; gap: 7px; min-width: 0;
 }
 .m-scard-line .m-scard-label { flex: none; white-space: nowrap; }
-.m-scard-line .m-scard-val { flex: 1 1 auto; min-width: 0; font-size: 12.5px; font-weight: 400; text-align: left; }
+.m-scard-line .m-scard-val { flex: 1 1 auto; min-width: 0; font-size: 11.5px; font-weight: 400; text-align: left; }
 /* 字段网格 */
 .m-scard-grid {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 9px;
 }
 .m-scard-grid--1row {
   grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
 }
 .m-scard-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.m-scard-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
-.m-scard-label { font-size: 11px; line-height: 1.3; color: var(--m-text3); font-weight: 400; }
-.m-scard-val { font-size: 13px; font-weight: 500; color: var(--m-text2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.m-scard-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2.5px; min-width: 0; }
+.m-scard-label { font-size: 10px; line-height: 1.3; color: var(--m-text3); font-weight: 400; }
+.m-scard-val { font-size: 11.5px; font-weight: 500; color: var(--m-text2); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 /* 数值配色（照抄 GameStatus ⑧ + CampChallenge 数值色）
    语义色统一收敛到 --m-* 一套，不再散落 #ff4d4f / #10b981 / #6366f1 等自配色 */
 .m-scard-val.is-kill { color: var(--m-red); font-weight: 700; }
@@ -1353,56 +1358,56 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-scard-val.is-gain { color: var(--m-green); }
 .m-scard-val.is-warn { color: var(--m-amber); }
 /* 底部操作行 */
-.m-scard-foot { display: flex; justify-content: flex-end; gap: 6px; }
+.m-scard-foot { display: flex; justify-content: flex-end; gap: 5.5px; }
 /* 逐日展开（本月战绩，照抄旧版 ⑩ salt-card__dates） */
-.m-scard-dates { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding-top: 8px; margin-top: 2px; border-top: 1px solid var(--m-border); }
-.m-scard-date-row { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
-.m-scard-date-label { flex: none; min-width: 44px; font-size: 11px; font-weight: 500; color: var(--m-text3); }
-.m-scard-date-val { flex: 1 1 auto; min-width: 0; font-size: 11.5px; color: var(--m-text2); overflow-wrap: anywhere; }
+.m-scard-dates { display: flex; flex-direction: column; gap: 3.5px; min-width: 0; padding-top: 7px; margin-top: 2px; border-top: 1px solid var(--m-border); }
+.m-scard-date-row { display: flex; align-items: flex-start; gap: 7px; min-width: 0; }
+.m-scard-date-label { flex: none; min-width: 39.5px; font-size: 10px; font-weight: 500; color: var(--m-text3); }
+.m-scard-date-val { flex: 1 1 auto; min-width: 0; font-size: 10.5px; color: var(--m-text2); overflow-wrap: anywhere; }
 /* 英雄/车头行 */
-.m-scard-heros { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.m-scard-heros { display: flex; flex-direction: column; gap: 5.5px; min-width: 0; }
 .m-scard-hero {
-  display: flex; align-items: center; gap: 6px; min-width: 0;
-  padding: 6px; border: none; border-radius: var(--m-r-sm);
+  display: flex; align-items: center; gap: 5.5px; min-width: 0;
+  padding: 5.5px; border: none; border-radius: var(--m-r-sm);
   background: var(--m-card);
 }
 .m-scard-hava {
-  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  flex: none; width: 25px; height: 25px; border-radius: 50%;
   object-fit: cover; border: none;
 }
 .m-scard-hava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 500; color: var(--m-on-primary);
+  font-size: 11px; font-weight: 500; color: var(--m-on-primary);
   background: var(--m-primary-deep);
 }
 .m-scard-hname {
-  flex: 1 1 auto; min-width: 0; font-size: 12px; font-weight: 500; color: var(--m-text2);
+  flex: 1 1 auto; min-width: 0; font-size: 11px; font-weight: 500; color: var(--m-text2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .m-scard-beast {
-  flex: none; padding: 1px 5px; border-radius: var(--m-r-sm);
-  font-size: 10px; font-weight: 500; color: #ffffff;
+  flex: none; padding: 1px 4.5px; border-radius: var(--m-r-sm);
+  font-size: 9px; font-weight: 500; color: #ffffff;
   background: var(--m-red); white-space: nowrap;
 }
 .m-scard-hmeta {
-  flex: none; display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; color: var(--m-text3); white-space: nowrap;
+  flex: none; display: inline-flex; align-items: center; gap: 3.5px;
+  font-size: 10px; color: var(--m-text3); white-space: nowrap;
 }
-.m-scard-lineup { padding: 0 4px; border-radius: var(--m-r-sm); font-style: normal; font-size: 10px; font-weight: 500; }
+.m-scard-lineup { padding: 0 3.5px; border-radius: var(--m-r-sm); font-style: normal; font-size: 9px; font-weight: 500; }
 .m-scard-hred { color: var(--m-red); font-weight: 700; }
 
 /* ---------- chip 行 / 右侧阵容位 / 数字输入 ---------- */
-.m-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-chiprow { display: flex; flex-wrap: wrap; gap: 5.5px; }
 .m-rtc { flex: none; display: flex; align-items: center; }
 .m-finput {
   width: 100%;
   min-width: 0;
-  padding: 9px 10px;
+  padding: 8px 9px;
   border: 1px solid var(--m-hairline);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   color: var(--m-text2);
-  font-size: 13px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
 }
 .m-finput:focus { outline: none; border-color: var(--m-primary); box-shadow: 0 0 0 2px var(--m-primary-soft); }
@@ -1414,11 +1419,11 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-tk-f {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 4.5px;
+  margin-bottom: 9px;
 }
 .m-tk-f > span {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
 }
@@ -1433,8 +1438,8 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 }
 .m-tk-fbtns {
   display: flex;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 7px;
+  margin-top: 3.5px;
 }
 .m-tk-fbtns .m-btn {
   flex: 1;
@@ -1454,7 +1459,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));
+  padding: calc(18px + env(safe-area-inset-top)) 14.5px calc(18px + env(safe-area-inset-bottom));
 }
 /* 用 auto 外边距居中，而不是给父级 justify-content:center ——
    注册页在小屏上比视口高，flex 居中会让顶部内容滚不回来（负 free space 时 auto 边距归 0） */
@@ -1462,61 +1467,61 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   margin: auto 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
-.m-auth-head { text-align: center; padding: 4px 0 6px; }
+.m-auth-head { text-align: center; padding: 3.5px 0 5.5px; }
 .m-auth-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 50.5px;
+  height: 50.5px;
   border-radius: var(--m-r-lg);
   background: var(--m-primary-deep);
   color: var(--m-on-primary);
 }
-.m-auth-mark svg { width: 30px; height: 30px; }
+.m-auth-mark svg { width: 27px; height: 27px; }
 .m-auth-title {
-  margin: 12px 0 0;
-  font-size: 20px;
+  margin: 11px 0 0;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--m-text);
 }
-.m-auth-sub { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--m-text3); }
+.m-auth-sub { margin: 3.5px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--m-text3); }
 
-.m-auth-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
-.m-auth-f { display: flex; flex-direction: column; gap: 5px; }
-.m-auth-lb { font-size: 11.5px; line-height: 1.4; color: var(--m-text3); }
+.m-auth-card { display: flex; flex-direction: column; gap: 11px; padding: 14.5px; }
+.m-auth-f { display: flex; flex-direction: column; gap: 4.5px; }
+.m-auth-lb { font-size: 10.5px; line-height: 1.4; color: var(--m-text3); }
 /* iOS 上 input 字号 < 16px 聚焦会把整页放大，登录/注册是纯输入页，统一抬到 16px */
-.m-auth .m-finput { font-size: 16px; padding: 11px 12px; min-height: 44px; }
+.m-auth .m-finput { font-size: 14.5px; padding: 10px 11px; min-height: 39.5px; }
 
-.m-auth-err { margin: 0; font-size: 12px; line-height: 1.5; color: var(--m-red); }
+.m-auth-err { margin: 0; font-size: 11px; line-height: 1.5; color: var(--m-red); }
 .m-auth-ok {
   margin: 0;
-  padding: 9px 12px;
+  padding: 8px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-green-soft);
   color: var(--m-green);
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 
 .m-auth-alt {
   text-align: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   line-height: 1.6;
   color: var(--m-text3);
 }
-.m-auth-alt .m-link { font-size: 12.5px; margin-left: 2px; }
+.m-auth-alt .m-link { font-size: 11.5px; margin-left: 2px; }
 
 /* 同意条款：自绘复选框，避让 Naive checkbox 的内联配色（暗色下要单独压字色） */
 .m-auth-agree {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 7px;
   cursor: pointer;
 }
 .m-auth-agree > input {
@@ -1529,8 +1534,8 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 }
 .m-auth-box {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   margin-top: 1px;
   border: 1px solid var(--m-hairline);
   border-radius: var(--m-r-sm);
@@ -1539,7 +1544,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   align-items: center;
   justify-content: center;
 }
-.m-auth-box svg { width: 12px; height: 12px; color: var(--m-on-primary); opacity: 0; }
+.m-auth-box svg { width: 11px; height: 11px; color: var(--m-on-primary); opacity: 0; }
 .m-auth-agree > input:checked + .m-auth-box {
   background: var(--m-primary);
   border-color: var(--m-primary);
@@ -1548,7 +1553,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-auth-agree > input:focus-visible + .m-auth-box {
   box-shadow: inset 0 0 0 2px var(--m-primary-soft);
 }
-.m-auth-agree-t { font-size: 11.5px; line-height: 1.5; color: var(--m-text3); }
+.m-auth-agree-t { font-size: 10.5px; line-height: 1.5; color: var(--m-text3); }
 /* 《用户协议》《隐私政策》两个词是能点开全文的按钮，但长相必须是「句子里的链接」：
    没有内边距、没有底色、只有下划线。挂 .m-veil-off 退出全站悬停叠色 ——
    叠色是给矩形控件用的，落在句子中间就是一块灰方块。 */
@@ -1558,7 +1563,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 400;
   line-height: 1.5;
   color: var(--m-primary);
@@ -1641,18 +1646,18 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   --shadow-heavy: none;
 
   /* 间距（8px 基数，比桌面收紧一档） */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 14px;
-  --spacing-xl: 16px;
+  --spacing-xs: 3.5px;
+  --spacing-sm: 7px;
+  --spacing-md: 11px;
+  --spacing-lg: 12.5px;
+  --spacing-xl: 14.5px;
 
   /* 字号：桌面 md=16 在手机上过大，整体下移一档 */
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-md: 14px;
-  --font-size-lg: 15px;
-  --font-size-xl: 17px;
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-md: 12.5px;
+  --font-size-lg: 13.5px;
+  --font-size-xl: 15.5px;
 
   /* 字重：规范阶梯 350/400/500/700，去掉 600 */
   --font-weight-light: 350;
@@ -1679,14 +1684,14 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   /* 兄弟卡片之间的纵向节奏 */
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 /* ---------- 卡片壳：去边框去投影，圆角 8 ---------- */
 .m-desk.m-desk .status-card {
   background: var(--m-card);
   border-radius: var(--m-r-md);
-  padding: 14px 16px;
+  padding: 12.5px 14.5px;
   box-shadow: none;
   min-height: 0;
   transform: none;
@@ -1702,8 +1707,8 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-desk.m-desk .card-header {
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 9px;
+  margin-bottom: 11px;
 }
 /* 两种写法都要接：MyCard 用 .status-title，塔 / 切磋那几个手写卡头用 .status-info */
 .m-desk.m-desk .card-header .status-title,
@@ -1712,12 +1717,12 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 }
 .m-desk.m-desk .card-header .status-icon,
 .m-desk.m-desk .card-header .status-icon > img {
-  width: 26px;
-  height: 26px;
+  width: 23.5px;
+  height: 23.5px;
 }
 .m-desk.m-desk .card-header .status-title h3,
 .m-desk.m-desk .card-header .status-info h3 {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text);
@@ -1725,7 +1730,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 }
 .m-desk.m-desk .card-header .status-title p,
 .m-desk.m-desk .card-header .status-info p {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
   color: var(--m-text3);
   margin: 2px 0 0;
@@ -1736,9 +1741,9 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
  * 颜色本身要留着：活动卡片的「每周任务 / 已完成 / 剩余 N 天」是数据语义，不能一律拍成灰块。 */
 .m-desk.m-desk .status-badge {
   flex: none;
-  padding: 3px 8px;
+  padding: 2.5px 7px;
   border-radius: var(--m-r-sm);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.4;
   background: var(--m-band);
@@ -1756,25 +1761,25 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   color: var(--font-color);
 }
 .m-desk.m-desk .status-badge .status-dot {
-  width: 6px;
-  height: 6px;
+  width: 5.5px;
+  height: 5.5px;
   background: var(--m-text4);
 }
 
 /* ---------- 卡身 / 卡底 ---------- */
 .m-desk.m-desk .card-content {
-  margin-bottom: 12px;
-  font-size: 13px;
+  margin-bottom: 11px;
+  font-size: 11.5px;
   line-height: 1.5;
   color: var(--m-text2);
 }
 .m-desk.m-desk .card-content h3 {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--m-text);
 }
 .m-desk.m-desk .card-action {
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 /* 卡片内动作按钮：40 → 36 → 32px。
@@ -1783,10 +1788,10 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
    移动端正文 13px、这类按钮只是卡片的附属动作，不该有按钮的「体积感」。
    32px 配合 12px 左右的内边距仍是好点的目标（高度不足部分由 gap 里的留白补偿）。 */
 .m-desk.m-desk .card-action > button {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 29px;
+  padding: 0 9px;
   border-radius: var(--m-r-md);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 
@@ -1801,7 +1806,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-desk.m-desk .settings {
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 7px;
 }
 .m-desk.m-desk .settings > .label,
 .m-desk.m-desk .setting-item > .label {
@@ -1813,7 +1818,7 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
   width: 100%;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .m-desk.m-desk .settings .n-select {
   width: 100%;
@@ -1829,15 +1834,15 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-desk .arco-btn {
   border-radius: var(--m-r-md);
   font-weight: 500;
-  font-size: 13px;
+  font-size: 11.5px;
 }
 .m-desk .arco-btn-size-small {
-  height: 28px;
-  padding: 0 10px;
+  height: 25px;
+  padding: 0 9px;
 }
 .m-desk .arco-btn-size-medium {
-  height: 32px;
-  padding: 0 12px;
+  height: 29px;
+  padding: 0 11px;
 }
 .m-desk .arco-btn-primary {
   background: var(--m-primary);
@@ -1916,10 +1921,10 @@ html[data-theme="dark"] .m-tile-ic { color: var(--m-primary) !important; }
 .m-desk .n-button:not(.n-button--text-type) {
   border-radius: var(--m-r-md);
   font-weight: 500;
-  min-height: 34px;
+  min-height: 30.5px;
 }
 .m-desk .n-button--tiny-type:not(.n-button--text-type) {
-  min-height: 30px;
+  min-height: 27px;
 }
 
 /* ---------- Naive 禁用态：必须单独收口 ----------
@@ -1966,6 +1971,70 @@ body.m-mobile .n-checkbox {
 }
 
 /* ============================================================
+ * 第三方组件的尺寸标尺（0.9 档，2026-11-19）
+ * ------------------------------------------------------------
+ * 页面自己的样式已经逐条按 0.9 重算过，但 Naive 的默认尺寸写在组件自己的 CSS 里
+ * （--n-height: 34px / --n-font-size: 14px），不吃页面的 px。不改就会出现
+ * 「标题 11.5px、旁边按钮 14px」的断层 —— 用户报的「按钮很大」就是这一层。
+ * 这里只改尺寸变量，颜色/圆角语言仍由上面的规则管。
+ * ============================================================ */
+.m-desk .n-button,
+body.m-mobile .n-button {
+  --n-height: 30.5px !important;
+  --n-font-size: 12.5px !important;
+  --n-padding: 0 12.5px !important;
+  --n-icon-size: 16px !important;
+  --n-icon-margin: 5.5px !important;
+}
+.m-desk .n-button.n-button--tiny-type,
+body.m-mobile .n-button.n-button--tiny-type {
+  --n-height: 27px !important;
+  --n-font-size: 11.5px !important;
+  --n-padding: 0 9px !important;
+}
+.m-desk .n-button.n-button--small-type,
+body.m-mobile .n-button.n-button--small-type {
+  --n-height: 29px !important;
+  --n-font-size: 12px !important;
+  --n-padding: 0 11px !important;
+}
+/* 输入框：高度由 --n-height 与 --n-blank-height 两个变量共同决定（后一个撑内部空白区），
+   --n-padding-vertical 是 Naive 用 calc 写死的，必须一起按新高度重算 */
+.m-desk .n-input,
+body.m-mobile .n-input {
+  --n-height: 30.5px !important;
+  --n-blank-height: 30.5px !important;
+  --n-font-size: 12.5px !important;
+  --n-padding-left: 11px !important;
+  --n-padding-right: 11px !important;
+  --n-icon-size: 14.5px !important;
+  --n-padding-vertical: calc((30.5px - 1.5 * 12.5px) / 2) !important;
+}
+.m-desk .n-base-selection,
+body.m-mobile .n-base-selection {
+  --n-height: 30.5px !important;
+  --n-font-size: 12.5px !important;
+}
+.m-desk .n-tag,
+body.m-mobile .n-tag {
+  --n-height: 21.5px !important;
+  --n-font-size: 11.5px !important;
+  --n-close-size: 14.5px !important;
+}
+.m-desk .n-checkbox,
+body.m-mobile .n-checkbox {
+  --n-size: 14.5px !important;
+  --n-font-size: 12.5px !important;
+  --n-label-padding: 0 7px !important;
+}
+/* 开关不做等比缩放：22px 的轨道本身已经小于 30.5px 的输入框，
+   再压到 20px 会和小尺寸标签糊在一起，只跟字号对齐 */
+.m-desk .n-switch,
+body.m-mobile .n-switch {
+  --n-font-size: 12.5px;
+}
+
+/* ============================================================
  * 移动端弹窗层（body.m-mobile）
  * 桌面组件里的 n-modal / a-modal 全部 teleport 到 body，.m-desk 的变量和 scoped 样式都够不到，
  * 于是弹窗会以桌面尺寸（700 / 900px 宽、600px 高）盖在手机上。
@@ -1987,7 +2056,7 @@ body.m-mobile {
 }
 
 body.m-mobile .n-modal-container {
-  padding: 12px;
+  padding: 11px;
 }
 /* 弹窗也要吃到同一套 token 重映射（body 子树里没有 .m-desk 容器） */
 body.m-mobile .n-card.n-modal,
@@ -2007,14 +2076,14 @@ body.m-mobile .arco-modal {
   --border-radius-medium: var(--m-r-md);
   --border-radius-large: var(--m-r-lg);
   --border-radius-full: var(--m-r-sm);
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 12px;
-  --spacing-lg: 14px;
-  --spacing-xl: 16px;
-  --font-size-sm: 12px;
-  --font-size-md: 14px;
-  --font-size-lg: 15px;
+  --spacing-xs: 3.5px;
+  --spacing-sm: 7px;
+  --spacing-md: 11px;
+  --spacing-lg: 12.5px;
+  --spacing-xl: 14.5px;
+  --font-size-sm: 11px;
+  --font-size-md: 12.5px;
+  --font-size-lg: 13.5px;
   --primary-1: var(--m-primary-soft-rgb);
   --primary-2: var(--m-primary-soft-rgb);
   --primary-3: var(--m-primary-rgb);
@@ -2032,27 +2101,27 @@ body.m-mobile .n-card.n-modal {
   max-width: var(--m-modal-w) !important;
   min-width: 0 !important;
   border-radius: var(--m-r-lg) !important;
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 body.m-mobile .n-card.n-modal > .n-card-header {
-  padding: 14px 14px 10px;
+  padding: 12.5px 12.5px 9px;
 }
 body.m-mobile .n-card.n-modal > .n-card-header .n-card-header__main {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
 }
 body.m-mobile .n-card.n-modal > .n-card__content {
-  padding: 0 14px 14px;
+  padding: 0 12.5px 12.5px;
 }
 body.m-mobile .n-card.n-modal > .n-card__footer {
-  padding: 0 14px 14px;
+  padding: 0 12.5px 12.5px;
 }
 /* 桌面为 700px 弹窗写的双列设置栅格（n-grid :cols=2），在 406px 下会挤成「三字一行」，
    压成单列；任务清单那种纯勾选的双列不动（它们不是 .settings-content 的直接子级）。 */
 body.m-mobile .n-card.n-modal .settings-content > .n-grid {
   grid-template-columns: minmax(0, 1fr) !important;
-  row-gap: 12px !important;
+  row-gap: 11px !important;
 }
 
 /* Naive preset="dialog" */
@@ -2063,11 +2132,11 @@ body.m-mobile .n-dialog {
   border-radius: var(--m-r-lg) !important;
 }
 body.m-mobile .n-dialog .n-dialog__title {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
 }
 body.m-mobile .n-dialog .n-dialog__content {
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.6;
 }
 
@@ -2075,13 +2144,13 @@ body.m-mobile .n-dialog .n-dialog__content {
    危险键还只有拇指一半宽 —— 删除这种不可逆动作不该比「取消」更难按。 */
 body.m-mobile .n-dialog .n-dialog__action {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 body.m-mobile .n-dialog .n-dialog__action > .n-button {
   flex: 1;
   min-width: 0;
-  height: 32px;
-  min-height: 32px;
+  height: 29px;
+  min-height: 29px;
 }
 /* 危险动作：Naive 自带的 error 色跟站内 --m-red 不是一套，暗色下还会发闷。
    统一走 token —— 亮色实心红 + 白字，暗色自动变成浅红底 + 深字（和主按钮同一套读法）。 */
@@ -2115,11 +2184,11 @@ body.m-mobile .arco-modal {
   border-radius: var(--m-r-lg);
   display: flex;
   flex-direction: column;
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 body.m-mobile .arco-modal-wrapper {
-  padding: 12px;
+  padding: 11px;
 }
 /* Arco 默认 top:100px + margin auto，手机上会把弹窗顶到偏下，压成与 Naive 一致的 12px 间距 */
 body.m-mobile .arco-modal {
@@ -2143,17 +2212,17 @@ body.m-mobile .arco-modal {
 }
 body.m-mobile .arco-modal-header {
   height: auto;
-  padding: 14px 16px 10px;
+  padding: 12.5px 14.5px 9px;
 }
 body.m-mobile .arco-modal-title {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
 }
 body.m-mobile .arco-modal-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 16px 16px;
+  padding: 0 14.5px 14.5px;
 }
 
 /* 手写遮罩弹窗（两塔的「购买小鱼干」）：自己 Teleport 到 body，不吃 .m-desk 的变量，
@@ -2206,7 +2275,7 @@ body.m-mobile .n-button.n-button--info-type {
 body.m-mobile .n-button:not(.n-button--text-type) {
   border-radius: var(--m-r-md);
   font-weight: 500;
-  min-height: 34px;
+  min-height: 30.5px;
 }
 
 
@@ -2226,7 +2295,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   flex-direction: column;
   height: auto;
   overflow: visible;
-  gap: 12px;
+  gap: 11px;
 }
 .m-batch.m-batch .left-column {
   flex: none;
@@ -2248,12 +2317,12 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   flex-direction: column;
   align-items: stretch !important; /* 内联 align-items:center 会让子块收缩成内容宽（统计卡只有 240px） */
   margin-bottom: 0;
-  gap: 10px;
+  gap: 9px;
 }
 .m-batch.m-batch .page-header-title-row {
   flex-direction: column;
   align-items: stretch !important;
-  gap: 10px;
+  gap: 9px;
   flex: 1 1 auto;
 }
 .m-batch.m-batch .page-header-title-row > h2 {
@@ -2266,8 +2335,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   background: var(--m-card) !important;
   border: none !important;
   border-radius: var(--m-r-md) !important;
-  padding: 12px !important;
-  gap: 8px !important;
+  padding: 11px !important;
+  gap: 7px !important;
   min-width: 0;
 }
 /* 统计条：两行文字 + 下方 2×2 按钮 */
@@ -2278,7 +2347,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 }
 .m-batch.m-batch .page-header-info > div {
   min-width: 0;
-  font-size: 12.5px !important;
+  font-size: 11.5px !important;
   line-height: 1.5 !important;
   white-space: normal;
   word-break: break-word;
@@ -2289,16 +2358,16 @@ body.m-mobile .n-button:not(.n-button--text-type) {
  * 停止 / 任务模板 / 设置走中性按钮（停止原来是实心红，红色留给「删除」这种不可逆动作）。 */
 .m-batch.m-batch .batch-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 7px;
+  margin-top: 11px;
 }
 .m-batch.m-batch .batch-actions > .n-button {
   flex: 1 1 0;
   min-width: 0;
-  height: 36px;
-  min-height: 36px;
-  padding: 0 6px;
-  font-size: 12.5px;
+  height: 32.5px;
+  min-height: 32.5px;
+  padding: 0 5.5px;
+  font-size: 11.5px;
   border-radius: var(--m-r-md);
 }
 .m-batch.m-batch .batch-actions > .n-button .n-button__content {
@@ -2315,7 +2384,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-batch.m-batch .page-header-info-buttons {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: 8px !important;
+  gap: 7px !important;
   margin-top: 2px;
 }
 .m-batch.m-batch .page-header-info-buttons > *,
@@ -2329,20 +2398,20 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-batch.m-batch .page-header-actions {
   display: grid !important;
   grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  padding: 8px !important;
-  gap: 6px !important;
+  padding: 7px !important;
+  gap: 5.5px !important;
 }
 .m-batch.m-batch .page-header-actions > .n-button:first-child {
   grid-column: auto;
-  min-height: 38px !important;
-  font-size: 13.5px !important;
+  min-height: 34px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
 }
 .m-batch.m-batch .page-header-actions > .n-button {
   width: 100%;
-  padding: 0 6px;
-  font-size: 12.5px;
-  min-height: 34px;
+  padding: 0 5.5px;
+  font-size: 11.5px;
+  min-height: 30.5px;
 }
 /* 禁用态文字别淡到看不见（一键日常在没勾账号时就是禁用） */
 .m-batch.m-batch .page-header-actions > .n-button[disabled] {
@@ -2409,24 +2478,24 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   margin-top: 0 !important;
 }
 .m-batch.m-batch .n-card:not(:first-child) {
-  margin-top: 12px !important; /* 组件里是内联 margin-top:16px */
+  margin-top: 11px !important; /* 组件里是内联 margin-top:16px */
 }
 .m-batch.m-batch .n-card-header {
-  padding: 14px 14px 0 !important;
+  padding: 12.5px 12.5px 0 !important;
 }
 .m-batch.m-batch .n-card-header__main {
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--m-text);
 }
 .m-batch.m-batch .n-card__content {
-  padding: 12px 14px 14px !important;
+  padding: 11px 12.5px 12.5px !important;
 }
 .m-batch.m-batch .custom-card-header {
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-batch.m-batch .card-title {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--m-text);
 }
@@ -2436,7 +2505,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 7px;
 }
 /* 功能分类 / 任务设置分组页签：一排 N 等分（格子边界当间隔，不换行、不横滑），
  * 列数由 --tab-cols 控制：批量页 7 个功能分类、任务设置弹窗 5 个分组。
@@ -2464,8 +2533,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 }
 :is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab {
   justify-content: center;
-  padding: 7px 0 !important;
-  font-size: 13px !important;
+  padding: 6.5px 0 !important;
+  font-size: 11.5px !important;
   color: var(--m-text3);
   border-bottom: 1px solid var(--m-band);
 }
@@ -2507,8 +2576,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 /* 320 窄屏：7 格每格 38px，「怪异塔」在 13px 下要 39px ⇒ 降一档字号刚好放下 */
 @media (max-width: 360px) {
   :is(.m-batch.m-batch, .m-bset.m-bset) .n-tabs-tab {
-    font-size: 12px !important;
-    padding: 7px 0 !important;
+    font-size: 11px !important;
+    padding: 6.5px 0 !important;
   }
 }
 /* Naive 页签结构是 nav-scroll-wrapper > .v-x-scroll > .n-tabs-nav-scroll-content > .n-tabs-wrapper。
@@ -2530,7 +2599,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: flex-start;
-  gap: 8px !important;
+  gap: 7px !important;
   width: 100%;
 }
 /* 这一版 Naive 的 n-space 不套 .n-space-item，子节点是裸 div ⇒ 连带两层一起放开宽度 */
@@ -2549,13 +2618,13 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   min-width: 0;
 }
 .m-batch.m-batch .n-tab-pane .n-button {
-  min-height: 30px;
-  padding: 0 10px !important;
-  font-size: 12.5px;
+  min-height: 27px;
+  padding: 0 9px !important;
+  font-size: 11.5px;
 }
 /* Naive 默认给面板 12px 上内边距，和 tab 底边叠一起会显出「空一截」 */
 .m-batch.m-batch .n-tab-pane {
-  padding-top: 8px !important;
+  padding-top: 7px !important;
 }
 /* 流式布局下按钮宽度=文字宽，文字必须居中单行（原来单列时是左对齐 + 允许折行） */
 .m-batch.m-batch .n-tab-pane .n-button__content {
@@ -2573,7 +2642,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
  *      `html[data-theme=dark] span{color:#fff!important}` 直接压成白色 ——
  *      只改 .log-item 自身没用，实测 itemColor=#fff 就是这么来的。 */
 .m-log-modal .log-item {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.5;
   word-break: break-word;
 }
@@ -2583,7 +2652,7 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 }
 .m-log-modal .log-item .time {
   color: var(--m-text3) !important;
-  margin-right: 6px;
+  margin-right: 5.5px;
 }
 /* 组件把正文写成 `.log-item.info { color:#333 }`，落在暗色 --m-band(#182238) 上等于看不见，
  * 而绝大多数字段都是 type:"info" ⇒ 必须显式改回 token（只覆盖 error/success 不够）。 */
@@ -2616,22 +2685,22 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-schedule.m-batch .sched-page {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 .m-schedule.m-batch .sched-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 7px;
+  padding: 8px 14.5px;
   background: var(--m-card);
   border-radius: var(--m-r-lg);
 }
 .m-schedule.m-batch .sched-bar-t {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
-  line-height: 22px;
+  line-height: 20px;
   color: var(--m-text);
 }
 /* 标题右侧「+」= 新增定时任务：与账号页那颗 30px 方形图标按钮同尺寸同底色 */
@@ -2640,8 +2709,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   padding: 0;
   border: 0;
   border-radius: var(--m-r-md);
@@ -2650,37 +2719,37 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   cursor: pointer;
 }
 .m-schedule.m-batch .sched-add-btn svg {
-  width: 17px;
-  height: 17px;
+  width: 15.5px;
+  height: 15.5px;
 }
 
 /* ② 任务卡 */
 .m-schedule.m-batch .sched-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 16px;
+  gap: 9px;
+  padding: 12.5px 14.5px;
   background: var(--m-card);
   border-radius: var(--m-r-md);
 }
 .m-schedule.m-batch .sched-top {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-width: 0;
 }
 /* 首字块与账号卡的头像块同尺寸同色（--m-primary 38px），两页翻着看是同一套东西 */
 .m-schedule.m-batch .sched-ava {
   flex: none;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--m-r-md);
   background: var(--m-primary);
   color: var(--m-on-primary) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   line-height: 1;
 }
@@ -2689,10 +2758,10 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2.5px;
 }
 .m-schedule.m-batch .sched-nm {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
   line-height: 1.25;
   color: var(--m-text);
@@ -2704,15 +2773,15 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-schedule.m-batch .sched-sub {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
+  gap: 5.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
 }
 .m-schedule.m-batch .sched-dot {
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: 5.5px;
+  height: 5.5px;
   border-radius: 50%;
   background: var(--m-green);
 }
@@ -2743,11 +2812,11 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0 4px;
-  padding: 6px 8px;
+  gap: 0 3.5px;
+  padding: 5.5px 7px;
   background: var(--m-bg);
   border-radius: var(--m-r-sm);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--m-text3);
 }
@@ -2763,13 +2832,13 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 /* ④ 动作：编辑占主位，删除走描边红字（点了还有一层确认框） */
 .m-schedule.m-batch .sched-act {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-schedule.m-batch .sched-act .m-btn {
   flex: 1;
   width: auto;
-  padding: 9px 12px;
-  font-size: 13px;
+  padding: 8px 11px;
+  font-size: 11.5px;
 }
 .m-schedule.m-batch .sched-act .sched-del {
   color: var(--m-red) !important;
@@ -2777,19 +2846,19 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 
 /* ⑤ 空态：一句话 + 一颗主按钮，别只留一行灰字 */
 .m-schedule.m-batch .sched-empty {
-  padding: 24px 16px 16px;
+  padding: 21.5px 14.5px 14.5px;
   text-align: center;
 }
 .m-schedule.m-batch .sched-empty-t {
   margin: 0;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--m-text);
 }
 .m-schedule.m-batch .sched-empty-d {
-  margin: 4px 0 14px;
-  font-size: 12px;
+  margin: 3.5px 0 12.5px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--m-text3);
 }
@@ -2802,22 +2871,22 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-task-wizard .tw-steps {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 14px;
+  gap: 3.5px;
+  margin: 0 0 12.5px;
 }
 .m-task-wizard .tw-step {
   flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5.5px;
   min-width: 0;
-  padding: 4px 0;
+  padding: 3.5px 0;
   border: 0;
   background: none;
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text3);
   cursor: default;
 }
@@ -2829,12 +2898,12 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   color: var(--m-text3) !important;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
 }
 .m-task-wizard .tw-step-label {
@@ -2857,14 +2926,14 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 
 /* 字段 */
 .m-task-wizard .tw-field {
-  margin-bottom: 14px;
+  margin-bottom: 12.5px;
 }
 .m-task-wizard .tw-label {
   display: inline-block;
-  margin-bottom: 6px;
-  font-size: 12.5px;
+  margin-bottom: 5.5px;
+  font-size: 11.5px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-text3) !important; /* 暗色 App.vue 有 label{color:#fff!important} */
 }
 /* 行内右侧带按钮时不能再用 baseline；边距挪到容器上 */
@@ -2872,16 +2941,16 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 7px;
+  margin-bottom: 7px;
 }
 .m-task-wizard .tw-field-head .tw-label {
   margin-bottom: 0;
 }
 .m-task-wizard .tw-count {
   flex: none;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 11px;
+  line-height: 16px;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
@@ -2889,8 +2958,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
 .m-task-wizard .tw-tools {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 11px;
+  margin-bottom: 7px;
 }
 .m-task-wizard .tw-tools-gap {
   flex: 1 1 auto;
@@ -2900,8 +2969,8 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   border: 0;
   background: none;
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-primary);
   cursor: pointer;
 }
@@ -2918,20 +2987,20 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex;
   flex-wrap: nowrap;
   gap: 0;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
   border-bottom: 1px solid var(--m-band);
 }
 .m-task-wizard .tw-cat {
   flex: 1 1 0;
   min-width: 0;
-  padding: 7px 2px;
+  padding: 6.5px 2px;
   border: 0;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   background: none;
   font-family: inherit;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -2948,19 +3017,19 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  gap: 8px;
+  gap: 7px;
   max-height: 40vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 .m-task-wizard .tw-chip {
-  padding: 7px 11px;
+  padding: 6.5px 10px;
   border: 1px solid transparent;
   border-radius: var(--m-r-md);
   background: var(--m-band);
   font-family: inherit;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text2);
   cursor: pointer;
 }
@@ -2970,10 +3039,10 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   font-weight: 500;
 }
 .m-task-wizard .tw-empty {
-  padding: 20px 0;
+  padding: 18px 0;
   text-align: center;
-  font-size: 12.5px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text3);
 }
 
@@ -2983,14 +3052,14 @@ body.m-mobile .n-button:not(.n-button--text-type) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  margin: 18px -14px -14px;
-  padding: 12px 14px;
+  gap: 7px;
+  margin: 16px -12.5px -12.5px;
+  padding: 11px 12.5px;
   background: var(--m-bg);
   border-radius: 0 0 var(--m-r-lg) var(--m-r-lg);
 }
 .m-task-wizard .tw-actions > .n-button {
-  min-width: 84px;
+  min-width: 75.5px;
 }
 /* 暗色下「分段控件」的反转：亮色是「灰槽 + 白块凸起」，直接沿用会变成
  * 「深槽 + #121c31 块」——两者几乎是同一个色，选中态只剩字色能分辨。
@@ -3047,12 +3116,12 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
-  margin: 2px 0 8px;
+  gap: 7px 11px;
+  margin: 2px 0 7px;
 }
 .m-log-modal .log-count {
   margin-left: auto;
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--m-text3);
 }
 /* 弹窗里纵向空间比常驻卡片富余，日志区多给一点（52vh）。
@@ -3063,10 +3132,10 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
   /* 组件 ≤768 的断点里写死了 height:300px / min-height:300px，只有 3 条日志时
      下面就是 200 多像素空白 ⇒ 高度改回自适应，守住 120px 下限。 */
   height: auto !important;
-  min-height: 120px !important;
+  min-height: 108px !important;
   max-height: 52vh;
-  margin-top: 8px;
-  padding: 8px 10px;
+  margin-top: 7px;
+  padding: 7px 9px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   /* #f5f5f5 来自组件 scoped，同特异性 + 注入顺序在后 ⇒ 必须 !important */
@@ -3079,16 +3148,16 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-log-modal .n-progress {
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 /* 卡片标题行右侧的「日志 (N)」小入口 —— 弹窗关掉后靠它再打开 */
 .m-batch.m-batch .log-entry-btn {
-  min-height: 24px;
-  font-size: 11.5px;
-  padding: 0 8px;
+  min-height: 21.5px;
+  font-size: 10.5px;
+  padding: 0 7px;
 }
 
 /* ---------- 任务模板管理弹窗（.m-tpl-modal）----------
@@ -3097,8 +3166,8 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-tpl-modal .tpl-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 7px;
+  margin-bottom: 11px;
 }
 .m-tpl-modal .tpl-search {
   width: 100%;
@@ -3106,7 +3175,7 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-tpl-modal .tpl-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 .m-tpl-modal .tpl-actions > .n-button {
   width: 100%;
@@ -3118,7 +3187,7 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 /* 列表区高度跟着视口走（原来写死 400px，小屏上会顶掉底部按钮） */
 .m-tpl-modal .template-list {
   max-height: 48vh !important;
-  margin-bottom: 12px !important;
+  margin-bottom: 11px !important;
 }
 /* 空态与创建时间那种写死 #86909c 的内联色，modal 在 body 下够不到 .m-batch 的收口规则 */
 .m-tpl-modal [style*="color: rgb(134, 144, 156)"],
@@ -3128,16 +3197,16 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 /* 底部「关闭」拉满一行，拇指好点 */
 .m-tpl-modal .modal-actions {
   display: flex;
-  margin-top: 4px !important;
+  margin-top: 3.5px !important;
 }
 .m-tpl-modal .modal-actions > .n-button {
   flex: 1;
 }
 /* 空态：搜索无结果和「一本都没有」要说清楚，别都写「暂无模板」 */
 .m-tpl-modal .tpl-empty {
-  padding: 40px 0;
+  padding: 36px 0;
   text-align: center;
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text3);
 }
 
@@ -3149,7 +3218,7 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-body {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   max-height: 68vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -3157,27 +3226,27 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-sec {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 .m-group-modal .gm-sec-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
+  gap: 5.5px;
+  font-size: 12px;
   font-weight: 700;
-  line-height: 20px;
+  line-height: 18px;
   color: var(--m-text) !important;
 }
 /* 「分组列表」后面的计数做成 band 小徽章，不做 pill（圆角只用 r-sm） */
 .m-group-modal .gm-sec-count {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   text-align: center;
   color: var(--m-text3) !important;
 }
@@ -3188,11 +3257,11 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-colors {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-group-modal .gm-swatch {
-  width: 26px;
-  height: 26px;
+  width: 23.5px;
+  height: 23.5px;
   padding: 0;
   border: 0;
   border-radius: var(--m-r-sm);
@@ -3208,8 +3277,8 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-acc {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 9px 11px;
   border-radius: var(--m-r-lg);
   background: var(--m-band);
 }
@@ -3217,23 +3286,23 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
 }
 .m-group-modal .gm-acc-title {
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-text2) !important;
 }
 .m-group-modal .gm-acc-count {
-  font-size: 11.5px;
-  line-height: 18px;
+  font-size: 10.5px;
+  line-height: 16px;
   font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
 }
 /* 全选：单独一行，和下面的账号行同一节奏 */
 .m-group-modal .gm-all {
-  min-height: 26px;
+  min-height: 23.5px;
 }
 .m-group-modal .gm-acc-list {
   display: flex;
@@ -3245,7 +3314,7 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-acc-row {
   display: flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 30.5px;
 }
 /* 暗色下 App.vue 的 `html[data-theme=dark] span{color:#fff!important}` 会把勾选框文字拉白，
    这里同权重再补一条，让账号名停在正文层 */
@@ -3256,55 +3325,55 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 /* 动作条：卡内按钮统一 32px，主动作占满一行（拇指好点） */
 .m-group-modal .gm-actions {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-group-modal .gm-actions > .n-button {
   flex: 1;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 12px;
+  height: 29px;
+  min-height: 29px;
+  padding: 0 11px;
 }
 
 /* 分组列表：一行一块 band，色点 + 名称 + 账号数 + 文字操作 */
 .m-group-modal .gm-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 .m-group-modal .gm-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 9px 11px;
   border-radius: var(--m-r-lg);
   background: var(--m-band);
 }
 .m-group-modal .gm-item-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .m-group-modal .gm-dot {
   flex: none;
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: var(--m-r-sm);
 }
 .m-group-modal .gm-name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text) !important;
 }
 .m-group-modal .gm-meta {
   flex: none;
-  font-size: 11.5px;
-  line-height: 18px;
+  font-size: 10.5px;
+  line-height: 16px;
   font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
 }
@@ -3314,13 +3383,13 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
   gap: 2px;
 }
 .m-group-modal .gm-op {
-  height: 24px;
-  padding: 0 6px;
+  height: 21.5px;
+  padding: 0 5.5px;
   border: 0;
   border-radius: var(--m-r-sm);
   background: transparent;
-  font-size: 11.5px;
-  line-height: 24px;
+  font-size: 10.5px;
+  line-height: 21.5px;
   color: var(--m-primary) !important;
 }
 .m-group-modal .gm-op-del {
@@ -3331,31 +3400,31 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 .m-group-modal .gm-tokens {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-group-modal .gm-token {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   max-width: 100%;
-  height: 24px;
-  padding: 0 3px 0 8px;
+  height: 21.5px;
+  padding: 0 2.5px 0 7px;
   border-radius: var(--m-r-sm);
   background: var(--m-card);
-  font-size: 11.5px;
-  line-height: 24px;
+  font-size: 10.5px;
+  line-height: 21.5px;
   color: var(--m-text2) !important;
 }
 .m-group-modal .gm-token-x {
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: 0;
   border-radius: var(--m-r-sm);
   background: transparent;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 .m-group-modal .gm-add {
@@ -3363,16 +3432,16 @@ html[data-theme="dark"] body.m-mobile .n-button.n-button--info-type.n-button--di
 }
 /* 组内账号已全部加入时下拉会隐藏，改用一句说明收尾，避免留一个空行 */
 .m-group-modal .gm-add-done {
-  padding: 6px 0 2px;
+  padding: 5.5px 0 2px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3) !important;
 }
 
 .m-group-modal .gm-empty {
-  padding: 28px 0;
+  padding: 25px 0;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text3) !important;
 }
 
@@ -3394,7 +3463,7 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 .m-setmodal .sm-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12.5px;
   /* 70vh：模板弹窗比任务设置多一节「模板名称」，需要多一档高度 ——
      矮屏放不下时这里照常滚动 */
   max-height: 70vh;
@@ -3407,27 +3476,27 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 }
 .m-setmodal .sm-sec-title {
   margin-bottom: 2px;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 18px;
-  letter-spacing: 0.2px;
+  line-height: 16px;
+  letter-spacing: 1px;
   color: var(--m-text3) !important;
 }
 .m-setmodal .sm-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 11px;
   /* 44px 是理想行高，但 11 行 × 44 = 484 会把「付费招募」挤出滚动区，
      默认要滚一下才看得见最后一行 ⇒ 压到 38px（拇指照样点得准），
      11 行 + 三节标题正好一屏放下 */
-  min-height: 38px;
+  min-height: 34px;
 }
 .m-setmodal .sm-label {
   min-width: 0;
   overflow: hidden;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text2) !important;
@@ -3435,33 +3504,33 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 /* 下拉按「值」的宽度收窄，不铺满 —— 阵容名最多 5 个字，全宽反而把 label 挤成孤零零一行 */
 .m-setmodal .sm-ctl {
   flex: none;
-  width: 132px;
+  width: 119px;
 }
 /* 整宽输入（模板名称）：label 在上、控件在下，因为名字要能看全，不能像下拉那样收到 132px */
 .m-setmodal .sm-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-setmodal .sm-field .sm-label {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text3) !important;
 }
 .m-setmodal .sm-foot {
   display: flex;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 7px;
+  margin-top: 12.5px;
 }
 .m-setmodal .sm-foot > .n-button {
   flex: 1;
-  height: 34px;
-  min-height: 34px;
+  height: 30.5px;
+  min-height: 30.5px;
 }
 
 /* 执行间隔那种数字输入：和下拉同宽同高，右侧对齐 */
 .m-setmodal .sm-num {
   flex: none;
-  width: 110px;
+  width: 99px;
 }
 
 /* ---------- 每日任务详情弹窗（.m-taskdetail）----------
@@ -3472,7 +3541,7 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 .m-taskdetail .td-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
   max-height: 64vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -3480,8 +3549,8 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 .m-taskdetail .td-sum {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 9px 11px;
   border-radius: var(--m-r-lg);
   background: var(--m-band);
 }
@@ -3489,27 +3558,27 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 7px;
 }
 .m-taskdetail .td-sum-n {
-  font-size: 15px;
+  font-size: 13.5px;
   font-weight: 700;
-  line-height: 20px;
+  line-height: 18px;
   font-variant-numeric: tabular-nums;
   color: var(--m-text) !important;
 }
 .m-taskdetail .td-sum-n small {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--m-text3) !important;
 }
 .m-taskdetail .td-sum-lb {
-  font-size: 11.5px;
-  line-height: 18px;
+  font-size: 10.5px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 .m-taskdetail .td-bar {
-  height: 4px;
+  height: 3.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-border);
   overflow: hidden;
@@ -3529,9 +3598,9 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 .m-taskdetail .td-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 6px 0;
+  gap: 9px;
+  min-height: 39.5px;
+  padding: 5.5px 0;
   border-bottom: 1px solid var(--m-border);
 }
 .m-taskdetail .td-row:last-child {
@@ -3543,7 +3612,7 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
 .m-taskdetail .td-ico,
 .m-taskdetail .td-ico * {
   flex: none;
-  font-size: 16px;
+  font-size: 14.5px;
   color: var(--m-text3) !important;
 }
 .m-taskdetail .td-row.is-done .td-ico,
@@ -3558,20 +3627,20 @@ html[data-theme="dark"] .m-group-modal .n-input__textarea {
   gap: 2px;
 }
 .m-taskdetail .td-name {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 11.5px;
+  line-height: 16px;
   color: var(--m-text2) !important;
 }
 /* 提示语（请先设置采购清单）走第二行小字，不再塞在任务名里用括号 */
 .m-taskdetail .td-hint {
-  font-size: 11.5px;
-  line-height: 16px;
+  font-size: 10.5px;
+  line-height: 14.5px;
   color: var(--m-text3) !important;
 }
 .m-taskdetail .td-state {
   flex: none;
-  font-size: 11.5px;
-  line-height: 18px;
+  font-size: 10.5px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 /* 未完成才需要被看见：给一档 amber，完成态保持安静 */
@@ -3590,8 +3659,8 @@ body.m-mobile .n-dialog .n-dialog__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 30.5px;
+  height: 30.5px;
   border-radius: 50%;
   background: var(--m-amber-soft);
 }
@@ -3602,22 +3671,22 @@ body.m-mobile .n-dialog .n-dialog__icon * {
   color: var(--m-amber) !important;
 }
 body.m-mobile .n-dialog .n-dialog__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 .m-cf {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 .m-cf .m-cf-lead {
   margin: 0;
-  font-size: 13px;
+  font-size: 11.5px;
   line-height: 1.6;
   color: var(--m-text2) !important;
 }
 .m-cf .m-cf-band {
-  padding: 2px 12px;
+  padding: 2px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
@@ -3625,25 +3694,25 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
-  min-height: 32px;
-  padding: 5px 0;
+  gap: 12.5px;
+  min-height: 29px;
+  padding: 4.5px 0;
 }
 .m-cf .m-cf-row + .m-cf-row {
   box-shadow: inset 0 1px 0 var(--m-border);
 }
 .m-cf .m-cf-k {
   flex: none;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 11px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 .m-cf .m-cf-v {
   min-width: 0;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 16px;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3656,36 +3725,36 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 .m-setmodal .sm-sec-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 5.5px;
+  margin-bottom: 3.5px;
 }
 .m-setmodal .sm-sec-title::before {
   content: "";
   flex: none;
-  width: 3px;
-  height: 10px;
+  width: 2.5px;
+  height: 9px;
   border-radius: 1px;
   background: var(--m-primary);
 }
 /* 页签内的说明行：解释数值含义，别再塞进 label 里把行挤爆 */
 .m-setmodal .sm-note {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--m-text3) !important;
 }
 /* 任务设置（页签版）：内容区顶部留一档，否则页签的底部描边贴着第一行字 */
 .m-bset .n-tabs {
-  margin-top: -4px;
+  margin-top: -3.5px;
 }
 .m-bset .n-tabs .sm-body {
-  padding-top: 12px;
+  padding-top: 11px;
   max-height: 62vh;
 }
 /* 数字框要同时装下 5 位数（最长 10000）和右侧 − 两个步进键，
    110px 在 320 窄屏上会把「+」挤到边框上 ⇒ 放宽到 120px */
 .m-bset .sm-num {
-  width: 120px;
+  width: 108px;
 }
 
 /* ---------- 任务模板管理（.m-tplm）----------
@@ -3697,7 +3766,7 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 .m-tplm .tm-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   max-height: 68vh;
 }
 .m-tplm .tm-search {
@@ -3705,25 +3774,25 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 }
 .m-tplm .tm-acts {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-tplm .tm-acts > .n-button {
   flex: 1 1 0;
   min-width: 0;
-  height: 34px;
-  min-height: 34px;
+  height: 30.5px;
+  min-height: 30.5px;
 }
 .m-tplm .tm-ref {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 34px;
-  padding: 0 12px;
+  height: 30.5px;
+  padding: 0 11px;
   border: none;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-primary);
   cursor: pointer;
 }
@@ -3736,14 +3805,14 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 }
 .m-tplm .tm-ref-a {
   flex: none;
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1;
   color: var(--m-text3) !important;
 }
 .m-tplm .tm-list {
   display: flex;
   flex-direction: column;
-  min-height: 96px;
+  min-height: 86.5px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -3751,9 +3820,9 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  min-height: 52px;
-  padding: 8px 0;
+  gap: 9px;
+  min-height: 47px;
+  padding: 7px 0;
 }
 .m-tplm .tm-row + .tm-row {
   box-shadow: inset 0 1px 0 var(--m-border);
@@ -3766,31 +3835,31 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 }
 .m-tplm .tm-name {
   overflow: hidden;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--m-text) !important;
 }
 .m-tplm .tm-meta {
-  font-size: 11.5px;
-  line-height: 16px;
+  font-size: 10.5px;
+  line-height: 14.5px;
   color: var(--m-text3) !important;
 }
 .m-tplm .tm-ops {
   display: flex;
   flex: none;
-  gap: 6px;
+  gap: 5.5px;
 }
 /* 原生 button：Naive 的 .n-button 有一条 min-height 把它撑成竖长条 */
 .m-tplm .tm-op {
-  height: 28px;
-  padding: 0 10px;
+  height: 25px;
+  padding: 0 9px;
   border: none;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text2);
   cursor: pointer;
 }
@@ -3805,18 +3874,18 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 36px 16px;
+  gap: 5.5px;
+  padding: 32.5px 14.5px;
   text-align: center;
 }
 .m-tplm .tm-empty-t {
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-text2) !important;
 }
 .m-tplm .tm-empty-d {
-  max-width: 260px;
-  font-size: 12px;
+  max-width: 234px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--m-text3) !important;
 }
@@ -3827,20 +3896,20 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 .m-tplap .ta-groups {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 }
 .m-tplap .ta-groups-k {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 11px;
+  line-height: 14.5px;
   color: var(--m-text3) !important;
 }
 .m-tplap .ta-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5.5px;
 }
 /* 分组 chip = 开关：左侧 8px 色点用分组自己创建时选的颜色（--gc 由模板内联给），
    已选中的组用同色 1.5px 内描边标记。颜色只落在「点 + 描边」上，
@@ -3848,16 +3917,16 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 .m-tplap .ta-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
+  gap: 5.5px;
+  height: 25px;
+  padding: 0 9px;
   border: none;
   border-radius: var(--m-r-sm);
   /* 分组创建时选了颜色 ⇒ chip 就吃那支色做淡底（8%），方块读起来像分组自己的标签。
      color-mix 在 Edge 111+ / Chrome 111+ 可用；取值来自 group.color 的十六进制。 */
   background: color-mix(in srgb, var(--gc, var(--m-primary)) 8%, var(--m-card));
   box-shadow: inset 0 0 0 1px transparent;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text2);
   cursor: pointer;
   transition: background 0.15s ease, box-shadow 0.15s ease;
@@ -3872,8 +3941,8 @@ body.m-mobile .n-dialog .n-dialog__icon svg {
 }
 .m-tplap .ta-chip-dot {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--gc, var(--m-primary));
   opacity: 0.55;
@@ -3910,15 +3979,15 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
 }
 .m-tplap .ta-count {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3) !important;
 }
 .m-tplap .n-checkbox-group {
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 /* ---------- 页面第一张卡不吃 margin-top（全局对齐）----------
@@ -3937,22 +4006,22 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
 .m-tplref .tr-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   max-height: 68vh;
 }
 .m-tplref .tr-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 9px;
 }
 .m-tplref .tr-count {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text3) !important;
 }
 .m-tplref .tr-filter {
   flex: none;
-  width: 140px;
+  width: 126px;
 }
 .m-tplref .tr-list {
   display: flex;
@@ -3964,9 +4033,9 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  min-height: 46px;
-  padding: 6px 0;
+  gap: 9px;
+  min-height: 41.5px;
+  padding: 5.5px 0;
 }
 .m-tplref .tr-row + .tr-row {
   box-shadow: inset 0 1px 0 var(--m-border);
@@ -3974,7 +4043,7 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
 .m-tplref .tr-name {
   min-width: 0;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3982,11 +4051,11 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
 }
 .m-tplref .tr-tag {
   flex: none;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: var(--m-r-sm);
   background: var(--m-primary-soft);
-  font-size: 11.5px;
-  line-height: 18px;
+  font-size: 10.5px;
+  line-height: 16px;
   color: var(--m-primary) !important;
 }
 .m-tplref .tr-tag.is-none {
@@ -3994,9 +4063,9 @@ html[data-theme="dark"] .m-tplap .ta-chip.is-on {
   color: var(--m-text3) !important;
 }
 .m-tplref .tr-empty {
-  padding: 28px 0;
+  padding: 25px 0;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--m-text3) !important;
 }
 
@@ -4028,31 +4097,31 @@ body.m-mobile .n-button.n-button--disabled .n-button__content,
 .m-dreambuy .db-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
   max-height: 66vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 .m-dreambuy .db-note {
   margin: 0;
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-band-blue);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--m-text2) !important;
 }
 .m-dreambuy .db-acts {
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 .m-dreambuy .db-acts > .n-button {
   flex: 1 1 0;
   min-width: 0;
-  height: 34px;
-  min-height: 34px;
-  padding: 0 8px;
-  font-size: 12.5px;
+  height: 30.5px;
+  min-height: 30.5px;
+  padding: 0 7px;
+  font-size: 11.5px;
 }
 /* 主行动给多一点宽度：它比「全选 / 清空」长一倍 */
 .m-dreambuy .db-acts > .n-button:first-child {
@@ -4065,18 +4134,18 @@ body.m-mobile .n-button.n-button--disabled .n-button__content,
 .m-dreambuy .db-sec-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5.5px;
   margin-bottom: 2px;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 16px;
   color: var(--m-text3) !important;
 }
 .m-dreambuy .db-sec-title::before {
   content: "";
   flex: none;
-  width: 3px;
-  height: 10px;
+  width: 2.5px;
+  height: 9px;
   border-radius: 1px;
   background: var(--m-primary);
 }
@@ -4085,7 +4154,7 @@ body.m-mobile .n-button.n-button--disabled .n-button__content,
 }
 .m-dreambuy .db-sec-n {
   margin-left: auto;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   color: var(--m-text3) !important;
@@ -4093,17 +4162,17 @@ body.m-mobile .n-button.n-button--disabled .n-button__content,
 .m-dreambuy .n-grid-item {
   display: flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 30.5px;
 }
 .m-dreambuy .n-checkbox .n-checkbox__label {
-  font-size: 13px;
+  font-size: 11.5px;
   color: var(--m-text2) !important;
 }
 /* 320 窄屏：三个动作键平分时「勾选金币商品」仍是最长的那个，字号降一档 */
 @media (max-width: 360px) {
   .m-dreambuy .db-acts > .n-button {
-    font-size: 12px;
-    padding: 0 6px;
+    font-size: 11px;
+    padding: 0 5.5px;
   }
 }
 

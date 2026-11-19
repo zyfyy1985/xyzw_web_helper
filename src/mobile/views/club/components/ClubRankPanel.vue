@@ -73,7 +73,7 @@
   </div>
 
   <div v-else-if="!rows.length" class="m-card">
-    <div class="m-empty" style="padding: 30px 0">
+    <div class="m-empty" style="padding: 27px 0">
       <div class="m-logo">{{ mode === "route" ? "⛵" : mode === "gold" ? "🏅" : "🏰" }}</div>
       <h3>{{ connected ? "还没有榜单数据" : "游戏未连接" }}</h3>
       <p>{{ connected ? `点「查询」拉取${title}` : "先到 Token 管理里连上游戏服务器" }}</p>
@@ -460,30 +460,30 @@ watch(
 <style scoped>
 .cp-ico {
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 3.5px;
   vertical-align: -2px;
   color: var(--m-primary);
 }
 .cp-sub,
 .cp-date {
-  margin-left: 6px;
-  font-size: 11px;
+  margin-left: 5.5px;
+  font-size: 10px;
   font-weight: 400;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
 }
 .cp-seg {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 .cp-seg button {
-  padding: 6px 10px;
-  font-size: 12px;
+  padding: 5.5px 9px;
+  font-size: 11px;
 }
 .cp-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
 }
 .cp-count {
   flex: 1 1 auto;
@@ -492,16 +492,16 @@ watch(
 .cp-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 5.5px;
+  margin-top: 7px;
 }
 .cp-chip {
   border: none;
   font-family: inherit;
-  font-size: 11.5px;
-  line-height: 20px;
-  height: 22px;
-  padding: 0 9px;
+  font-size: 10.5px;
+  line-height: 18px;
+  height: 20px;
+  padding: 0 8px;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   color: var(--m-text2) !important;
@@ -513,7 +513,7 @@ watch(
   font-weight: 500;
 }
 .cp-hint {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 }
 
 /* ---------- 列表容器 ---------- */
@@ -528,10 +528,10 @@ watch(
   border-top: 1px solid var(--m-band);
   background: var(--m-card);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--m-primary) !important;
-  padding: 13px 0;
+  padding: 11.5px 0;
   cursor: pointer;
 }
 .cp-more:disabled {
@@ -541,8 +541,8 @@ watch(
 .cp-foot {
   margin: 0;
   border-top: 1px solid var(--m-band);
-  padding: 11px 14px;
-  font-size: 11px;
+  padding: 10px 12.5px;
+  font-size: 10px;
   color: var(--m-text3) !important;
 }
 
@@ -550,12 +550,12 @@ watch(
 .cp-skel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 6px 0;
+  gap: 9px;
+  padding: 5.5px 0;
 }
 .cp-skel i {
   display: block;
-  height: 54px;
+  height: 48.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   animation: cp-pulse 1.3s ease-in-out infinite;

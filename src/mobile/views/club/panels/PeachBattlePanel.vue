@@ -4,7 +4,7 @@
     <div class="m-card">
       <div class="m-card-h">
         <span class="m-vs-row">
-          <img src="/icons/1733492491706152.png" alt="蟠桃图标" style="width: 22px; height: 22px" />
+          <img src="/icons/1733492491706152.png" alt="蟠桃图标" style="width: 20px; height: 20px" />
           <span class="m-t">蟠桃园战绩<small class="m-hint" style="display: block; font-weight: 400">查看蟠桃园对战详细数据</small></span>
         </span>
         <span class="m-acts" v-if="!isExporting">
@@ -20,10 +20,10 @@
       </div>
       <!-- 样式固定为旧版样式二（用户要求：去掉三档切换） -->
       <button class="m-dtag" @click="calOpen = true">{{ queryDate }}</button>
-      <p class="m-hint" style="margin: 8px 0 0">仅周日可查；K/D = 击杀 / 复活；成员明细按击杀降序</p>
+      <p class="m-hint" style="margin: 7px 0 0">仅周日可查；K/D = 击杀 / 复活；成员明细按击杀降序</p>
     </div>
 
-    <p v-if="loading" class="m-hint" style="text-align: center; padding: 18px 0">正在加载战绩数据…</p>
+    <p v-if="loading" class="m-hint" style="text-align: center; padding: 16px 0">正在加载战绩数据…</p>
 
     <template v-else-if="battleRecords && battleRecords.ownClub && battleRecords.opponentClub">
       <!-- 对战头部（照抄旧版：{date} {own} VS {opp} 蟠桃大会对战战绩） -->
@@ -67,7 +67,7 @@
 
       <!-- 有俱乐部但该侧无参战记录（旧版此处整片空白，无任何提示） -->
       <div v-if="!hasSideData" class="m-card">
-        <div class="m-empty" style="padding: 24px 0">
+        <div class="m-empty" style="padding: 21.5px 0">
           <div class="m-logo">🍑</div>
           <h3>{{ recordSide === "own" ? "我方" : "敌方" }}无参战记录</h3>
           <p>{{ sideClub?.name || "该俱乐部" }} 当日无成员出战，可切换另一侧或更换日期</p>
@@ -153,7 +153,7 @@
     </template>
 
     <div v-else-if="!loading" class="m-card">
-      <div class="m-empty" style="padding: 30px 0">
+      <div class="m-empty" style="padding: 27px 0">
         <div class="m-logo">🍑</div>
         <h3>暂无战绩数据</h3>
         <p>点右上角「刷新」拉取所选周日的对战战绩</p>
@@ -484,32 +484,32 @@ export default { name: "MobilePeachBattlePanel" };
  *   两页互不影响。改动时两处一起改，取值不要各自发挥 —— 粗心改了单边，两页翻着看就不一样了。
  *   配色仍走站内变量：击杀红 / 复活绿 / K/D 主色，浅底 --m-bg，格间线 --m-border。
  * ============================================================ */
-.m-rhead { display: flex; align-items: center; gap: 10px; }
+.m-rhead { display: flex; align-items: center; gap: 9px; }
 .m-rhead-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .m-rhead-t {
-  font-size: 16px; font-weight: 700; color: var(--m-text); line-height: 1.3;
+  font-size: 14.5px; font-weight: 700; color: var(--m-text); line-height: 1.3;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.m-rhead-d { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-rhead-d { font-size: 10px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 .m-rpill {
-  flex: none; height: 24px; padding: 0 10px; border-radius: 999px;
+  flex: none; height: 21.5px; padding: 0 9px; border-radius: 899px;
   display: inline-flex; align-items: center;
-  font-size: 11px; font-weight: 700; color: var(--m-primary); background: var(--m-primary-soft);
+  font-size: 10px; font-weight: 700; color: var(--m-primary); background: var(--m-primary-soft);
 }
 
 /* 数字带：六格一行，格间一条竖线（整块 band 底，不再卡套卡） */
 .m-rstat {
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
-  margin-top: 12px; border-radius: var(--m-r-md); background: var(--m-bg); overflow: hidden;
+  margin-top: 11px; border-radius: var(--m-r-md); background: var(--m-bg); overflow: hidden;
 }
-.m-rstat-c { padding: 9px 2px; text-align: center; min-width: 0; border-left: 1px solid var(--m-border); }
+.m-rstat-c { padding: 8px 2px; text-align: center; min-width: 0; border-left: 1px solid var(--m-border); }
 .m-rstat-c:first-child { border-left: none; }
 .m-rstat-k {
-  display: block; font-size: 10px; line-height: 1.3; color: var(--m-text3);
+  display: block; font-size: 9px; line-height: 1.3; color: var(--m-text3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .m-rstat-v {
-  display: block; margin-top: 3px; font-size: 16px; font-weight: 700; line-height: 1.15;
+  display: block; margin-top: 2.5px; font-size: 14.5px; font-weight: 700; line-height: 1.15;
   color: var(--m-text); font-variant-numeric: tabular-nums;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -518,13 +518,13 @@ export default { name: "MobilePeachBattlePanel" };
 .m-rstat-v.is-kd { color: var(--m-primary); }
 
 /* 榜单：2 列 × 2 行小卡，卡内 band 底、无边框 */
-.m-rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.m-rk-card { background: var(--m-bg); border-radius: var(--m-r-md); padding: 8px 9px; min-width: 0; }
-.m-rk-t { font-size: 11px; font-weight: 700; color: var(--m-text3); margin-bottom: 5px; }
-.m-rk-row { display: flex; align-items: center; gap: 6px; padding: 3px 0; min-width: 0; }
+.m-rk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.m-rk-card { background: var(--m-bg); border-radius: var(--m-r-md); padding: 7px 8px; min-width: 0; }
+.m-rk-t { font-size: 10px; font-weight: 700; color: var(--m-text3); margin-bottom: 4.5px; }
+.m-rk-row { display: flex; align-items: center; gap: 5.5px; padding: 2.5px 0; min-width: 0; }
 .m-rk-no {
-  flex: none; width: 14px; text-align: center;
-  font-size: 11.5px; font-weight: 800; color: var(--m-text3);
+  flex: none; width: 12.5px; text-align: center;
+  font-size: 10.5px; font-weight: 800; color: var(--m-text3);
   font-variant-numeric: tabular-nums;
 }
 /* 名次 1/2/3 = 金银铜，跟周报一致（暗色下 !important，别被 App.vue 的 *{color:#fff} 刷白） */
@@ -535,19 +535,19 @@ html[data-theme="dark"] .m-rk-no.n1 { color: #ffd77a !important; }
 html[data-theme="dark"] .m-rk-no.n2 { color: #c9d6e5 !important; }
 html[data-theme="dark"] .m-rk-no.n3 { color: #e5b083 !important; }
 .m-rk-ava {
-  flex: none; width: 18px; height: 18px; border-radius: 5px;
+  flex: none; width: 16px; height: 16px; border-radius: 4.5px;
   object-fit: cover; background: var(--m-card);
 }
 .m-rk-ava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 700; color: var(--m-primary); background: var(--m-card);
+  font-size: 8px; font-weight: 700; color: var(--m-primary); background: var(--m-card);
 }
 .m-rk-nm {
-  flex: 1; min-width: 0; font-size: 11.5px; color: var(--m-text);
+  flex: 1; min-width: 0; font-size: 10.5px; color: var(--m-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.m-rk-v { flex: none; font-size: 12px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums; }
-.m-rk-empty { padding: 6px 0; font-size: 11.5px; color: var(--m-text3); }
+.m-rk-v { flex: none; font-size: 11px; font-weight: 700; color: var(--m-primary); font-variant-numeric: tabular-nums; }
+.m-rk-empty { padding: 5.5px 0; font-size: 10.5px; color: var(--m-text3); }
 
 /* ============================================================
  * 成员明细表（.m-rtable / .m-rthead / .m-rtr / .m-rtd-*）
@@ -560,29 +560,29 @@ html[data-theme="dark"] .m-rk-no.n3 { color: #e5b083 !important; }
 .m-rtr {
   display: grid;
   /* 排名 / 成员 / 击杀 / 连杀 / 抢船 / 复活 / K/D —— 与周报同为 7 列 */
-  grid-template-columns: 30px minmax(0, 1fr) 30px 30px 30px 40px 38px;
-  align-items: center; gap: 4px;
+  grid-template-columns: 27px minmax(0, 1fr) 27px 27px 27px 36px 34px;
+  align-items: center; gap: 3.5px;
 }
 .m-rthead {
-  padding: 6px 4px; margin-bottom: 2px; border-radius: var(--m-r-sm);
+  padding: 5.5px 3.5px; margin-bottom: 2px; border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 10.5px; font-weight: 700; color: var(--m-text3);
+  font-size: 9.5px; font-weight: 700; color: var(--m-text3);
 }
 .m-rthead span { text-align: right; }
 .m-rthead span:nth-child(1),
 .m-rthead span:nth-child(2) { text-align: left; }
 .m-rtr {
-  padding: 7px 4px;
+  padding: 6.5px 3.5px;
   border-bottom: 1px solid var(--m-band);
 }
 .m-rtr:last-child { border-bottom: none; }
-.m-rtd-no { font-size: 11px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
+.m-rtd-no { font-size: 10px; color: var(--m-text3); font-variant-numeric: tabular-nums; }
 .m-rtd-no.n1,
 .m-rtd-no.n2,
 .m-rtd-no.n3 { font-weight: 700; }
-.m-rtd-nm { display: flex; align-items: center; gap: 5px; min-width: 0; }
+.m-rtd-nm { display: flex; align-items: center; gap: 4.5px; min-width: 0; }
 .m-rtd-v {
-  text-align: right; font-size: 12px; font-weight: 700; color: var(--m-text);
+  text-align: right; font-size: 11px; font-weight: 700; color: var(--m-text);
   font-variant-numeric: tabular-nums;
 }
 .m-rtd-v.is-kill { color: var(--m-red); }
@@ -592,33 +592,33 @@ html[data-theme="dark"] .m-rk-no.n3 { color: #e5b083 !important; }
 
 @media (max-width: 359px) {
   .m-rthead,
-  .m-rtr { grid-template-columns: 26px minmax(0, 1fr) 28px 28px 28px 34px 34px; }
-  .m-rk-nm { font-size: 11px; }
+  .m-rtr { grid-template-columns: 23.5px minmax(0, 1fr) 25px 25px 25px 30.5px 30.5px; }
+  .m-rk-nm { font-size: 10px; }
 }
 
 .m-dtag {
   border: 1px solid var(--m-blue);
   background: var(--m-blue-soft);
   color: var(--m-blue);
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   border-radius: var(--m-r-sm);
-  padding: 7px 16px;
+  padding: 6.5px 14.5px;
   font-family: inherit;
   letter-spacing: 0;
 }
-.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+.m-vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 7px; align-items: center; }
 .m-vs-c { min-width: 0; }
-.m-vs-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; min-width: 0; }
-.m-clogo-s { width: 26px; height: 26px; border-radius: 8px; flex: none; }
-.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
-.m-vs-nm { font-size: 13px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-vs-id { font-size: 10.5px; color: var(--m-text3); font-weight: 700; }
-.m-vs-st { font-size: 11px; color: var(--m-text2); font-weight: 700; margin-top: 2px; }
+.m-vs-row { display: flex; align-items: center; gap: 5.5px; margin-bottom: 2.5px; min-width: 0; }
+.m-clogo-s { width: 23.5px; height: 23.5px; border-radius: 7px; flex: none; }
+.m-clogo-s img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px; }
+.m-vs-nm { font-size: 11.5px; font-weight: 700; color: var(--m-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-vs-id { font-size: 9.5px; color: var(--m-text3); font-weight: 700; }
+.m-vs-st { font-size: 10px; color: var(--m-text2); font-weight: 700; margin-top: 2px; }
 .m-vs-badge {
-  width: 34px; height: 34px; border-radius: var(--m-r-md); flex: none;
+  width: 30.5px; height: 30.5px; border-radius: var(--m-r-md); flex: none;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11.5px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 10.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary);
 }
 </style>

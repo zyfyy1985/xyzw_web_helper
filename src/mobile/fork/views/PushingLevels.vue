@@ -1215,30 +1215,30 @@ onBeforeUnmount(() => {
 .m-push-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
 }
 .m-push-head-txt {
   flex: 1;
   min-width: 0;
 }
 .m-push-t {
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--m-text) !important;
 }
 .m-push-s {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3) !important;
   margin-top: 2px;
 }
 .m-push-tag {
   flex: none;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.4;
-  padding: 3px 8px;
+  padding: 2.5px 7px;
   border-radius: var(--m-r-sm);
 }
 .m-push-tag.idle {
@@ -1265,18 +1265,18 @@ onBeforeUnmount(() => {
 .m-step {
   display: inline-flex;
   align-items: center;
-  height: 32px;
+  height: 29px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   overflow: hidden;
 }
 .m-step button {
-  width: 30px;
-  height: 32px;
+  width: 27px;
+  height: 29px;
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1;
   color: var(--m-text2) !important;
   cursor: pointer;
@@ -1286,14 +1286,14 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 .m-step input {
-  width: 66px;
-  height: 32px;
+  width: 59.5px;
+  height: 29px;
   border: none;
   background: none;
   padding: 0;
   text-align: center;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--m-text) !important;
   font-variant-numeric: tabular-nums;
@@ -1311,7 +1311,7 @@ onBeforeUnmount(() => {
 .m-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5.5px;
 }
 .m-chips--3 {
   display: grid;
@@ -1322,11 +1322,11 @@ onBeforeUnmount(() => {
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2) !important;
-  padding: 8px 10px;
+  padding: 7px 9px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1335,14 +1335,14 @@ onBeforeUnmount(() => {
   color: var(--m-on-primary) !important;
 }
 .m-chip-xs {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
-  padding: 4px 8px;
+  padding: 3.5px 7px;
 }
 .m-chiprow {
   display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 5.5px;
+  margin-bottom: 9px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -1353,20 +1353,20 @@ onBeforeUnmount(() => {
 /* ---------- 动作按钮（卡内基线 36px，不用 44px 的整幅 CTA） ---------- */
 .m-btnrow {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 7px;
+  margin-top: 11px;
 }
 .m-pb,
 .m-db,
 .m-tb {
-  height: 36px;
+  height: 32.5px;
   border: none;
   border-radius: var(--m-r-md);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
-  padding: 0 12px;
+  padding: 0 11px;
   flex: none;
 }
 .m-pb {
@@ -1382,7 +1382,7 @@ onBeforeUnmount(() => {
   background: none;
   color: var(--m-text3) !important;
   font-weight: 400;
-  padding: 0 6px;
+  padding: 0 5.5px;
 }
 .m-pb[disabled],
 .m-db[disabled],
@@ -1392,16 +1392,16 @@ onBeforeUnmount(() => {
 }
 .m-pb-sm,
 .m-db-sm {
-  height: 30px;
-  font-size: 12px;
-  padding: 0 12px;
+  height: 27px;
+  font-size: 11px;
+  padding: 0 11px;
   flex: none;
 }
 
 /* 文字按钮（卡头右侧）：色必须 !important，否则暗色被刷白 */
 .m-push .m-link {
   color: var(--m-primary) !important;
-  font-size: 12.5px;
+  font-size: 11.5px;
 }
 .m-push .m-link[disabled] {
   opacity: 0.4;
@@ -1409,27 +1409,27 @@ onBeforeUnmount(() => {
 }
 
 .m-torch-hint {
-  margin: 10px 0 0;
+  margin: 9px 0 0;
 }
 
 /* ---------- 推图卡 ---------- */
 .m-runs {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 .m-run {
-  padding: 12px 14px;
+  padding: 11px 12.5px;
 }
 .m-run-h {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6.5px;
 }
 .m-run-dot {
   flex: none;
-  width: 6px;
-  height: 6px;
+  width: 5.5px;
+  height: 5.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-border);
 }
@@ -1446,7 +1446,7 @@ onBeforeUnmount(() => {
 .m-run-nm {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2) !important;
@@ -1457,16 +1457,16 @@ onBeforeUnmount(() => {
 .m-run-score {
   flex: none;
   display: inline-flex;
-  gap: 6px;
-  font-size: 11px;
+  gap: 5.5px;
+  font-size: 10px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .m-run-w { color: var(--m-green) !important; }
 .m-run-l { color: var(--m-red) !important; }
 .m-run-meta {
-  margin-top: 5px;
-  font-size: 12.5px;
+  margin-top: 4.5px;
+  font-size: 11.5px;
   line-height: 1.5;
   color: var(--m-text3) !important;
 }
@@ -1479,28 +1479,28 @@ onBeforeUnmount(() => {
   margin: 0 2px;
 }
 .m-run-torch {
-  margin-top: 3px;
-  font-size: 11.5px;
+  margin-top: 2.5px;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.5;
   color: var(--m-amber) !important;
 }
 .m-run-prog {
-  margin-top: 9px;
+  margin-top: 8px;
 }
 .m-run-prog .m-pct {
-  font-size: 12px;
+  font-size: 11px;
 }
 .m-run-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 9px;
+  gap: 7px;
+  margin-top: 8px;
 }
 .m-run-err {
   min-width: 0;
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3) !important;
   white-space: nowrap;
@@ -1510,11 +1510,11 @@ onBeforeUnmount(() => {
 
 /* ---------- 日志：卡内一块 band 底的控制台 ---------- */
 .m-loglist {
-  height: 260px;
+  height: 234px;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 6px;
+  padding: 5.5px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   display: flex;
@@ -1524,15 +1524,15 @@ onBeforeUnmount(() => {
 /* 空态不占 260px：没日志的时候那块控制台只有一行提示，撑满一屏高纯属浪费 */
 .m-loglist.is-empty {
   height: auto;
-  padding: 26px 10px;
+  padding: 23.5px 9px;
 }
 .m-logi {
   display: grid;
-  grid-template-columns: 52px 66px minmax(0, 1fr);
-  gap: 6px;
-  padding: 4px 6px;
+  grid-template-columns: 47px 59.5px minmax(0, 1fr);
+  gap: 5.5px;
+  padding: 3.5px 5.5px;
   border-radius: var(--m-r-sm);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.5;
   color: var(--m-text2) !important;
 }
@@ -1566,8 +1566,8 @@ onBeforeUnmount(() => {
 .m-logi.error .m-logn { color: var(--m-red) !important; opacity: 0.75; }
 .m-logempty {
   margin: auto;
-  padding: 8px 0;
-  font-size: 12px;
+  padding: 7px 0;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--m-text3) !important;
   text-align: center;
@@ -1576,13 +1576,13 @@ onBeforeUnmount(() => {
 /* ---------- 超窄屏（320）：日志三列再挤一档 ---------- */
 @media (max-width: 360px) {
   .m-logi {
-    grid-template-columns: 50px 56px minmax(0, 1fr);
-    gap: 4px;
-    font-size: 10.5px;
+    grid-template-columns: 45px 50.5px minmax(0, 1fr);
+    gap: 3.5px;
+    font-size: 9.5px;
   }
   .m-chip {
-    font-size: 12px;
-    padding: 8px 6px;
+    font-size: 11px;
+    padding: 7px 5.5px;
   }
 }
 </style>

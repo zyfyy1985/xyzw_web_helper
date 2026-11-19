@@ -39,7 +39,7 @@
   </div>
 
   <div v-else-if="!rows.length" class="m-card">
-    <div class="m-empty" style="padding: 30px 0">
+    <div class="m-empty" style="padding: 27px 0">
       <div class="m-logo">👑</div>
       <h3>{{ connected ? "还没有榜单数据" : "游戏未连接" }}</h3>
       <p>{{ connected ? "点「查询」拉取今日巅峰榜" : "先到 Token 管理里连上游戏服务器" }}</p>
@@ -228,13 +228,13 @@ watch(
 <style scoped>
 .tk-ico {
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 3.5px;
   vertical-align: -2px;
   color: var(--m-primary);
 }
 .tk-date {
-  margin-left: 6px;
-  font-size: 11px;
+  margin-left: 5.5px;
+  font-size: 10px;
   font-weight: 400;
   color: var(--m-text3) !important;
   font-variant-numeric: tabular-nums;
@@ -242,15 +242,15 @@ watch(
 .tk-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  margin-top: 9px;
 }
 .tk-bar .m-more {
   flex: 1 1 auto;
   min-width: 0;
 }
 .tk-hint {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 }
 
 /* ---------- 列表 ---------- */
@@ -266,11 +266,11 @@ watch(
 /* 行：名次 / 头像 / 主体 / 积分+箭头，两行制（名字 + 服务器与战力） */
 .tk-row {
   display: grid;
-  grid-template-columns: 24px 34px minmax(0, 1fr) auto;
+  grid-template-columns: 21.5px 30.5px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 12.5px;
   background: none;
   border: none;
   border-bottom: 1px solid var(--m-band);
@@ -290,14 +290,14 @@ watch(
 }
 
 .tk-rank {
-  width: 24px;
-  height: 24px;
+  width: 21.5px;
+  height: 21.5px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--m-r-sm);
   background: var(--m-bg);
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--m-text2) !important;
   font-variant-numeric: tabular-nums;
@@ -308,8 +308,8 @@ watch(
 }
 
 .tk-ava {
-  width: 34px;
-  height: 34px;
+  width: 30.5px;
+  height: 30.5px;
   border-radius: var(--m-r-sm);
   object-fit: cover;
   background: var(--m-bg);
@@ -318,7 +318,7 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text3) !important;
 }
@@ -332,11 +332,11 @@ watch(
 .tk-l1 {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4.5px;
   min-width: 0;
 }
 .tk-nm {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text) !important;
   overflow: hidden;
@@ -346,16 +346,16 @@ watch(
 /* 段位：单色体系里只给一枚中性 tag，不引金银铜 */
 .tk-tag {
   flex: none;
-  font-size: 10px;
-  line-height: 15px;
-  padding: 0 5px;
-  border-radius: 3px;
+  font-size: 9px;
+  line-height: 13.5px;
+  padding: 0 4.5px;
+  border-radius: 2.5px;
   background: var(--m-primary-soft);
   color: var(--m-primary) !important;
   font-weight: 500;
 }
 .tk-meta {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--m-text3) !important;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -370,13 +370,13 @@ watch(
   flex: none;
 }
 .tk-score {
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--m-text) !important;
   font-variant-numeric: tabular-nums;
 }
 .tk-score-lb {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--m-text3) !important;
 }
 .tk-arrow {
@@ -389,12 +389,12 @@ watch(
 .tk-skel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 6px 0;
+  gap: 9px;
+  padding: 5.5px 0;
 }
 .tk-skel i {
   display: block;
-  height: 34px;
+  height: 30.5px;
   border-radius: var(--m-r-sm);
   background: var(--m-band);
   animation: tk-pulse 1.3s ease-in-out infinite;
@@ -408,11 +408,11 @@ watch(
 }
 
 @media (max-width: 359px) {
-  .tk-row { grid-template-columns: 22px 30px minmax(0, 1fr) auto; gap: 8px; padding: 10px 12px; }
-  .tk-rank { width: 22px; height: 22px; font-size: 11px; }
-  .tk-ava { width: 30px; height: 30px; }
-  .tk-nm { font-size: 13.5px; }
-  .tk-score { font-size: 12.5px; }
+  .tk-row { grid-template-columns: 20px 27px minmax(0, 1fr) auto; gap: 7px; padding: 9px 11px; }
+  .tk-rank { width: 20px; height: 20px; font-size: 10px; }
+  .tk-ava { width: 27px; height: 27px; }
+  .tk-nm { font-size: 12px; }
+  .tk-score { font-size: 11.5px; }
   .tk-score-lb { display: none; }
 }
 </style>

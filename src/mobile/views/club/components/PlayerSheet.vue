@@ -77,7 +77,7 @@
       <slot name="extra" />
     </template>
 
-    <div v-else class="m-empty" style="padding: 26px 0; position: relative">
+    <div v-else class="m-empty" style="padding: 23.5px 0; position: relative">
       <div class="m-logo">🛡️</div>
       <h3>成员信息</h3>
       <p>点成员头像或车头查看详情</p>
@@ -106,43 +106,43 @@ const onImgError = (e) => {
 <style scoped>
 /* inline 模式：当普通卡片用，.m-card 已经给了 14/16 内边距，标题行顶边不用再让 */
 .ps-inline .ps-title {
-  margin: 0 0 12px;
+  margin: 0 0 11px;
 }
 
 /* 标题行：头像 + 名字/ID + 关闭按钮 */
 .ps-title {
-  display: flex; align-items: center; gap: 9px;
-  margin: 2px 0 12px;
+  display: flex; align-items: center; gap: 8px;
+  margin: 2px 0 11px;
 }
 .ps-ava {
-  flex: none; width: 34px; height: 34px; border-radius: var(--m-r-md);
+  flex: none; width: 30.5px; height: 30.5px; border-radius: var(--m-r-md);
   object-fit: cover; border: 1px solid var(--m-border);
 }
 .ps-ava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 12.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary-deep);
 }
 .ps-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .ps-nm {
-  min-width: 0; font-size: 15.5px; font-weight: 700; color: var(--m-text); line-height: 1.25;
+  min-width: 0; font-size: 14px; font-weight: 700; color: var(--m-text); line-height: 1.25;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.ps-id { font-size: 10.5px; color: var(--m-text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ps-loading { padding: 22px 0; text-align: center; }
+.ps-id { font-size: 9.5px; color: var(--m-text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ps-loading { padding: 20px 0; text-align: center; }
 
 /* 信息行：战力/服务器、俱乐部、三项统计 */
 .ps-rows {
-  display: flex; flex-direction: column; gap: 6px;
-  padding: 10px 12px; border-radius: 8px;
+  display: flex; flex-direction: column; gap: 5.5px;
+  padding: 9px 11px; border-radius: 7px;
   background: var(--m-bg); border: 1px solid var(--m-border);
 }
 .ps-row {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px;
-  font-size: 12px; color: var(--m-text2);
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 3.5px 14.5px;
+  font-size: 11px; color: var(--m-text2);
 }
 .ps-row b {
-  font-size: 12.5px; font-weight: 700; color: var(--m-text);
+  font-size: 11.5px; font-weight: 700; color: var(--m-text);
   font-variant-numeric: tabular-nums;
 }
 .ps-power { color: var(--m-amber) !important; }
@@ -151,41 +151,41 @@ const onImgError = (e) => {
 
 /* 武将阵容 */
 .ps-sec {
-  font-size: 12.5px; font-weight: 700; color: var(--m-text);
-  margin: 16px 0 2px;
+  font-size: 11.5px; font-weight: 700; color: var(--m-text);
+  margin: 14.5px 0 2px;
 }
-.ps-cnt { margin: 0 0 8px; font-size: 11px; color: var(--m-text3); }
+.ps-cnt { margin: 0 0 7px; font-size: 10px; color: var(--m-text3); }
 .ps-hgrid {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 .ps-hcard {
-  display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left;
-  padding: 8px 9px; border: 1px solid var(--m-border); border-radius: 8px;
+  display: flex; flex-direction: column; gap: 5.5px; width: 100%; text-align: left;
+  padding: 7px 8px; border: 1px solid var(--m-border); border-radius: 7px;
   background: var(--m-card);
 }
 .ps-hcard:active { background: var(--m-bg); }
 .ps-hname {
-  font-size: 12px; font-weight: 700; color: var(--m-text);
+  font-size: 11px; font-weight: 700; color: var(--m-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.ps-hbody { display: flex; align-items: flex-start; gap: 7px; min-width: 0; }
+.ps-hbody { display: flex; align-items: flex-start; gap: 6.5px; min-width: 0; }
 .ps-hava {
-  flex: none; width: 38px; height: 38px; border-radius: var(--m-r-md);
+  flex: none; width: 34px; height: 34px; border-radius: var(--m-r-md);
   object-fit: cover; border: 1px solid var(--m-border);
 }
 .ps-hava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 12.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary-deep);
 }
 .ps-hpills {
   flex: 1; min-width: 0;
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5px;
 }
 .ps-pill {
-  display: block; padding: 1px 2px; border-radius: 4px; text-align: center;
-  font-size: 9px; font-weight: 700; color: var(--m-text2);
+  display: block; padding: 1px 2px; border-radius: 3.5px; text-align: center;
+  font-size: 8px; font-weight: 700; color: var(--m-text2);
   background: var(--m-bg); border: 1px solid var(--m-border);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;

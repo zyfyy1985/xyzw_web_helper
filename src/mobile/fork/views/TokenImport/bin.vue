@@ -313,29 +313,29 @@ const handleImport = async () => {
 <style scoped lang="scss">
 .optional-fields {
   display: flex;
-  gap: 16px;
+  gap: 14.5px;
   flex-wrap: wrap;
 
   n-form-item {
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
   }
 }
 
 .form-actions {
-  margin-top: 24px;
+  margin-top: 21.5px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .dropzone-content {
   width: 100%;
   border:1px dashed #fcc;
-  border-radius: 8px;
+  border-radius: 7px;
   text-align: center;
   color:var(--m-text3);
-  padding: 40px 20px;
-  font-size: 12px;
+  padding: 36px 18px;
+  font-size: 11px;
 }
 </style>

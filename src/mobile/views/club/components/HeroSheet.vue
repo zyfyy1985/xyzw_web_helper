@@ -59,7 +59,7 @@
       </div>
     </template>
 
-    <div v-else class="m-empty" style="padding: 26px 0; position: relative">
+    <div v-else class="m-empty" style="padding: 23.5px 0; position: relative">
       <div class="m-logo">⚔️</div>
       <h3>武将信息</h3>
       <p>在成员信息里点某个武将查看详情</p>
@@ -89,25 +89,25 @@ const quenches = (idx) => heroEquipmentQuenches(props.hero, idx);
 
 <style scoped>
 /* 头部：头像 + 名字 + 属性胶囊 */
-.hs-head { display: flex; align-items: flex-start; gap: 10px; margin: 2px 0 12px; }
+.hs-head { display: flex; align-items: flex-start; gap: 9px; margin: 2px 0 11px; }
 .hs-ava {
-  flex: none; width: 48px; height: 48px; border-radius: var(--m-r-md);
+  flex: none; width: 43px; height: 43px; border-radius: var(--m-r-md);
   object-fit: cover; border: 1px solid var(--m-border);
 }
 .hs-ava--ph {
   display: inline-flex; align-items: center; justify-content: center;
-  font-size: 17px; font-weight: 700; color:var(--m-on-primary);
+  font-size: 15.5px; font-weight: 700; color:var(--m-on-primary);
   background: var(--m-primary-deep);
 }
-.hs-id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.hs-id { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4.5px; }
 .hs-nm {
-  font-size: 16px; font-weight: 700; color: var(--m-text);
+  font-size: 14.5px; font-weight: 700; color: var(--m-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.hs-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.hs-chips { display: flex; flex-wrap: wrap; gap: 3.5px; }
 .hs-chip {
-  font-style: normal; padding: 1px 6px; border-radius: 4px;
-  font-size: 10px; font-weight: 700; color: var(--m-text2);
+  font-style: normal; padding: 1px 5.5px; border-radius: 3.5px;
+  font-size: 9px; font-weight: 700; color: var(--m-text2);
   background: var(--m-bg); border: 1px solid var(--m-border);
   white-space: nowrap; font-variant-numeric: tabular-nums;
 }
@@ -118,34 +118,34 @@ const quenches = (idx) => heroEquipmentQuenches(props.hero, idx);
 .hs-grid {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0; overflow: hidden;
-  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 8px;
+  background: var(--m-bg); border: 1px solid var(--m-border); border-radius: 7px;
 }
-.hs-cell { padding: 9px 10px; min-width: 0; }
+.hs-cell { padding: 8px 9px; min-width: 0; }
 .hs-cell:nth-child(3n + 1),
 .hs-cell:nth-child(3n + 2) { border-right: 1px solid var(--m-border); }
 .hs-cell:nth-child(-n + 6) { border-bottom: 1px solid var(--m-border); }
-.hs-k { display: block; font-size: 10.5px; color: var(--m-text3); font-weight: 700; margin-bottom: 2px; }
+.hs-k { display: block; font-size: 9.5px; color: var(--m-text3); font-weight: 700; margin-bottom: 2px; }
 .hs-v {
-  display: block; font-size: 12.5px; font-weight: 700; color: var(--m-text);
+  display: block; font-size: 11.5px; font-weight: 700; color: var(--m-text);
   font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .hs-v.is-power { color: var(--m-amber); }
 .hs-v.is-red { color: var(--m-red); }
 .hs-v.is-muted { color: var(--m-text3); }
 /* 洗练色块 */
-.hs-wash { display: inline-flex; gap: 3px; }
-.hs-wash i { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+.hs-wash { display: inline-flex; gap: 2.5px; }
+.hs-wash i { width: 10px; height: 10px; border-radius: 3.5px; display: inline-block; }
 /* 分组标题 */
 .hs-sec {
-  font-size: 12.5px; font-weight: 700; color: var(--m-text);
-  margin: 16px 0 8px;
+  font-size: 11.5px; font-weight: 700; color: var(--m-text);
+  margin: 14.5px 0 7px;
 }
 /* 装备详情 2×2 */
-.hs-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
-.hs-eq-i { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.hs-eq-l { flex: none; font-size: 12px; font-weight: 700; color: var(--m-text2); }
-.hs-eq-s { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
-.hs-eq-s i { width: 12px; height: 12px; border-radius: 4px; background: var(--m-border); display: inline-block; }
+.hs-eq { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 12.5px; }
+.hs-eq-i { display: flex; align-items: center; gap: 6.5px; min-width: 0; }
+.hs-eq-l { flex: none; font-size: 11px; font-weight: 700; color: var(--m-text2); }
+.hs-eq-s { display: flex; flex-wrap: wrap; gap: 2.5px; align-items: center; }
+.hs-eq-s i { width: 11px; height: 11px; border-radius: 3.5px; background: var(--m-border); display: inline-block; }
 .hs-eq-s i.red { background: var(--m-red); }
-.hs-eq-n { font-size: 11px; color: var(--m-text3); }
+.hs-eq-n { font-size: 10px; color: var(--m-text3); }
 </style>

@@ -59,7 +59,7 @@
 
     <!-- ③ 空态（查询中由 PlayerSheet 自己的「正在查询成员信息…」占位，这里不再叠一层） -->
     <div v-if="!player && !querying" class="m-card">
-      <div class="m-empty" style="padding: 30px 0">
+      <div class="m-empty" style="padding: 27px 0">
         <div class="m-logo">⚔️</div>
         <h3>还没有对手</h3>
         <p>
@@ -145,11 +145,11 @@ watch(
 
 <style scoped>
 .m-fpvp {
-  padding-bottom: 4px;
+  padding-bottom: 3.5px;
 }
 .fpvp-ico {
   display: inline-block;
-  margin-right: 4px;
+  margin-right: 3.5px;
   vertical-align: -2px;
   color: var(--m-primary);
 }
@@ -158,42 +158,42 @@ watch(
 .fpvp-q {
   display: flex;
   align-items: stretch;
-  gap: 8px;
+  gap: 7px;
 }
 .fpvp-in {
   flex: 1 1 auto;
   min-width: 0;
-  height: 40px;
-  padding: 0 12px;
-  font-size: 14px;
+  height: 36px;
+  padding: 0 11px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--m-text);
 }
 .fpvp-in::placeholder {
   font-weight: 400;
   color: var(--m-text3);
-  font-size: 13px;
+  font-size: 11.5px;
 }
 /* .m-btn-p 默认 min-height 44（那是给登录页整宽 CTA 的），卡片内的动作压到 40 */
 .fpvp-go {
   flex: none;
-  min-height: 40px;
-  padding: 0 16px;
-  font-size: 13.5px;
+  min-height: 36px;
+  padding: 0 14.5px;
+  font-size: 12px;
 }
 .fpvp-hint {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 }
 
 /* 内联的 PlayerSheet 就是 .m-pane 的普通子项，12px 间距由 .m-pane 的 gap 给，这里不用再写 */
 
 @media (max-width: 359px) {
   .fpvp-in {
-    font-size: 13px;
+    font-size: 11.5px;
   }
   .fpvp-go {
-    padding: 0 12px;
-    font-size: 13px;
+    padding: 0 11px;
+    font-size: 11.5px;
   }
 }
 </style>

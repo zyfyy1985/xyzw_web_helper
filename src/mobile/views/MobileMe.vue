@@ -472,7 +472,7 @@ async function handleLogout() {
 .m-me-val {
   flex: 0 1 auto;
   max-width: 62%;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 400;
   color: var(--m-text3);
   text-align: right;
@@ -481,16 +481,16 @@ async function handleLogout() {
 
 /* 行尾箭头 */
 .m-chev {
-  width: 16px;
-  height: 16px;
+  width: 14.5px;
+  height: 14.5px;
   color: var(--m-text3);
 }
 
 /* 退出登录：不可逆操作，用语义红字 + 常规描边；不抢页面里唯一那颗行动蓝 */
 .m-me-logout {
-  margin-top: 4px;
-  padding: 13px 12px;
-  font-size: 14px;
+  margin-top: 3.5px;
+  padding: 11.5px 11px;
+  font-size: 12.5px;
   color: var(--m-red);
   border: 1px solid var(--m-border);
 }
@@ -499,29 +499,29 @@ async function handleLogout() {
 .m-pw-f {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 4.5px;
+  margin-bottom: 9px;
 }
 .m-pw-f > span {
-  font-size: 11.5px;
+  font-size: 10.5px;
   line-height: 1.4;
   color: var(--m-text3);
 }
 /* type=password 的原生 input：iOS 上字号 <16px 会触发聚焦缩放，这里单独抬到 16px 并压掉内建图标 */
 .m-pw-f .m-finput {
-  font-size: 16px;
+  font-size: 14.5px;
   letter-spacing: 0.04em;
 }
 .m-pw-err {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--m-red);
 }
 .m-pw-btns {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 7px;
+  margin-top: 11px;
 }
 .m-pw-btns .m-btn {
   flex: 1;
@@ -532,11 +532,11 @@ async function handleLogout() {
 /* 行尾双色预览：两粒小圆点（primary + secondary），比一行色带更省高度、也不抢开关的位置 */
 .m-skin-pv {
   display: inline-flex;
-  gap: 3px;
+  gap: 2.5px;
 }
 .m-skin-pv i {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   display: block;
 }
@@ -545,20 +545,20 @@ async function handleLogout() {
 .m-skin-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 9px;
 }
 .m-skin {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 11px 4px 9px;
+  gap: 6.5px;
+  padding: 10px 3.5px 8px;
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-md);
   background: var(--m-card);
   color: var(--m-text2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
   cursor: pointer;
   -webkit-appearance: none;
@@ -569,23 +569,23 @@ async function handleLogout() {
   box-shadow: inset 0 0 0 1px var(--m-primary);
 }
 .m-skin-chip {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--m-r-md);
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 4px;
+  padding: 3.5px;
 }
 .m-skin-chip i {
-  width: 12px;
-  height: 12px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   border: 1.5px solid #ffffff;
   display: block;
 }
 .m-skin-nm {
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
   color: var(--m-text2);
 }

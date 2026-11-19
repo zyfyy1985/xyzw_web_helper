@@ -214,8 +214,8 @@ function openTokens() {
 
 <style scoped lang="scss">
 .m-share-hint {
-  margin: 10px 0 0;
-  font-size: 11.5px;
+  margin: 9px 0 0;
+  font-size: 10.5px;
   line-height: 1.55;
   color: var(--m-text3);
 }
@@ -227,12 +227,12 @@ function openTokens() {
 /* 管理行里的动作按钮要小一号：.m-btn 是给「主行动」用的 32px 高，
    塞进 44px 高的 .m-trow 里会把行撑起来，整列看着像一排按钮。 */
 .m-share-act {
-  padding: 5px 11px;
-  font-size: 12px;
+  padding: 4.5px 10px;
+  font-size: 11px;
   border-radius: var(--m-r-sm);
 }
 .m-share-dim {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--m-text3);
 }
 </style>

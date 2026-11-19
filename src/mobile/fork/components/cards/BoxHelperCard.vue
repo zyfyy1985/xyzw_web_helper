@@ -220,7 +220,7 @@ const handleBoxHelper = async () => {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
   padding: 0;
 }
 
@@ -228,7 +228,7 @@ const handleBoxHelper = async () => {
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  gap: 8px;
+  gap: 7px;
 }
 
 /* ★ 320 宽下四列只剩 58px，「数量：862」放不下一行会折成两行（itemH 87→102）。
@@ -243,15 +243,15 @@ const handleBoxHelper = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 9px 4px 8px;
+  gap: 3.5px;
+  padding: 8px 3.5px 7px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
   min-width: 0;
 
   > img {
-    width: 34px;
-    height: 34px;
+    width: 30.5px;
+    height: 30.5px;
     object-fit: contain;
   }
 }
@@ -267,7 +267,7 @@ const handleBoxHelper = async () => {
 
 .box-type {
   max-width: 100%;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.3;
   color: var(--m-text2);
@@ -277,7 +277,7 @@ const handleBoxHelper = async () => {
 }
 
 .box-count {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--m-text);
@@ -288,7 +288,7 @@ const handleBoxHelper = async () => {
 .selects {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 
   > * {
     flex: 1 1 0;
@@ -303,19 +303,19 @@ const handleBoxHelper = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin: 0 0 10px;
-  padding: 9px 12px;
+  gap: 7px;
+  margin: 0 0 9px;
+  padding: 8px 11px;
   border-radius: var(--m-r-md);
   background: var(--m-bg);
 
   .label {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--m-text3);
   }
 
   .value {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--m-primary);
     font-variant-numeric: tabular-nums;

@@ -239,7 +239,7 @@
                   backgroundColor: legacycolor[playerInfo.legacy]?.value,
                 }"
                 size="small"
-                style="margin-left: 8px"
+                style="margin-left: 7px"
               >
                 {{ legacycolor[playerInfo.legacy]?.name || "未知" }}
               </n-tag>
@@ -258,7 +258,7 @@
         </div>
 
         <div class="action-section">
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1">
+          <div style="display: flex; align-items: center; gap: 7px; flex: 1">
             <div class="fight-count-container">
               <label for="fightCount" class="fight-count-label"
                 >切磋次数:</label
@@ -281,7 +281,7 @@
               type="tertiary"
               @click="showPlayerInfoModal = false"
               size="small"
-              style="margin-right: 8px"
+              style="margin-right: 7px"
             >
               关闭
             </n-button>
@@ -447,7 +447,7 @@
           <div
             v-if="playerInfo.heroList"
             class="debug-info"
-            style="font-size: 12px; color: var(--m-text3); margin-bottom: 10px"
+            style="font-size: 11px; color: var(--m-text3); margin-bottom: 9px"
           >
             武将数量: {{ playerInfo.heroList.length }}
           </div>
@@ -489,11 +489,11 @@
             <!-- 添加调试信息 -->
             <div
               v-if="playerInfo.heroList"
-              style="font-size: 12px; color: var(--m-text3); margin-top: 10px"
+              style="font-size: 11px; color: var(--m-text3); margin-top: 9px"
             >
               武将列表为空
             </div>
-            <div v-else style="font-size: 12px; color: var(--m-text3); margin-top: 10px">
+            <div v-else style="font-size: 11px; color: var(--m-text3); margin-top: 9px">
               武将列表未定义
             </div>
           </div>
@@ -1701,15 +1701,15 @@ onMounted(() => {
 <style scoped lang="scss">
 // 模态框样式
 .player-info-content {
-  padding: 20px;
+  padding: 18px;
 }
 
 .player-info-main {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  gap: 14.5px;
+  margin-bottom: 18px;
+  padding-bottom: 13.5px;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -1719,19 +1719,19 @@ onMounted(() => {
 }
 
 .player-info-detail h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 7px 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
 }
 
 .player-info-detail p {
-  margin: 0 0 4px 0;
+  margin: 0 0 3.5px 0;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .action-section {
-  margin: 15px 0;
+  margin: 13.5px 0;
   display: flex;
   justify-content: flex-start;
 }
@@ -1739,7 +1739,7 @@ onMounted(() => {
 .fight-count-container {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin-right: auto;
 }
 
@@ -1751,7 +1751,7 @@ onMounted(() => {
 }
 
 .fight-count-input {
-  width: 100px;
+  width: 90px;
 }
 
 .fight-count-hint {
@@ -1762,12 +1762,12 @@ onMounted(() => {
 .fight-count-error {
   font-size: var(--font-size-xs);
   color: var(--error-color);
-  margin-left: 4px;
+  margin-left: 3.5px;
 }
 
 .fight-progress {
-  margin: 15px 0;
-  padding: 15px;
+  margin: 13.5px 0;
+  padding: 13.5px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
@@ -1777,7 +1777,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .progress-title {
@@ -1788,29 +1788,29 @@ onMounted(() => {
 
 .progress-stats {
   display: flex;
-  gap: 15px;
+  gap: 13.5px;
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
 .fight-result {
-  margin: 15px 0;
-  padding: 15px;
+  margin: 13.5px 0;
+  padding: 13.5px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
 }
 
 .fight-result h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 11px 0;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
 }
 
 .result-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
+  gap: 11px;
 }
 
 .result-item {
@@ -1838,17 +1838,17 @@ onMounted(() => {
 }
 
 .result-actions {
-  margin-top: 15px;
+  margin-top: 13.5px;
   display: flex;
   justify-content: flex-start;
-  gap: 8px;
+  gap: 7px;
 }
 
 .modal-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
+  padding: 11px 18px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-light);
 }
@@ -1856,19 +1856,19 @@ onMounted(() => {
 /* 武将详情模态框样式 */
 .hero-detail-modal {
   .hero-modal-content {
-    padding: 20px 0;
+    padding: 18px 0;
   }
 
   .hero-modal-header {
     display: flex;
     align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
+    gap: 18px;
+    margin-bottom: 18px;
   }
 
   .hero-modal-avatar {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     border-radius: var(--m-r-md);
     background: var(--bg-secondary);
     display: flex;
@@ -1884,7 +1884,7 @@ onMounted(() => {
     }
 
     .hero-placeholder {
-      font-size: 36px;
+      font-size: 32.5px;
       font-weight: var(--font-weight-bold);
       color: var(--text-secondary);
     }
@@ -1895,7 +1895,7 @@ onMounted(() => {
   }
 
   .hero-modal-name {
-    margin: 0 0 10px 0;
+    margin: 0 0 9px 0;
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
   }
@@ -1903,12 +1903,12 @@ onMounted(() => {
   .hero-modal-stats {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 13.5px;
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
 
     .stat-item {
-      padding: 4px 8px;
+      padding: 3.5px 7px;
       background: var(--bg-secondary);
       border-radius: var(--border-radius-sm);
       border: 1px solid var(--border-light);
@@ -1916,7 +1916,7 @@ onMounted(() => {
   }
 
   .hero-modal-details {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 
     :deep(.n-descriptions) {
       font-size: var(--font-size-sm);
@@ -1933,11 +1933,11 @@ onMounted(() => {
   }
 
   .hero-modal-equipment {
-    margin-top: 20px;
+    margin-top: 18px;
   }
 
   .section-title {
-    margin: 0 0 15px 0;
+    margin: 0 0 13.5px 0;
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-bold);
   }
@@ -1945,30 +1945,30 @@ onMounted(() => {
   .equipment-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    gap: 13.5px;
   }
 
   .equipment-item {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
   }
 
   .equipment-label {
     font-size: var(--font-size-sm);
     color: var(--text-primary);
     font-weight: var(--font-weight-medium);
-    width: 60px;
+    width: 54px;
   }
 
   .equipment-slots {
     display: flex;
-    gap: 6px;
+    gap: 5.5px;
   }
 
   .equipment-slot {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border: 1px solid var(--border-light);
     border-radius: var(--border-radius-sm);
     background: var(--bg-secondary);
@@ -1981,10 +1981,10 @@ onMounted(() => {
 
   /* 鱼灵洗练颜色块 */
   .ModalEquipment {
-    width: 16px;
-    height: 16px;
+    width: 14.5px;
+    height: 14.5px;
     border-radius: var(--m-r-sm);
-    margin-right: 4px;
+    margin-right: 3.5px;
     display: inline-block;
     vertical-align: middle;
   }
@@ -2010,8 +2010,8 @@ onMounted(() => {
 
 /* 切磋结果显示样式 */
 .fight-result {
-  margin: 15px 0;
-  padding: 15px;
+  margin: 13.5px 0;
+  padding: 13.5px;
   background: var(--bg-secondary);
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
@@ -2021,8 +2021,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 13.5px;
+  padding-bottom: 9px;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -2035,7 +2035,7 @@ onMounted(() => {
 
 .result-summary {
   display: flex;
-  gap: 15px;
+  gap: 13.5px;
   font-size: var(--font-size-sm);
   flex-wrap: wrap;
 }
@@ -2043,7 +2043,7 @@ onMounted(() => {
 .summary-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3.5px;
 }
 
 .summary-label {
@@ -2064,12 +2064,12 @@ onMounted(() => {
 }
 
 .result-list {
-  margin-bottom: 15px;
+  margin-bottom: 13.5px;
 }
 
 .battle-result-item {
-  margin-bottom: 10px;
-  padding: 12px;
+  margin-bottom: 9px;
+  padding: 11px;
   background: var(--bg-primary);
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
@@ -2091,7 +2091,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .battle-index {
@@ -2103,13 +2103,13 @@ onMounted(() => {
 .battle-details {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 13.5px;
 }
 
 .battle-side {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex: 1;
 }
 
@@ -2126,7 +2126,7 @@ onMounted(() => {
   display: block;
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  margin-bottom: 3px;
+  margin-bottom: 2.5px;
 }
 
 .side-power {
@@ -2145,7 +2145,7 @@ onMounted(() => {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   color: var(--text-secondary);
-  margin: 0 10px;
+  margin: 0 9px;
 }
 
 /* 响应式设计 */
@@ -2153,17 +2153,17 @@ onMounted(() => {
   .result-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 9px;
   }
 
   .result-summary {
-    gap: 10px;
+    gap: 9px;
   }
 
   .battle-details {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 9px;
   }
 
   .battle-side {
@@ -2172,33 +2172,33 @@ onMounted(() => {
 
   .battle-vs {
     align-self: center;
-    margin: 5px 0;
+    margin: 4.5px 0;
     transform: rotate(90deg);
   }
 }
 
 .player-heroes {
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
 .player-heroes h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 11px 0;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-bold);
 }
 
 .hero-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(198px, 1fr));
+  gap: 11px;
 }
 
 .hero-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   background: var(--bg-secondary);
-  padding: 12px 16px;
+  padding: 11px 14.5px;
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
   transition: all var(--transition-fast);
@@ -2213,7 +2213,7 @@ onMounted(() => {
 .hero-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3.5px;
   flex: 1;
 }
 
@@ -2225,13 +2225,13 @@ onMounted(() => {
 .hero-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
 }
 
 .hero-stats span {
-  padding: 2px 6px;
+  padding: 2px 5.5px;
   background: var(--bg-primary);
   border-radius: var(--border-radius-full);
   border: 1px solid var(--border-light);
@@ -2251,7 +2251,7 @@ onMounted(() => {
 
 .empty-heroes {
   background: var(--bg-secondary);
-  padding: 30px;
+  padding: 27px;
   border-radius: var(--border-radius-sm);
   border: 1px solid var(--border-light);
   text-align: center;
@@ -2262,7 +2262,7 @@ onMounted(() => {
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 7px;
 }
 
 .player-id {
@@ -2311,8 +2311,8 @@ onMounted(() => {
   }
 
   .header-icon {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     border-radius: var(--border-radius-md);
     background: var(--bg-secondary);
@@ -2354,7 +2354,7 @@ onMounted(() => {
 
       :deep(.n-tag) {
         font-size: var(--font-size-sm);
-        padding: 4px 8px;
+        padding: 3.5px 7px;
       }
     }
   }
@@ -2395,7 +2395,7 @@ onMounted(() => {
 
     :deep(.n-date-picker) {
       font-size: var(--font-size-sm);
-      width: 200px;
+      width: 180px;
 
       .n-input-wrapper {
         font-size: var(--font-size-sm);
@@ -2404,7 +2404,7 @@ onMounted(() => {
 
     .action-btn {
       font-size: var(--font-size-sm);
-      padding: 6px 12px;
+      padding: 5.5px 11px;
       border-radius: var(--border-radius-sm);
       transition: all var(--transition-fast);
 
@@ -2465,7 +2465,7 @@ onMounted(() => {
       font-weight: var(--font-weight-medium);
       text-align: center;
       line-height: 1.5;
-      max-width: 800px;
+      max-width: 720px;
     }
   }
 }
@@ -2526,8 +2526,8 @@ onMounted(() => {
     .tab-count {
       font-size: var(--font-size-xs);
       background: rgba(255, 255, 255, 0.3);
-      padding: 2px 6px;
-      border-radius: 12px;
+      padding: 2px 5.5px;
+      border-radius: 11px;
       font-weight: var(--font-weight-bold);
 
       .alliance-tab.active & {
@@ -2545,7 +2545,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  height: calc(100% - 200px);
+  height: calc(100% - 180px);
 
   // 加载状态
   .loading-state {
@@ -2593,8 +2593,8 @@ onMounted(() => {
 
     // 滚动条样式
     ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
     }
 
     ::-webkit-scrollbar-track {
@@ -2708,12 +2708,12 @@ onMounted(() => {
 
       // 单元格宽度分配
       &.rank {
-        width: 90px;
-        min-width: 90px;
+        width: 81px;
+        min-width: 81px;
         justify-content: center;
         font-weight: var(--font-weight-bold);
         color: var(--text-primary);
-        padding: 4px 8px;
+        padding: 3.5px 7px;
 
         .rank-container {
           position: relative;
@@ -2722,13 +2722,13 @@ onMounted(() => {
           justify-content: center;
           width: 100%;
           height: 100%;
-          padding: 4px 0;
+          padding: 3.5px 0;
         }
 
         .rank-medal {
           position: relative;
-          width: 36px;
-          height: 36px;
+          width: 32.5px;
+          height: 32.5px;
           border-radius: var(--m-r-md);
           display: flex;
           align-items: center;
@@ -2737,7 +2737,7 @@ onMounted(() => {
           font-size: var(--font-size-base);
           color: white;
 
-          margin: 0 6px;
+          margin: 0 5.5px;
 
           &::before {
             content: attr(data-rank);
@@ -2772,17 +2772,17 @@ onMounted(() => {
           font-size: var(--font-size-base);
           font-weight: var(--font-weight-bold);
           color: var(--text-primary);
-          margin: 0 6px;
+          margin: 0 5.5px;
         }
       }
 
       &.alliance {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
 
         .alliance-tag {
           display: inline-block;
-          padding: 3px 8px;
+          padding: 2.5px 7px;
           border-radius: var(--border-radius-full);
           font-size: var(--font-size-xs);
           font-weight: var(--font-weight-bold);
@@ -2798,13 +2798,13 @@ onMounted(() => {
       }
 
       &.avatar {
-        width: 50px;
-        min-width: 50px;
+        width: 45px;
+        min-width: 45px;
         justify-content: center;
 
         .member-avatar {
-          width: 32px;
-          height: 32px;
+          width: 29px;
+          height: 29px;
           border-radius: var(--m-r-md);
           object-fit: cover;
           border: 2px solid var(--border-light);
@@ -2818,8 +2818,8 @@ onMounted(() => {
         }
 
         .member-avatar-placeholder {
-          width: 32px;
-          height: 32px;
+          width: 29px;
+          height: 29px;
           border-radius: var(--m-r-md);
           background: linear-gradient(
             135deg,
@@ -2837,8 +2837,8 @@ onMounted(() => {
       }
 
       &.name {
-        width: 120px;
-        min-width: 120px;
+        width: 108px;
+        min-width: 108px;
         font-weight: var(--font-weight-medium);
         color: var(--text-primary);
         white-space: nowrap;
@@ -2847,27 +2847,27 @@ onMounted(() => {
       }
 
       &.red-quench {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
         color: var(--primary-color);
         font-weight: var(--font-weight-medium);
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 4px;
+        gap: 3.5px;
 
         &::before {
           content: "";
-          width: 8px;
-          height: 8px;
+          width: 7px;
+          height: 7px;
           border-radius: var(--m-r-sm);
           background: var(--error-color);
         }
       }
 
       &.score {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
         font-weight: var(--font-weight-medium);
         color: var(--warning-color);
         justify-content: center;
@@ -2875,8 +2875,8 @@ onMounted(() => {
       }
 
       &.first-3 {
-        width: 350px;
-        min-width: 405px;
+        width: 315px;
+        min-width: 364.5px;
 
         .hero-avatars {
           display: flex;
@@ -2899,9 +2899,9 @@ onMounted(() => {
           border-radius: var(--border-radius-sm);
           border: 1px solid var(--border-light);
           transition: all var(--transition-fast);
-          min-width: 120px;
+          min-width: 108px;
           flex: 1;
-          max-width: 130px;
+          max-width: 117px;
           cursor: pointer;
 
           &:hover {
@@ -2935,8 +2935,8 @@ onMounted(() => {
         }
 
         .hero-avatar {
-          width: 50px;
-          height: 50px;
+          width: 45px;
+          height: 45px;
           border-radius: var(--m-r-md);
           object-fit: cover;
           border: 2px solid var(--border-light);
@@ -2954,8 +2954,8 @@ onMounted(() => {
         }
 
         .hero-avatar-placeholder {
-          width: 40px;
-          height: 40px;
+          width: 36px;
+          height: 36px;
           border-radius: var(--m-r-md);
           background: linear-gradient(
             135deg,
@@ -2984,14 +2984,14 @@ onMounted(() => {
 
         .hero-holy-beast {
           position: absolute;
-          right: -5px;
-          bottom: -5px;
+          right: -4.5px;
+          bottom: -4.5px;
           display: flex;
           align-items: center;
           gap: 2px;
           background:linear-gradient(135deg, var(--m-red), var(--m-amber));
           color: white;
-          padding: 2px 6px;
+          padding: 2px 5.5px;
           border-radius: var(--border-radius-full);
           font-size: var(--font-size-xs);
           font-weight: var(--font-weight-bold);
@@ -3048,7 +3048,7 @@ onMounted(() => {
 
         .hero-redquench {
           font-weight: var(--font-weight-bold);
-          padding: 1px 6px;
+          padding: 1px 5.5px;
           border-radius: var(--border-radius-full);
 
           &.redquench-high {
@@ -3069,8 +3069,8 @@ onMounted(() => {
       }
 
       &.power {
-        width: 100px;
-        min-width: 100px;
+        width: 90px;
+        min-width: 90px;
         justify-content: center;
         font-weight: var(--font-weight-bold);
         color: var(--primary-color);
@@ -3079,8 +3079,8 @@ onMounted(() => {
       }
 
       &.level {
-        width: 70px;
-        min-width: 70px;
+        width: 63px;
+        min-width: 63px;
         justify-content: center;
 
         &::before {
@@ -3092,7 +3092,7 @@ onMounted(() => {
 
         span {
           display: inline-block;
-          padding: 2px 8px;
+          padding: 2px 7px;
           background: linear-gradient(
             135deg,
             var(--primary-color-light) 0%,
@@ -3106,8 +3106,8 @@ onMounted(() => {
       }
 
       &.server {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
         justify-content: center;
         color: var(--text-secondary);
         font-size: var(--font-size-sm);
@@ -3116,14 +3116,14 @@ onMounted(() => {
 
       &.announcement {
         flex: 1;
-        min-width: 150px;
+        min-width: 135px;
         color: var(--text-secondary);
         white-space: normal;
         overflow: visible;
         text-overflow: clip;
         font-size: var(--font-size-xs);
         line-height: 1.4;
-        min-height: 24px;
+        min-height: 21.5px;
         word-break: break-all;
       }
     }
@@ -3133,7 +3133,7 @@ onMounted(() => {
 // 按钮样式调整
 :deep(.n-button) {
   font-size: var(--font-size-sm);
-  padding: 6px 12px;
+  padding: 5.5px 11px;
   border-radius: var(--border-radius-sm);
 
   &:disabled {
@@ -3199,48 +3199,48 @@ onMounted(() => {
       font-size: var(--font-size-xs);
 
       &.rank {
-        width: 50px;
-        min-width: 50px;
+        width: 45px;
+        min-width: 45px;
       }
 
       &.alliance {
-        width: 100px;
-        min-width: 100px;
+        width: 90px;
+        min-width: 90px;
       }
 
       &.avatar {
-        width: 50px;
-        min-width: 50px;
+        width: 45px;
+        min-width: 45px;
 
         .member-avatar,
         .member-avatar-placeholder {
-          width: 32px;
-          height: 32px;
+          width: 29px;
+          height: 29px;
         }
       }
 
       &.name {
-        width: 120px;
-        min-width: 120px;
+        width: 108px;
+        min-width: 108px;
       }
 
       &.score,
       &.red-quench {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
       }
 
       &.first-3 {
-        width: 350px;
-        min-width: 350px;
+        width: 315px;
+        min-width: 315px;
 
         .hero-card {
-          min-width: 80px;
+          min-width: 72px;
 
           .hero-avatar,
           .hero-avatar-placeholder {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
           }
 
           .hero-name {
@@ -3254,18 +3254,18 @@ onMounted(() => {
       }
 
       &.power {
-        width: 100px;
-        min-width: 100px;
+        width: 90px;
+        min-width: 90px;
       }
 
       &.level,
       &.server {
-        width: 70px;
-        min-width: 70px;
+        width: 63px;
+        min-width: 63px;
       }
 
       &.announcement {
-        min-width: 150px;
+        min-width: 135px;
       }
     }
   }
@@ -3289,14 +3289,14 @@ onMounted(() => {
   }
 
   :deep(.n-date-picker) {
-    width: 180px !important;
+    width: 162px !important;
   }
 }
 
 .pagination-container {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
-  padding: 10px 0;
+  margin-top: 14.5px;
+  padding: 9px 0;
 }
 </style>

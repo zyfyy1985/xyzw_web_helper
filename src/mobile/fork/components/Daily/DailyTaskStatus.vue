@@ -85,7 +85,7 @@
       preset="card"
       title="任务设置"
       class="m-setmodal"
-      style="width: 90%; max-width: 400px"
+      style="width: 90%; max-width: 360px"
     >
       <template #header>
         <div class="modal-header">
@@ -189,7 +189,7 @@
       preset="card"
       title="每日任务详情"
       class="m-taskdetail"
-      style="width: 90%; max-width: 400px"
+      style="width: 90%; max-width: 360px"
     >
       <template #header>
         <div class="modal-header">
@@ -256,7 +256,7 @@
       v-model:show="showLog"
       preset="card"
       title="任务执行日志"
-      style="width: 90%; max-width: 500px"
+      style="width: 90%; max-width: 450px"
     >
       <template #header>
         <div class="modal-header">
@@ -384,7 +384,9 @@ const roleDailyPoint = computed(() => {
 
 const dailyPoint = computed(() => Math.min(roleDailyPoint.value, 100));
 const isFull = computed(() => dailyPoint.value >= 100);
-const progressColor = computed(() => (isFull.value ? "var(--m-green)" : "var(--m-primary)"));
+/* 进度条只认主题色（--m-primary）。满进度原先切到 --m-green，
+   全站「只有一个行动色」的规则被破掉，皮肤换色时也跟不上。 */
+const progressColor = computed(() => "var(--m-primary)");
 
 // WebSocket连接状态
 const isConnected = computed(() => {
@@ -663,7 +665,7 @@ onBeforeUnmount(() => {
   border-left:4px solid var(--m-amber); // 每日任务专用颜色
   display: flex;
   flex-direction: column;
-  min-height: 240px; // 继续缩小整体高度
+  min-height: 216px; // 继续缩小整体高度
   padding: var(--spacing-lg);
   gap: var(--spacing-md);
 
@@ -710,8 +712,8 @@ onBeforeUnmount(() => {
 }
 
 .status-icon {
-  width: 32px;
-  height: 32px;
+  width: 29px;
+  height: 29px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -724,11 +726,13 @@ onBeforeUnmount(() => {
 }
 
 .settings-gear {
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   padding: var(--spacing-xs);
   border: none;
-  border-radius: var(--border-radius-medium);
+  /* 圆形：与六宫格里「内置脚本」那颗齿轮（mobile.css 的 .m-qa .m-gear）保持一致，
+     同一屏上两颗齿轮不该一颗方一颗圆 */
+  border-radius: 50%;
   background: rgba(107, 114, 128, 0.1);
   color: var(--text-secondary);
   cursor: pointer;
@@ -738,8 +742,8 @@ onBeforeUnmount(() => {
   justify-content: center;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   &:hover {
@@ -780,8 +784,8 @@ onBeforeUnmount(() => {
 }
 
 .loading-icon {
-  width: 16px;
-  height: 16px;
+  width: 14.5px;
+  height: 14.5px;
   animation: spin 1s linear infinite;
 }
 
@@ -898,8 +902,8 @@ onBeforeUnmount(() => {
 }
 
 .task-status-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: var(--text-tertiary);
 
   &.completed {
@@ -916,7 +920,7 @@ onBeforeUnmount(() => {
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-medium);
   padding: var(--spacing-md);
-  max-height: 400px;
+  max-height: 360px;
   overflow-y: auto;
 }
 
@@ -929,7 +933,7 @@ onBeforeUnmount(() => {
 
 .log-time {
   color: var(--text-tertiary);
-  min-width: 80px;
+  min-width: 72px;
   flex-shrink: 0;
 }
 
