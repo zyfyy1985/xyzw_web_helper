@@ -18,6 +18,7 @@
     </div>
 
     <div ref="scroller" class="m-legal-body">
+      <p v-if="doc.warning" class="m-legal-warn">{{ doc.warning }}</p>
       <p class="m-legal-intro">{{ doc.intro }}</p>
       <section v-for="s in doc.sections" :key="s.h" class="m-legal-sec">
         <h5 class="m-legal-h">{{ s.h }}</h5>
