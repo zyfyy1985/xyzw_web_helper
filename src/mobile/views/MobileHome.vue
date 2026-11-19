@@ -18,7 +18,7 @@
       <!-- 这个格子是 div 不是 button：里面还要放一个齿轮按钮，button 不能嵌套 -->
       <div class="m-qa" role="button" tabindex="0" @click="openGame" @keydown.enter="openGame">
         <span class="m-gear" role="button" title="内置脚本" @click.stop="openScripts">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.2a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/></svg>
+          <MIcon name="gear" :size="12" />
         </span>
         <span class="m-ib">
           <MIcon name="game" />
@@ -641,19 +641,26 @@ async function openGame() {
 }
 
 /* ============================================================
- * ② 快捷入口：白卡 + 描边 + 浅主色图标块（与「玩法/工具」页的
- *    .m-tile-ic 同一套语言，换肤后全站图标块同色）
+ * ② 快捷入口：一张整卡 + 内部发丝线 3×2 网格
+ *    之前是六张独立描边卡、每格里再套一个描边图标块——两层框、
+ *    12 段描边，视觉很碎。现在收敛成一个容器，格间用 1px 发丝线
+ *    分隔（与「玩法/工具」页磁贴、全站「分隔靠发丝线」语言一致），
+ *    图标裸主色不再套底块。
  * ============================================================ */
 .m-home .m-quick {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.m-home .m-qa {
+  gap: 0;
   background: var(--m-card);
   border: 1px solid var(--m-border);
   border-radius: var(--m-r-lg);
-  padding: 13px 5.5px 12px;
+  overflow: hidden;
+}
+.m-home .m-qa {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 13px 6px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -663,24 +670,30 @@ async function openGame() {
   box-shadow: none;
   font-family: inherit;
 }
-/* 图标块：浅主色底 + 16% 主色描边 + 主色图标。
- * --m-primary-soft 在白卡上对比不足（≈1.05），描边是它立得住的关键（同 .m-tile-ic）。 */
+/* 发丝线：2/3 列左边线，第二行上边线（1px --m-band，全站分隔线规范） */
+.m-home .m-qa:nth-child(3n + 2),
+.m-home .m-qa:nth-child(3n + 3) {
+  border-left: 1px solid var(--m-band);
+}
+.m-home .m-qa:nth-child(n + 4) {
+  border-top: 1px solid var(--m-band);
+}
+/* 图标：裸主色线性图标，无底块（去掉「框中框」的里层框） */
 .m-home .m-qa .m-ib {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--m-r-md);
+  width: auto;
+  height: auto;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
-  background: var(--m-primary-soft);
-  border: 1px solid color-mix(in srgb, var(--m-primary) 16%, transparent);
+  background: none;
+  border: none;
   color: var(--m-primary);
 }
 /* App.vue 的暗色 *{color:#fff} 比继承强，图标必须显式点名 */
 .m-home .m-qa .m-ib svg {
-  width: 18px;
-  height: 18px;
+  width: 21px;
+  height: 21px;
   color: var(--m-primary);
 }
 .m-home .m-qa .m-lb {
@@ -689,13 +702,14 @@ async function openGame() {
   line-height: 1.3;
   color: var(--m-text2) !important;
 }
-/* 齿轮：白底圆 + 描边（内置脚本入口，与卡面同底色才不显脏） */
+/* 齿轮：与「每日任务」卡头齿轮完全一致（23.5px 圆、卡底色、1px 描边、灰图标）。
+   两颗齿轮在同一屏上，样式必须同一颗（用户 11-19 口径） */
 .m-home .m-qa .m-gear {
   position: absolute;
   top: 5px;
   right: 5px;
-  width: 21px;
-  height: 21px;
+  width: 23.5px;
+  height: 23.5px;
   border-radius: 50%;
   border: 1px solid var(--m-border);
   background: var(--m-card);
@@ -816,11 +830,22 @@ async function openGame() {
 .m-home.m-home :deep(.daily-task .settings-gear) {
   width: 23.5px;
   height: 23.5px;
+  box-sizing: border-box; /* fork 自带 padding 3.5px，content-box 会撑大到 30.5px */
+  padding: 0;
   /* 圆形，对齐六宫格里那颗「内置脚本」齿轮 */
   border-radius: 50%;
   background: var(--m-card);
   border: 1px solid var(--m-border);
   color: var(--m-text3) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* ★ fork 里 .settings-gear svg{width:16px} 会把 MIcon 的 12px 图标拉大，
+   两颗齿轮就一大一小（用户真机反馈）——显式钉回 12px */
+.m-home.m-home :deep(.daily-task .settings-gear svg) {
+  width: 12px;
+  height: 12px;
 }
 .m-home.m-home :deep(.daily-task .progress-container) {
   margin-bottom: 9px;
@@ -844,8 +869,8 @@ async function openGame() {
 }
 .m-home.m-home :deep(.daily-task .info-container) {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: baseline;
+  justify-content: center; /* 用户口径：居中显示「今日任务完成100%」 */
   margin-top: 8px;
   font-size: 10px;
   color: var(--m-text3) !important;
@@ -854,9 +879,12 @@ async function openGame() {
   color: var(--m-text3) !important;
 }
 .m-home.m-home :deep(.daily-task .info-container b) {
+  /* 与说明文字同字号（整行一句话），只用颜色区分 —— 之前 11.5px mono
+     与 10px 汉字基线混排又会出现「退后几像素」的观感 */
+  margin-left: 1px;
   font-family: var(--m-mono);
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--m-primary) !important;
 }
