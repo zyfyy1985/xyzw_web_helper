@@ -2020,6 +2020,17 @@ body.m-mobile .n-button.n-button--small-type {
   --n-font-size: 12px !important;
   --n-padding: 0 11px !important;
 }
+/* ★★ InputNumber 里的 +/- 是「贴边按钮」：Naive 给它们 padding 0、宽 18px，
+   靠紧贴输入框右缘。上面那条 --n-padding 会把它们撑到 41px/个 ——
+   108px 的 .sm-num 被两个按钮吃掉 82px，数字输入框被挤成 0 宽，
+   表现就是「任务设置里数字全看不见」（11-19 那次 0.9 统一尺寸带进来的回归）。
+   这里把内部按钮的 padding 还原成 0，图标按 0.9 缩到 16px。 */
+.m-desk .n-input-number .n-button,
+body.m-mobile .n-input-number .n-button {
+  --n-padding: 0 !important;
+  --n-icon-size: 16px !important;
+  --n-icon-margin: 0 !important;
+}
 /* 输入框：高度由 --n-height 与 --n-blank-height 两个变量共同决定（后一个撑内部空白区），
    --n-padding-vertical 是 Naive 用 calc 写死的，必须一起按新高度重算 */
 .m-desk .n-input,
