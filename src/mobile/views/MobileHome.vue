@@ -23,7 +23,7 @@
         <span class="m-ib">
           <MIcon name="game" />
         </span>
-        <span class="m-lb">打开游戏</span>
+        <span class="m-lb">进入游戏</span>
       </div>
       <!-- 多开：与桌面 /multi 同样的协同内核，进去默认把当前账号放进第 1 窗 -->
       <button class="m-qa" @click="openMulti">
@@ -58,16 +58,16 @@
       </button>
     </section>
 
-    <!-- ============ ③④⑤ 三张状态卡 ============
-         桌面原组件零改动，靠 .m-desk 做变量重映射 + 卡片压平；
-         三者都是 gameData 可选链取数，不需要就绪门。 -->
+    <!-- ============ ③ 运行状态（方案 A：四行合一） ============
+         原先摞三张卡（每日任务 / 挂机 / 盐罐）各 108–216px，首屏露不完，
+         第四项功法根本没地方放。三条信息结构完全一样：一件事 + 一个倒数 + 一两个动作，
+         本来就是一张列表的四行；点行就地展开操作条，不跳转。
+         分区标题与「快捷入口」同一套版式（b + 序号 + rule），卡内不再自带标题。 -->
     <div class="m-home-sec">
-      <b>运行状态</b><i>03</i><span class="rule"></span>
+      <b>运行状态</b><i>04</i><span class="rule"></span>
     </div>
     <section class="m-desk">
-      <DailyTaskStatus />
-      <HangUpStatusCard />
-      <BottleHelperCard />
+      <RunStatusCard />
     </section>
 
     <!-- 内置脚本（打开游戏前勾选，与桌面 Dashboard 同一个对话框） -->
@@ -119,9 +119,7 @@ import { convertBinToLx } from "@/utils/gameLauncher";
 import IdentityCard from "@/mobile/fork/components/Common/IdentityCard.vue";
 import MIcon from "@/mobile/components/MIcon.vue";
 import BuiltinScriptDialog from "@/mobile/fork/components/BuiltinScriptDialog.vue";
-import DailyTaskStatus from "@/mobile/fork/components/Daily/DailyTaskStatus.vue";
-import HangUpStatusCard from "@/mobile/fork/components/cards/HangUpStatusCard.vue";
-import BottleHelperCard from "@/mobile/fork/components/cards/BottleHelperCard.vue";
+import RunStatusCard from "@/mobile/fork/components/Daily/RunStatusCard.vue";
 import { useBattleVersionWarmup } from "@/mobile/utils/battleVersion";
 import { openGameWindow, navigateGameWindow } from "@/utils/gameWindow";
 
@@ -722,259 +720,6 @@ async function openGame() {
 .m-home .m-qa .m-gear svg {
   width: 11px;
   height: 11px;
-}
-
-/* ============================================================
- * ③ 三张状态卡（托管 MyCard / DailyTaskStatus）：白卡 + 描边，
- *    图标块浅主色底，计时等宽大数字，动作键 32px
- * ============================================================ */
-.m-home.m-home :deep(.status-card) {
-  background: var(--m-card);
-  border: 1px solid var(--m-border);
-  border-radius: var(--m-r-lg);
-  padding: 13px 14.5px;
-  box-shadow: none;
-  min-height: 0;
-  transform: none;
-  transition: none;
-}
-.m-home.m-home :deep(.status-card .card-header) {
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 11px;
-}
-/* 图标块：25px 浅主色底 + 线性图标（MIcon，currentColor 跟行动色，随换肤走） */
-.m-home.m-home :deep(.status-card .card-header .status-icon) {
-  flex: none;
-  box-sizing: border-box;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--m-r-md);
-  background: var(--m-primary-soft);
-  border: 1px solid color-mix(in srgb, var(--m-primary) 16%, transparent);
-  color: var(--m-primary);
-  overflow: hidden;
-}
-/* App.vue 的暗色 *{color:#fff} 比继承强，svg 必须显式点名 */
-.m-home.m-home :deep(.status-card .card-header .status-icon svg) {
-  color: var(--m-primary);
-}
-.m-home.m-home :deep(.status-card .card-header .status-title h3),
-.m-home.m-home :deep(.status-card .card-header .status-info h3) {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--m-text) !important;
-}
-.m-home.m-home :deep(.status-card .card-header .status-title p),
-.m-home.m-home :deep(.status-card .card-header .status-info p) {
-  margin: 2px 0 0;
-  font-size: 9.5px;
-  line-height: 1.35;
-  color: var(--m-text3) !important;
-}
-/* 徽章：小块（--m-r-md），语义色仍由 MyCard 的 --bg-color/--font-color 提供 */
-.m-home.m-home :deep(.status-card .status-badge) {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4.5px;
-  padding: 3px 8px;
-  border-radius: var(--m-r-md);
-  font-size: 9.5px;
-  font-weight: 500;
-  line-height: 1.4;
-  background: var(--m-band);
-  color: var(--m-text3) !important;
-}
-.m-home.m-home :deep(.status-card .status-badge .status-dot) {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--m-text4);
-}
-/* 传了 status-class 的卡片保留语义色（挂机中 / 运行中是数据语义，不能拍成灰块）。
- * ★ 特异性必须压过上面那条灰色底：这里 (0,6,0) > 上面的 (0,5,0)。 */
-.m-home.m-home :deep(.status-card .status-badge.weekly),
-.m-home.m-home :deep(.status-card .status-badge.active),
-.m-home.m-home :deep(.status-card .status-badge.energy),
-.m-home.m-home :deep(.status-card .status-badge.completed) {
-  background: var(--bg-color);
-  color: var(--font-color) !important;
-}
-.m-home.m-home :deep(.status-card .status-badge .status-dot) {
-  background: currentColor;
-}
-
-/* ---------- 每日任务 ---------- */
-/* 组件给 .daily-task 挂了 4px 橘色左边线做「专用色」标记 —— 本体系里卡片一律无边框 */
-.m-home.m-home :deep(.status-card.daily-task) {
-  border-left: 1px solid var(--m-border);
-}
-.m-home.m-home :deep(.daily-task .card-header) {
-  flex-wrap: nowrap;
-  align-items: center;
-  margin-bottom: 11px;
-}
-.m-home.m-home :deep(.daily-task .header-right) {
-  width: auto;
-  margin-left: auto;
-  margin-top: 0;
-  gap: 5.5px;
-}
-.m-home.m-home :deep(.daily-task .settings-gear) {
-  width: 23.5px;
-  height: 23.5px;
-  box-sizing: border-box; /* fork 自带 padding 3.5px，content-box 会撑大到 30.5px */
-  padding: 0;
-  /* 圆形，对齐六宫格里那颗「内置脚本」齿轮 */
-  border-radius: 50%;
-  background: var(--m-card);
-  border: 1px solid var(--m-border);
-  color: var(--m-text3) !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-/* ★ fork 里 .settings-gear svg{width:16px} 会把 MIcon 的 12px 图标拉大，
-   两颗齿轮就一大一小（用户真机反馈）——显式钉回 12px */
-.m-home.m-home :deep(.daily-task .settings-gear svg) {
-  width: 12px;
-  height: 12px;
-}
-.m-home.m-home :deep(.daily-task .progress-container) {
-  margin-bottom: 9px;
-}
-/* 进度条：Naive 把 rail/fill 颜色与高度写成内联（rail-color=var(--m-bg)、高度 8px），
-   只能 !important 压回 band + 5px 细条 */
-.m-home.m-home :deep(.daily-task .n-progress) {
-  --n-fill-color: var(--m-primary) !important;
-}
-.m-home.m-home :deep(.daily-task .n-progress-graph-line),
-.m-home.m-home :deep(.daily-task .n-progress-graph-line-rail),
-.m-home.m-home :deep(.daily-task .n-progress-graph-line-fill) {
-  height: 5px !important;
-}
-.m-home.m-home :deep(.daily-task .n-progress-graph-line-rail) {
-  background-color: var(--m-band) !important;
-  border-radius: var(--m-r-sm) !important;
-}
-.m-home.m-home :deep(.daily-task .n-progress-graph-line-fill) {
-  border-radius: var(--m-r-sm) !important;
-}
-.m-home.m-home :deep(.daily-task .info-container) {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 3px; /* 「完成」与百分比之间留一档，别贴字 */
-  margin-top: 8px;
-  font-size: 10px;
-  color: var(--m-text3) !important;
-}
-.m-home.m-home :deep(.daily-task .info-container span) {
-  color: var(--m-text3) !important;
-}
-.m-home.m-home :deep(.daily-task .info-container b) {
-  /* 与说明文字同字号（整行一句话），只用颜色区分 —— 之前 11.5px mono
-     与 10px 汉字基线混排又会出现「退后几像素」的观感 */
-  font-family: var(--m-mono);
-  font-size: 10px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--m-primary) !important;
-}
-.m-home.m-home :deep(.daily-task .card-actions) {
-  margin-top: 0;
-  padding-top: 0;
-  display: flex;
-  gap: 8px;
-}
-/* 双按钮行：任务详情（次）+ 一键补差（主），等宽并排 */
-.m-home.m-home :deep(.daily-task .action-button) {
-  flex: 1;
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: var(--m-r-md);
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--m-primary);
-  color: var(--m-on-primary) !important;
-  border: none;
-}
-.m-home.m-home :deep(.daily-task .action-button.secondary) {
-  background: var(--m-card);
-  border: 1px solid var(--m-border);
-  color: var(--m-text2) !important;
-}
-.m-home.m-home :deep(.daily-task .action-button:disabled) {
-  background: var(--m-band);
-  color: var(--m-text3) !important;
-  border-color: transparent;
-}
-/* 卡头状态徽章：进行中 / 已完成 —— 设计稿 B 是绿点 + 绿字，
- * 与挂机卡的「挂机中」同一语义色（fork 的 completed 只绿了完成态）。
- * (0,5,0)/(0,6,0) 压过 fork 的 `.daily-task .status-badge.completed`(0,4,0) */
-.m-home.m-home :deep(.daily-task .status-badge) {
-  background: var(--m-green-soft);
-  color: var(--m-green) !important;
-}
-.m-home.m-home :deep(.daily-task .status-badge .status-dot) {
-  background: var(--m-green);
-}
-
-/* ---------- 挂机 / 盐罐 ---------- */
-.m-home.m-home :deep(.status-card .card-content) {
-  margin-bottom: 9px;
-}
-/* 计时：等宽大数字，整卡的数据焦点 */
-.m-home.m-home :deep(.status-card .time-display) {
-  font-family: var(--m-mono);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  font-variant-numeric: tabular-nums;
-  color: var(--m-text) !important;
-  text-align: center;
-  margin: 2px 0 10px;
-}
-/* MyCard 的 .status-card .active 会给动作行刷一层淡绿底，移动端只留按钮自己的语义 */
-.m-home.m-home :deep(.status-card .card-action) {
-  background: transparent;
-  gap: 8px;
-}
-/* 动作键：32px（全局基线 29px 是给行内小动作的，
-   这三处是整宽主 CTA，单独抬一档）；主键实心蓝、次键白底描边 */
-.m-home.m-home :deep(.card-action > button.action-button) {
-  min-height: 32px;
-  padding: 0 12px;
-  border-radius: var(--m-r-md);
-  font-size: 12px;
-  font-weight: 500;
-}
-.m-home.m-home :deep(.card-action > button.action-button.secondary) {
-  background: var(--m-card);
-  border: 1px solid var(--m-border);
-  color: var(--m-text2) !important;
-}
-.m-home.m-home :deep(.card-action > button.action-button.primary) {
-  background: var(--m-primary);
-  border: 1px solid transparent;
-  color: var(--m-on-primary) !important;
-}
-/* 盐罐卡是 Arco 的 type=primary secondary：背景收到行动蓝，字色也要点名
-   （暗色下 Arco 自带的白字会压在浅主色上） */
-.m-home.m-home :deep(.bottle-helper .card-action .arco-btn) {
-  height: 32px;
-  font-size: 12px;
-  border-radius: var(--m-r-md);
-  background: var(--m-primary);
-  border-color: var(--m-primary);
-  color: var(--m-on-primary) !important;
 }
 
 /* ---------- 全部资产抽屉 ----------

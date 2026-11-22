@@ -6,6 +6,7 @@
 import { $CacheManager } from "@/stores/cache";
 import { bonProtocol, g_utils } from "./bonProtocol.js";
 import { wsLogger, gameLogger } from "./logger.js";
+import { noteServerTime } from "./serverClock.js";
 
 /**
  * 错误码映射表
@@ -1054,6 +1055,10 @@ export class XyzwWebSocketClient {
 
   /** 处理 Promise 响应 */
   _handlePromiseResponse(packet) {
+    /* 每条下行报文都带服务器时间（游戏包 doReceiveMsg 里 `e.time && (serverTime = e.time)`），
+       顺手对齐一次，页面上的倒计时就与游戏面板同一口径 —— 手机时钟偏了也不影响。
+       放在最前面：心跳/推送这类没有对应 promise 的报文同样要对齐。 */
+    noteServerTime(packet?.time ?? packet?._raw?.time);
     // 优先使用resp字段进行响应匹配（新的正确方式）
     if (packet.resp !== undefined && this.promises[packet.resp]) {
       const promiseData = this.promises[packet.resp];
