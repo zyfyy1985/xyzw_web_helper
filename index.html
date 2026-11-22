@@ -51,13 +51,41 @@
         min-height: 100vh;
       }
 
+      /* 一行细环 + 文案：环用 currentColor 留一道缺口，0.8s/圈。
+         底色不动，仍是原来那支紫蓝渐变。 */
       .loading {
         display: flex;
         justify-content: center;
         align-items: center;
+        gap: 9px;
         height: 100vh;
         color: white;
         font-size: 18px;
+      }
+
+      .loading::before {
+        content: "";
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 2px solid currentColor;
+        border-top-color: transparent;
+        opacity: 0.6;
+        animation: ld-spin 0.8s linear infinite;
+      }
+
+      @keyframes ld-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 系统开了「减弱动态效果」就不转圈，只留静止的环 */
+      @media (prefers-reduced-motion: reduce) {
+        .loading::before {
+          animation: none;
+          opacity: 0.35;
+        }
       }
     </style>
   </head>
@@ -66,8 +94,10 @@
       <div class="loading">正在加载应用...</div>
     </div>
     <script type="module" src="/src/main.js"></script>
-    <script type="module" src="/src/xyzw/cocos2d-js-min.js"></script>
-    <script type="module" src="/src/xyzw/game-defines.js"></script>
-    <script type="module" src="/src/xyzw/index.js"></script>
+    <!-- 不要在这里引 /src/xyzw/*（cocos2d-js-min.js / game-defines.js / index.js）：
+         Vite 会把它当入口打进 index.html 的同一个 chunk（产物里 4.7MB 里有 4.2MB 是它们），
+         手机上「正在加载应用...」要等这 4.2MB 下完才消失；而这套引擎/游戏码只属于
+         iframe 里的 public/game，本站源码从不引用 window.cc / window.__require，
+         仅在 MultiPlayer.vue 的注释里被当成引擎行为的出处引用。 -->
   </body>
 </html>

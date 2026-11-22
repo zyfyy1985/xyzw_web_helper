@@ -679,7 +679,7 @@ function toggleExcluded(i) {
 
 /* ---------- 声音：一律不碰 ----------
  * 这里原来做过「只让主控窗出声」：每 2.5s 把主控窗 setMusicVolume/setEffectsVolume 设回 1，
- * 别的窗设 0。问题出在引擎的实现上（src/xyzw/cocos2d-js-min.js）：
+ * 别的窗设 0。问题出在引擎的实现上（游戏包 public/game/assets/cocos2d-js-min.*.js）：
  *   setMusicVolume(v)  { this._music.volume = v; this.setVolume(this._music.id, v) }
  *   setEffectsVolume(v){ this._effect.volume = v; for (var i in a) if (i !== musicId) setVolume(i, v) }
  * 也就是「记下音量 + 立刻改正在播放的实例」。游戏内关声音是它自己的 SoundManager 逐实例
